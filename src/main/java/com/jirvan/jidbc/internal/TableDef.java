@@ -30,10 +30,7 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 package com.jirvan.jidbc.internal;
 
-import com.jirvan.dates.*;
-
 import java.lang.reflect.*;
-import java.math.*;
 import java.util.*;
 
 public class TableDef {
@@ -62,38 +59,38 @@ public class TableDef {
         }
         for (final Field field : rowClass.getFields()) {
 
-            FieldValueHandler.performWithClass(field.getType(),
-                                               new FieldValueHandler.ValueAction() {
+            FieldValueHandler.performForClass(field.getType(),
+                                              new FieldValueHandler.ClassAction() {
 
-                                                   public void performWith(String value) {
-                                                       extractColumnDefFromField(field, tableDef);
-                                                   }
+                                                  public void performFor_String() {
+                                                      extractColumnDefFromField(field, tableDef);
+                                                  }
 
-                                                   public void performWith(Integer value) {
-                                                       extractColumnDefFromField(field, tableDef);
-                                                   }
+                                                  public void performFor_Integer() {
+                                                      extractColumnDefFromField(field, tableDef);
+                                                  }
 
-                                                   public void performWith(Long value) {
-                                                       extractColumnDefFromField(field, tableDef);
-                                                   }
+                                                  public void performFor_Long() {
+                                                      extractColumnDefFromField(field, tableDef);
+                                                  }
 
-                                                   public void performWith(BigDecimal value) {
-                                                       extractColumnDefFromField(field, tableDef);
-                                                   }
+                                                  public void performFor_BigDecimal() {
+                                                      extractColumnDefFromField(field, tableDef);
+                                                  }
 
-                                                   public void performWith(Boolean value) {
-                                                       extractColumnDefFromField(field, tableDef);
-                                                   }
+                                                  public void performFor_Boolean() {
+                                                      extractColumnDefFromField(field, tableDef);
+                                                  }
 
-                                                   public void performWith(java.util.Date value) {
-                                                       extractColumnDefFromField(field, tableDef);
-                                                   }
+                                                  public void performFor_Date() {
+                                                      extractColumnDefFromField(field, tableDef);
+                                                  }
 
-                                                   public void performWith(Day value) {
-                                                       extractColumnDefFromField(field, tableDef);
-                                                   }
+                                                  public void performFor_Day() {
+                                                      extractColumnDefFromField(field, tableDef);
+                                                  }
 
-                                               });
+                                              });
 
         }
         tableDefMap.put(rowClassName, tableDef);

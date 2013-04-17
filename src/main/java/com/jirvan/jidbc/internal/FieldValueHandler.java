@@ -40,6 +40,24 @@ import static com.jirvan.util.Assertions.assertNotNull;
 
 public class FieldValueHandler {
 
+    public static abstract class ClassAction {
+
+        public abstract void performFor_String();
+
+        public abstract void performFor_Integer();
+
+        public abstract void performFor_Long();
+
+        public abstract void performFor_BigDecimal();
+
+        public abstract void performFor_Boolean();
+
+        public abstract void performFor_Date();
+
+        public abstract void performFor_Day();
+
+    }
+
     public static abstract class ValueAction {
 
         public abstract void performWith(String value);
@@ -58,13 +76,30 @@ public class FieldValueHandler {
 
     }
 
+    public static void performForClass(Class fieldClass, ClassAction classAction) {
+        if (fieldClass == String.class) {
+            classAction.performFor_String();
+        } else if (fieldClass == Integer.class) {
+            classAction.performFor_Integer();
+        } else if (fieldClass == Long.class) {
+            classAction.performFor_Long();
+        } else if (fieldClass == BigDecimal.class) {
+            classAction.performFor_BigDecimal();
+        } else if (fieldClass == Boolean.class) {
+            classAction.performFor_Boolean();
+        } else if (fieldClass == Date.class) {
+            classAction.performFor_Date();
+        } else if (fieldClass == Day.class) {
+            classAction.performFor_Day();
+        } else {
+            throw new UnsupportedDataTypeException(String.format("%s is an unsupported type",
+                                                                 fieldClass.getName()));
+        }
+    }
+
     public static void performWithValue(Object value, ValueAction actionSet) {
         assertNotNull(value, "value cannot be null if a fieldClass is not provided");
         performWithValue(value.getClass(), value, actionSet);
-    }
-
-    public static void performWithClass(Class fieldClass, ValueAction actionSet) {
-        performWithValue(fieldClass, null, actionSet);
     }
 
     public static void performWithValue(Class fieldClass, Object value, ValueAction actionSet) {

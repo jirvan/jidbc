@@ -32,6 +32,7 @@ package com.jirvan.jidbc;
 
 import com.jirvan.jidbc.internal.*;
 import com.jirvan.lang.*;
+import com.jirvan.util.*;
 
 import java.sql.*;
 
@@ -44,6 +45,14 @@ public class JidbcConnection {
         this.jdbcConnection = jdbcConnection;
     }
 
+    public static JidbcConnection from(JdbcConnectionConfig connectionConfig) {
+        return new JidbcConnection(Jdbc.getConnection(connectionConfig));
+    }
+
+    public static JidbcConnection fromHomeDirectoryConfigFile(String homeDirectoryConfigFile, String connectionName) {
+        return new JidbcConnection(Jdbc.getConnectionFromHomeDirectoryConfigFile(homeDirectoryConfigFile, connectionName));
+    }
+
     public void release() {
         try {
             jdbcConnection.close();
@@ -52,8 +61,20 @@ public class JidbcConnection {
         }
     }
 
+    public Connection getJdbcConnection() {
+        return jdbcConnection;
+    }
+
     public void insert(Object row) {
         InsertHandler.insert(jdbcConnection, row, null);
+    }
+
+    public void update(Object row, String idColumn) {
+        UpdateHandler.update(jdbcConnection, row, new String[]{idColumn});
+    }
+
+    public void update(Object row, String[] idColumns) {
+        UpdateHandler.update(jdbcConnection, row, idColumns);
     }
 
     public Long insert(Object row, String columnToReturn) {
@@ -63,5 +84,22 @@ public class JidbcConnection {
     public Long takeSequenceNextVal(String sequenceName) {
         return SequenceHandler.takeSequenceNextVal(jdbcConnection, sequenceName);
     }
+
+    public <T> T queryFor(Class rowClass, String sql, Object... parameterValues) {
+        return QueryForHandler.queryFor(jdbcConnection, true, rowClass, sql, parameterValues);
+    }
+
+    public <T> T queryForOptional(Class rowClass, String sql, Object... parameterValues) {
+        return QueryForHandler.queryFor(jdbcConnection, false, rowClass, sql, parameterValues);
+    }
+
+    public Long queryFor_Long(String sql, Object... parameterValues) {
+        return QueryForHandler.queryFor_Long(jdbcConnection, true, sql, parameterValues);
+    }
+
+    public Long queryForOptional_Long(String sql, Object... parameterValues) {
+        return QueryForHandler.queryFor_Long(jdbcConnection, false, sql, parameterValues);
+    }
+
 
 }

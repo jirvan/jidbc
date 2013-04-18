@@ -35,13 +35,31 @@ import com.jirvan.jidbc.lang.*;
 import com.jirvan.lang.*;
 
 import java.sql.*;
-import java.util.Date;
+import java.util.*;
 
 public class QueryForHandler {
 
     public static <T> T queryFor(Connection connection, boolean exceptionIfNotFound, Class rowClass, String sql, Object... parameterValues) {
+        TableDef tableDef;
+        RowExtractor rowExtractor;
+        String sqlToUse;
+        if (Map.class.isAssignableFrom(rowClass)) {
+            tableDef = null;
+            rowExtractor = new MapRowExtractor();
+            sqlToUse = sql;
+        } else if (Object[].class.isAssignableFrom(rowClass)) {
+            tableDef = null;
+            rowExtractor = new ArrayRowExtractor();
+            sqlToUse = sql;
+        } else {
+            tableDef = TableDef.getForRowClass(rowClass);
+            rowExtractor = new ObjectRowExtractor();
+            sqlToUse = sql.matches("(?si)\\s*where\\s+.*")
+                       ? String.format("select * from %s %s", tableDef.tableName, sql)
+                       : sql;
+        }
         try {
-            PreparedStatement statement = connection.prepareStatement(sql);
+            PreparedStatement statement = connection.prepareStatement(sqlToUse);
             try {
 
                 // Set parameter values
@@ -53,7 +71,7 @@ public class QueryForHandler {
                 ResultSet resultSet = statement.executeQuery();
                 T result;
                 if (resultSet.next()) {
-                    result = extractObjectRowFromResultset(rowClass, resultSet);
+                    result = (T) rowExtractor.extractRowFromResultSet(rowClass, tableDef, resultSet);
                 } else {
                     if (exceptionIfNotFound) {
                         throw new NoRowsRuntimeException();
@@ -117,123 +135,90 @@ public class QueryForHandler {
         }
     }
 
-    private static <T> T extractObjectRowFromResultset(Class rowClass, final ResultSet resultSet) {
-        return extractObjectRowFromResultset(rowClass, TableDef.getForRowClass(rowClass), resultSet);
-    }
-
-    private static <T> T extractObjectRowFromResultset(Class rowClass, TableDef tableDef, final ResultSet resultSet) {
+    public static String queryFor_String(Connection connection, boolean exceptionIfNotFound, String sql, Object... parameterValues) {
         try {
-            // Create and return the row
-            final T row = (T) rowClass.newInstance();
-            for (final ColumnDef columnDef : tableDef.columnDefMap.values()) {
+            PreparedStatement statement = connection.prepareStatement(sql);
+            try {
 
+                // Set parameter values and execute query
+                for (int i = 0; i < parameterValues.length; i++) {
+                    statement.setObject(i + 1, parameterValues[i]);
+                }
+                ResultSet resultSet = statement.executeQuery();
+                String result;
+                try {
 
-                FieldValueHandler.performForClass(columnDef.field.getType(),
-                                                  new FieldValueHandler.ClassAction() {
+                    // Get result and check for anything other than exactly one row
+                    if (resultSet.next()) {
+                        String value = resultSet.getString(1);
+                        result = resultSet.wasNull() ? null : value;
+                    } else {
+                        if (exceptionIfNotFound) {
+                            throw new NoRowsRuntimeException();
+                        } else {
+                            return null;
+                        }
+                    }
+                    if (resultSet.next()) {
+                        throw new MultipleRowsRuntimeException();
+                    }
 
-                                                      public void performFor_String() {
-                                                          try {
-                                                              columnDef.field.set(row, resultSet.getString(columnDef.columnName));
-                                                          } catch (IllegalAccessException e) {
-                                                              throw new RuntimeException(e);
-                                                          } catch (SQLException e) {
-                                                              throw new SQLRuntimeException(e);
-                                                          }
-                                                      }
+                } finally {
+                    resultSet.close();
+                }
 
-                                                      public void performFor_Integer() {
-                                                          try {
-                                                              int value = resultSet.getInt(columnDef.columnName);
-                                                              if (resultSet.wasNull()) {
-                                                                  columnDef.field.set(row, null);
-                                                              } else {
-                                                                  columnDef.field.set(row, value);
-                                                              }
-                                                          } catch (SQLException e) {
-                                                              throw new SQLRuntimeException(e);
-                                                          } catch (IllegalAccessException e) {
-                                                              throw new RuntimeException(e);
-                                                          }
-                                                      }
+                // Return the result
+                return result;
 
-                                                      public void performFor_Long() {
-                                                          try {
-                                                              long value = resultSet.getLong(columnDef.columnName);
-                                                              if (resultSet.wasNull()) {
-                                                                  columnDef.field.set(row, null);
-                                                              } else {
-                                                                  columnDef.field.set(row, value);
-                                                              }
-                                                          } catch (SQLException e) {
-                                                              throw new SQLRuntimeException(e);
-                                                          } catch (IllegalAccessException e) {
-                                                              throw new RuntimeException(e);
-                                                          }
-                                                      }
-
-                                                      public void performFor_Boolean() {
-                                                          try {
-                                                              int value = resultSet.getInt(columnDef.columnName);
-                                                              if (resultSet.wasNull()) {
-                                                                  columnDef.field.set(row, null);
-                                                              } else {
-                                                                  columnDef.field.set(row, value != 0);
-                                                              }
-                                                          } catch (SQLException e) {
-                                                              throw new SQLRuntimeException(e);
-                                                          } catch (IllegalAccessException e) {
-                                                              throw new RuntimeException(e);
-                                                          }
-                                                      }
-
-                                                      public void performFor_BigDecimal() {
-                                                          try {
-                                                              columnDef.field.set(row, resultSet.getBigDecimal(columnDef.columnName));
-                                                          } catch (SQLException e) {
-                                                              throw new SQLRuntimeException(e);
-                                                          } catch (IllegalAccessException e) {
-                                                              throw new RuntimeException(e);
-                                                          }
-                                                      }
-
-                                                      public void performFor_Date() {
-                                                          try {
-                                                              Timestamp value = resultSet.getTimestamp(columnDef.columnName);
-                                                              if (resultSet.wasNull()) {
-                                                                  columnDef.field.set(row, null);
-                                                              } else {
-                                                                  columnDef.field.set(row, new Date(value.getTime()));
-                                                              }
-                                                          } catch (SQLException e) {
-                                                              throw new SQLRuntimeException(e);
-                                                          } catch (IllegalAccessException e) {
-                                                              throw new RuntimeException(e);
-                                                          }
-                                                      }
-
-                                                      public void performFor_Day() {
-                                                          try {
-                                                              Timestamp value = resultSet.getTimestamp(columnDef.columnName);
-                                                              if (resultSet.wasNull()) {
-                                                                  columnDef.field.set(row, null);
-                                                              } else {
-                                                                  columnDef.field.set(row, Day.from(new Date(value.getTime())));
-                                                              }
-                                                          } catch (SQLException e) {
-                                                              throw new SQLRuntimeException(e);
-                                                          } catch (IllegalAccessException e) {
-                                                              throw new RuntimeException(e);
-                                                          }
-                                                      }
-
-                                                  });
-
+            } finally {
+                statement.close();
             }
-            return row;
-        } catch (InstantiationException e) {
-            throw new RuntimeException(e);
-        } catch (IllegalAccessException e) {
-            throw new RuntimeException(e);
+        } catch (SQLException e) {
+            throw new SQLRuntimeException(e);
         }
     }
+
+    public static Day queryFor_Day(Connection connection, boolean exceptionIfNotFound, String sql, Object... parameterValues) {
+        try {
+            PreparedStatement statement = connection.prepareStatement(sql);
+            try {
+
+                // Set parameter values and execute query
+                for (int i = 0; i < parameterValues.length; i++) {
+                    statement.setObject(i + 1, parameterValues[i]);
+                }
+                ResultSet resultSet = statement.executeQuery();
+                Day result;
+                try {
+
+                    // Get result and check for anything other than exactly one row
+                    if (resultSet.next()) {
+                        Timestamp value = resultSet.getTimestamp(1);
+                        result = resultSet.wasNull() ? null : Day.from(value);
+                    } else {
+                        if (exceptionIfNotFound) {
+                            throw new NoRowsRuntimeException();
+                        } else {
+                            return null;
+                        }
+                    }
+                    if (resultSet.next()) {
+                        throw new MultipleRowsRuntimeException();
+                    }
+
+                } finally {
+                    resultSet.close();
+                }
+
+                // Return the result
+                return result;
+
+            } finally {
+                statement.close();
+            }
+        } catch (SQLException e) {
+            throw new SQLRuntimeException(e);
+        }
+    }
+
 }

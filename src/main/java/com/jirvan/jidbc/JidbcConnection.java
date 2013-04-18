@@ -30,19 +30,31 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 package com.jirvan.jidbc;
 
+import com.jirvan.dates.*;
 import com.jirvan.jidbc.internal.*;
 import com.jirvan.lang.*;
 import com.jirvan.util.*;
 
+import javax.sql.*;
 import java.sql.*;
+import java.util.*;
 
 
 public class JidbcConnection {
 
     private Connection jdbcConnection;
+    private List<Results> openResultses = new ArrayList<Results>();
 
     public JidbcConnection(Connection jdbcConnection) {
         this.jdbcConnection = jdbcConnection;
+    }
+
+    public static JidbcConnection from(DataSource dataSource) {
+        try {
+            return new JidbcConnection(dataSource.getConnection());
+        } catch (SQLException e) {
+            throw new SQLRuntimeException(e);
+        }
     }
 
     public static JidbcConnection from(JdbcConnectionConfig connectionConfig) {
@@ -55,9 +67,16 @@ public class JidbcConnection {
 
     public void release() {
         try {
+            closeAnyOpenQueryIterables();
             jdbcConnection.close();
         } catch (SQLException e) {
             throw new SQLRuntimeException(e);
+        }
+    }
+
+    public void closeAnyOpenQueryIterables() {
+        for (Results openResults : openResultses.toArray(new Results[openResultses.size()])) {
+            openResults.close();
         }
     }
 
@@ -93,6 +112,14 @@ public class JidbcConnection {
         return QueryForHandler.queryFor(jdbcConnection, false, rowClass, sql, parameterValues);
     }
 
+    public String queryFor_String(String sql, Object... parameterValues) {
+        return QueryForHandler.queryFor_String(jdbcConnection, true, sql, parameterValues);
+    }
+
+    public String queryForOptional_String(String sql, Object... parameterValues) {
+        return QueryForHandler.queryFor_String(jdbcConnection, false, sql, parameterValues);
+    }
+
     public Long queryFor_Long(String sql, Object... parameterValues) {
         return QueryForHandler.queryFor_Long(jdbcConnection, true, sql, parameterValues);
     }
@@ -100,6 +127,55 @@ public class JidbcConnection {
     public Long queryForOptional_Long(String sql, Object... parameterValues) {
         return QueryForHandler.queryFor_Long(jdbcConnection, false, sql, parameterValues);
     }
+
+    public Day queryFor_Day(String sql, Object... parameterValues) {
+        return QueryForHandler.queryFor_Day(jdbcConnection, true, sql, parameterValues);
+    }
+
+    public Day queryForOptional_Day(String sql, Object... parameterValues) {
+        return QueryForHandler.queryFor_Day(jdbcConnection, false, sql, parameterValues);
+    }
+
+    /**
+     * This method executes a query against the database and returns a Results iterable that
+     * can be used to process the results of the query.  Note that using this in "for each"
+     * loops is OK as the JidbcConnection itself "remembers" all open Results iterables and
+     * closes them when it is released if they not been closed in the normal course of events.
+     * Normally the completion of the for loop that is looping through the iterable will close
+     * and release the query resources.  However if there is an exception thrown during loop
+     * processing the Results iterables will be closed by the JidbcConnection when it is
+     * released. The JidbcConnection itself should always be released in a finally block;
+     *
+     * @param rowClass        The class of the rows to be returned
+     * @param sql             The sql for selecting the rows from the database.  If
+     *                        the sql starts with "where " then "select * from tableName "
+     *                        will be prepended to the sql (the table name is determined from
+     *                        the row class)
+     * @param parameterValues Any parameter values associated with the sql
+     * @return A Results iterable that can be used to process the results
+     *         of the query.
+     */
+    public <T> Results<? extends T> query(Class rowClass, String sql, Object... parameterValues) {
+        return new Results<T>(jdbcConnection, openResultses, rowClass, sql, parameterValues);
+    }
+
+//    public static void main(String[] args) {
+//
+//        JidbcConnection jibc = JidbcConnection.fromHomeDirectoryConfigFile(".kfund.config", "main");
+//        try {
+//
+//            for (Object row : jibc.<Object>query(InvoicesRow.class, "where outstanding_amount > 2000\n" +
+//                                                           "  and days_overdue > 90\n" +
+//                                                           "limit 3")) {
+//                int sdf = 3;
+//            }
+//
+//
+//        } finally {
+//            jibc.release();
+//        }
+//
+//    }
 
 
 }

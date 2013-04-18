@@ -42,17 +42,6 @@ import java.util.Date;
 
 public class UpdateHandler {
 
-
-//    public static void main(String[] args) {
-//
-//        JidbcConnection jidbc = JidbcConnection.fromHomeDirectoryConfigFile(".kfund.config", "merchantdata-zac");
-//
-//        InvoicesRow invoicesRow = new InvoicesRow();
-//
-//        update(jidbc.getJdbcConnection(), invoicesRow, new String[]{"id", "merchant_abn_number"});
-//
-//    }
-
     public static void update(Connection connection, Object row, String[] idColumns) {
 
         TableDef tableDef = TableDef.getForRowClass(row.getClass());

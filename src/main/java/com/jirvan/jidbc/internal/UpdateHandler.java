@@ -101,38 +101,38 @@ public class UpdateHandler {
         columnSetClausesStringBuilder.append(columnDef.columnName);
         columnSetClausesStringBuilder.append(" = ?");
 
-        FieldValueHandler.performWithValue(columnDef.field.getType(), value,
-                                           new FieldValueHandler.ValueAction() {
+        AttributeValueHandler.performWithValue(columnDef.attributeType, value,
+                                               new AttributeValueHandler.ValueAction() {
 
-                                               public void performWith(String value) {
-                                                   parameterValues.add(value);
-                                               }
+                                                   public void performWith(String value) {
+                                                       parameterValues.add(value);
+                                                   }
 
-                                               public void performWith(Integer value) {
-                                                   parameterValues.add(value);
-                                               }
+                                                   public void performWith(Integer value) {
+                                                       parameterValues.add(value);
+                                                   }
 
-                                               public void performWith(Long value) {
-                                                   parameterValues.add(value);
-                                               }
+                                                   public void performWith(Long value) {
+                                                       parameterValues.add(value);
+                                                   }
 
-                                               public void performWith(BigDecimal value) {
-                                                   parameterValues.add(value);
-                                               }
+                                                   public void performWith(BigDecimal value) {
+                                                       parameterValues.add(value);
+                                                   }
 
-                                               public void performWith(Boolean value) {
-                                                   parameterValues.add(value);
-                                               }
+                                                   public void performWith(Boolean value) {
+                                                       parameterValues.add(value);
+                                                   }
 
-                                               public void performWith(Date value) {
-                                                   parameterValues.add(value == null ? null : new Timestamp(value.getTime()));
-                                               }
+                                                   public void performWith(Date value) {
+                                                       parameterValues.add(value == null ? null : new Timestamp(value.getTime()));
+                                                   }
 
-                                               public void performWith(Day value) {
-                                                   parameterValues.add(value == null ? null : new Timestamp(value.getDate().getTime()));
-                                               }
+                                                   public void performWith(Day value) {
+                                                       parameterValues.add(value == null ? null : new Timestamp(value.getDate().getTime()));
+                                                   }
 
-                                           });
+                                               });
 
     }
 
@@ -144,38 +144,38 @@ public class UpdateHandler {
         columnEqualityClausesStringBuilder.append(columnDef.columnName);
         columnEqualityClausesStringBuilder.append(" = ?");
 
-        FieldValueHandler.performWithValue(columnDef.field.getType(), value,
-                                           new FieldValueHandler.ValueAction() {
+        AttributeValueHandler.performWithValue(columnDef.attributeType, value,
+                                               new AttributeValueHandler.ValueAction() {
 
-                                               public void performWith(String value) {
-                                                   parameterValues.add(value);
-                                               }
+                                                   public void performWith(String value) {
+                                                       parameterValues.add(value);
+                                                   }
 
-                                               public void performWith(Integer value) {
-                                                   parameterValues.add(value);
-                                               }
+                                                   public void performWith(Integer value) {
+                                                       parameterValues.add(value);
+                                                   }
 
-                                               public void performWith(Long value) {
-                                                   parameterValues.add(value);
-                                               }
+                                                   public void performWith(Long value) {
+                                                       parameterValues.add(value);
+                                                   }
 
-                                               public void performWith(BigDecimal value) {
-                                                   parameterValues.add(value);
-                                               }
+                                                   public void performWith(BigDecimal value) {
+                                                       parameterValues.add(value);
+                                                   }
 
-                                               public void performWith(Boolean value) {
-                                                   parameterValues.add(value);
-                                               }
+                                                   public void performWith(Boolean value) {
+                                                       parameterValues.add(value);
+                                                   }
 
-                                               public void performWith(Date value) {
-                                                   parameterValues.add(value == null ? null : new Timestamp(value.getTime()));
-                                               }
+                                                   public void performWith(Date value) {
+                                                       parameterValues.add(value == null ? null : new Timestamp(value.getTime()));
+                                                   }
 
-                                               public void performWith(Day value) {
-                                                   parameterValues.add(value == null ? null : new Timestamp(value.getDate().getTime()));
-                                               }
+                                                   public void performWith(Day value) {
+                                                       parameterValues.add(value == null ? null : new Timestamp(value.getDate().getTime()));
+                                                   }
 
-                                           });
+                                               });
 
     }
 

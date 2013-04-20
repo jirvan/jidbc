@@ -35,11 +35,20 @@ import java.lang.reflect.*;
 public class ColumnDef {
 
     public Field field;
+    public Class<?> attributeType;
+    public Method getterMethod;
+    public Method setterMethod;
     public String columnName;
 
     public Object getValue(Object object) {
         try {
-            return field.get(object);
+            if (getterMethod != null) {
+                return getterMethod.invoke(object);
+            } else {
+                return field.get(object);
+            }
+        } catch (InvocationTargetException e) {
+            throw new RuntimeException(e);
         } catch (IllegalAccessException e) {
             throw new RuntimeException(e);
         }
@@ -47,7 +56,13 @@ public class ColumnDef {
 
     public void setValue(Object object, Object value) {
         try {
-            field.set(object, value);
+            if (setterMethod != null) {
+                setterMethod.invoke(object, value);
+            } else {
+                field.set(object, value);
+            }
+        } catch (InvocationTargetException e) {
+            throw new RuntimeException(e);
         } catch (IllegalAccessException e) {
             throw new RuntimeException(e);
         }

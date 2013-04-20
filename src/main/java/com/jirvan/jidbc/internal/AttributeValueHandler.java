@@ -38,7 +38,7 @@ import java.util.*;
 
 import static com.jirvan.util.Assertions.assertNotNull;
 
-public class FieldValueHandler {
+public class AttributeValueHandler {
 
     public static abstract class ClassAction {
 

@@ -64,38 +64,38 @@ public class InsertHandler {
             columNamesStringBuilder.append(columnDef.columnName);
             paramPlaceHoldersStringBuilder.append("?");
 
-            FieldValueHandler.performWithValue(columnDef.field.getType(), value,
-                                               new FieldValueHandler.ValueAction() {
+            AttributeValueHandler.performWithValue(columnDef.attributeType, value,
+                                                   new AttributeValueHandler.ValueAction() {
 
-                                                   public void performWith(String value) {
-                                                       parameterValues.add(value);
-                                                   }
+                                                       public void performWith(String value) {
+                                                           parameterValues.add(value);
+                                                       }
 
-                                                   public void performWith(Integer value) {
-                                                       parameterValues.add(value);
-                                                   }
+                                                       public void performWith(Integer value) {
+                                                           parameterValues.add(value);
+                                                       }
 
-                                                   public void performWith(Long value) {
-                                                       parameterValues.add(value);
-                                                   }
+                                                       public void performWith(Long value) {
+                                                           parameterValues.add(value);
+                                                       }
 
-                                                   public void performWith(BigDecimal value) {
-                                                       parameterValues.add(value);
-                                                   }
+                                                       public void performWith(BigDecimal value) {
+                                                           parameterValues.add(value);
+                                                       }
 
-                                                   public void performWith(Boolean value) {
-                                                       parameterValues.add(value);
-                                                   }
+                                                       public void performWith(Boolean value) {
+                                                           parameterValues.add(value);
+                                                       }
 
-                                                   public void performWith(java.util.Date value) {
-                                                       parameterValues.add(value == null ? null : new Timestamp(value.getTime()));
-                                                   }
+                                                       public void performWith(java.util.Date value) {
+                                                           parameterValues.add(value == null ? null : new Timestamp(value.getTime()));
+                                                       }
 
-                                                   public void performWith(Day value) {
-                                                       parameterValues.add(value == null ? null : new Timestamp(value.getDate().getTime()));
-                                                   }
+                                                       public void performWith(Day value) {
+                                                           parameterValues.add(value == null ? null : new Timestamp(value.getDate().getTime()));
+                                                       }
 
-                                               });
+                                                   });
         }
         String sql = columnToReturn == null
                      ? String.format("insert into %s (%s) values (%s)",

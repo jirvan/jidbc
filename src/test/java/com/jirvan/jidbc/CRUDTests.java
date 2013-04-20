@@ -3,29 +3,9 @@ package com.jirvan.jidbc;
 
 import org.testng.annotations.*;
 
-import java.math.*;
-import java.util.*;
-
-import static org.testng.AssertJUnit.*;
+import static org.testng.AssertJUnit.assertEquals;
 
 public class CRUDTests extends TestsBase {
-
-    private final static String DEPARTMENT1_ABBR = "HR";
-    private final static String DEPARTMENT1_NAME = "Human Resources";
-    private final static String DEPARTMENT1_THINGY_TYPE = "Strawberry";
-    private final static Integer DEPARTMENT1_THINGY_NUMBER = 42;
-    private final static BigDecimal DEPARTMENT1_ANOTHER_THINGY = new BigDecimal("42.58");
-    private final static Date DEPARTMENT1_INACTIVATED_DATETIME = new GregorianCalendar(2012, 5, 1).getTime();
-
-    private final static long DEPARTMENT2_ID = 42;
-    private final static String DEPARTMENT2_ABBR = "HR";
-    private final static String DEPARTMENT2_NAME = "Human Resources";
-    private final static Date DEPARTMENT2_INACTIVATED_DATETIME = new GregorianCalendar(2012, 5, 3).getTime();
-
-    private final static long DEPARTMENT3_ID = 423636;
-    private final static String DEPARTMENT3_ABBR = "TR";
-    private final static String DEPARTMENT3_NAME = "Threat Resolution";
-    private final static Date DEPARTMENT3_INACTIVATED_DATETIME = new GregorianCalendar(2012, 8, 1).getTime();
 
 
     @Test
@@ -63,6 +43,48 @@ public class CRUDTests extends TestsBase {
             assertEquals("department.thingy_number", DEPARTMENT1_THINGY_NUMBER, department.thingyNumber);
             assertEquals("department.another_thingy", DEPARTMENT1_ANOTHER_THINGY, department.anotherThingy);
             assertEquals("department.inactivated_datetime", DEPARTMENT1_INACTIVATED_DATETIME, department.inactivatedDatetime);
+
+        } finally {
+            jidbc2.release();
+        }
+
+    }
+
+    @Test
+    public void insertWithExplicitId_and_queryFor_gettersAndSetters() {
+
+
+        // Open a new database connection and do the insert
+        long newDepartmentId;
+        JidbcConnection jidbc = JidbcConnection.from(DATA_SOURCE);
+        try {
+
+            DepartmentTwo department = new DepartmentTwo();
+            department.setDepartmentId(jidbc.takeSequenceNextVal("common_id_sequence"));
+            department.setDepartmentAbbr(DEPARTMENT1_ABBR);
+            department.setDepartmentName(DEPARTMENT1_NAME);
+            department.setThingyType(DEPARTMENT1_THINGY_TYPE);
+            department.setThingyNumber(DEPARTMENT1_THINGY_NUMBER);
+            department.setAnotherThingy(DEPARTMENT1_ANOTHER_THINGY);
+            department.setInactivatedDatetime(DEPARTMENT1_INACTIVATED_DATETIME);
+            jidbc.insert(department);
+            newDepartmentId = department.getDepartmentId();
+
+        } finally {
+            jidbc.release();
+        }
+
+        // Re-open the database connection and check the inserted row
+        JidbcConnection jidbc2 = JidbcConnection.from(DATA_SOURCE);
+        try {
+
+            DepartmentTwo department = jidbc2.queryFor(DepartmentTwo.class, "where department_id = ?", newDepartmentId);
+            assertEquals("department.department_abbr", DEPARTMENT1_ABBR, department.getDepartmentAbbr());
+            assertEquals("department.department_name", DEPARTMENT1_NAME, department.getDepartmentName());
+            assertEquals("department.thingy_type", DEPARTMENT1_THINGY_TYPE, department.getThingyType());
+            assertEquals("department.thingy_number", DEPARTMENT1_THINGY_NUMBER, department.getThingyNumber());
+            assertEquals("department.another_thingy", DEPARTMENT1_ANOTHER_THINGY, department.getAnotherThingy());
+            assertEquals("department.inactivated_datetime", DEPARTMENT1_INACTIVATED_DATETIME, department.getInactivatedDatetime());
 
         } finally {
             jidbc2.release();

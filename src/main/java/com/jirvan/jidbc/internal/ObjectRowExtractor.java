@@ -47,91 +47,91 @@ public class ObjectRowExtractor<T> implements RowExtractor<T> {
             for (final ColumnDef columnDef : tableDef.columnDefs) {
 
 
-                FieldValueHandler.performForClass(columnDef.field.getType(),
-                                                  new FieldValueHandler.ClassAction() {
+                AttributeValueHandler.performForClass(columnDef.attributeType,
+                                                      new AttributeValueHandler.ClassAction() {
 
-                                                      public void performFor_String() {
-                                                          try {
-                                                              columnDef.setValue(row, resultSet.getString(columnDef.columnName));
-                                                          } catch (SQLException e) {
-                                                              throw new SQLRuntimeException(e);
-                                                          }
-                                                      }
-
-                                                      public void performFor_Integer() {
-                                                          try {
-                                                              int value = resultSet.getInt(columnDef.columnName);
-                                                              if (resultSet.wasNull()) {
-                                                                  columnDef.setValue(row, null);
-                                                              } else {
-                                                                  columnDef.setValue(row, value);
+                                                          public void performFor_String() {
+                                                              try {
+                                                                  columnDef.setValue(row, resultSet.getString(columnDef.columnName));
+                                                              } catch (SQLException e) {
+                                                                  throw new SQLRuntimeException(e);
                                                               }
-                                                          } catch (SQLException e) {
-                                                              throw new SQLRuntimeException(e);
                                                           }
-                                                      }
 
-                                                      public void performFor_Long() {
-                                                          try {
-                                                              long value = resultSet.getLong(columnDef.columnName);
-                                                              if (resultSet.wasNull()) {
-                                                                  columnDef.setValue(row, null);
-                                                              } else {
-                                                                  columnDef.setValue(row, value);
+                                                          public void performFor_Integer() {
+                                                              try {
+                                                                  int value = resultSet.getInt(columnDef.columnName);
+                                                                  if (resultSet.wasNull()) {
+                                                                      columnDef.setValue(row, null);
+                                                                  } else {
+                                                                      columnDef.setValue(row, value);
+                                                                  }
+                                                              } catch (SQLException e) {
+                                                                  throw new SQLRuntimeException(e);
                                                               }
-                                                          } catch (SQLException e) {
-                                                              throw new SQLRuntimeException(e);
                                                           }
-                                                      }
 
-                                                      public void performFor_Boolean() {
-                                                          try {
-                                                              int value = resultSet.getInt(columnDef.columnName);
-                                                              if (resultSet.wasNull()) {
-                                                                  columnDef.setValue(row, null);
-                                                              } else {
-                                                                  columnDef.setValue(row, value != 0);
+                                                          public void performFor_Long() {
+                                                              try {
+                                                                  long value = resultSet.getLong(columnDef.columnName);
+                                                                  if (resultSet.wasNull()) {
+                                                                      columnDef.setValue(row, null);
+                                                                  } else {
+                                                                      columnDef.setValue(row, value);
+                                                                  }
+                                                              } catch (SQLException e) {
+                                                                  throw new SQLRuntimeException(e);
                                                               }
-                                                          } catch (SQLException e) {
-                                                              throw new SQLRuntimeException(e);
                                                           }
-                                                      }
 
-                                                      public void performFor_BigDecimal() {
-                                                          try {
-                                                              columnDef.setValue(row, resultSet.getBigDecimal(columnDef.columnName));
-                                                          } catch (SQLException e) {
-                                                              throw new SQLRuntimeException(e);
-                                                          }
-                                                      }
-
-                                                      public void performFor_Date() {
-                                                          try {
-                                                              Timestamp value = resultSet.getTimestamp(columnDef.columnName);
-                                                              if (resultSet.wasNull()) {
-                                                                  columnDef.setValue(row, null);
-                                                              } else {
-                                                                  columnDef.setValue(row, new java.util.Date(value.getTime()));
+                                                          public void performFor_Boolean() {
+                                                              try {
+                                                                  int value = resultSet.getInt(columnDef.columnName);
+                                                                  if (resultSet.wasNull()) {
+                                                                      columnDef.setValue(row, null);
+                                                                  } else {
+                                                                      columnDef.setValue(row, value != 0);
+                                                                  }
+                                                              } catch (SQLException e) {
+                                                                  throw new SQLRuntimeException(e);
                                                               }
-                                                          } catch (SQLException e) {
-                                                              throw new SQLRuntimeException(e);
                                                           }
-                                                      }
 
-                                                      public void performFor_Day() {
-                                                          try {
-                                                              Timestamp value = resultSet.getTimestamp(columnDef.columnName);
-                                                              if (resultSet.wasNull()) {
-                                                                  columnDef.setValue(row, null);
-                                                              } else {
-                                                                  columnDef.setValue(row, Day.from(new java.util.Date(value.getTime())));
+                                                          public void performFor_BigDecimal() {
+                                                              try {
+                                                                  columnDef.setValue(row, resultSet.getBigDecimal(columnDef.columnName));
+                                                              } catch (SQLException e) {
+                                                                  throw new SQLRuntimeException(e);
                                                               }
-                                                          } catch (SQLException e) {
-                                                              throw new SQLRuntimeException(e);
                                                           }
-                                                      }
 
-                                                  });
+                                                          public void performFor_Date() {
+                                                              try {
+                                                                  Timestamp value = resultSet.getTimestamp(columnDef.columnName);
+                                                                  if (resultSet.wasNull()) {
+                                                                      columnDef.setValue(row, null);
+                                                                  } else {
+                                                                      columnDef.setValue(row, new java.util.Date(value.getTime()));
+                                                                  }
+                                                              } catch (SQLException e) {
+                                                                  throw new SQLRuntimeException(e);
+                                                              }
+                                                          }
+
+                                                          public void performFor_Day() {
+                                                              try {
+                                                                  Timestamp value = resultSet.getTimestamp(columnDef.columnName);
+                                                                  if (resultSet.wasNull()) {
+                                                                      columnDef.setValue(row, null);
+                                                                  } else {
+                                                                      columnDef.setValue(row, Day.from(new java.util.Date(value.getTime())));
+                                                                  }
+                                                              } catch (SQLException e) {
+                                                                  throw new SQLRuntimeException(e);
+                                                              }
+                                                          }
+
+                                                      });
 
             }
             return row;

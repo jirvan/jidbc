@@ -38,7 +38,9 @@ public class TableDef {
     private static Map<String, TableDef> tableDefMap = new HashMap<String, TableDef>();
 
     public String tableName;
-    public Map<String, ColumnDef> columnDefMap = new HashMap<String, ColumnDef>();
+    public List<ColumnDef> columnDefs = new ArrayList<ColumnDef>();
+    public Map<String, ColumnDef> pkColumnDefMap = new HashMap<String, ColumnDef>();
+    public Map<String, ColumnDef> nonPkColumnDefMap = new HashMap<String, ColumnDef>();
 
     public static TableDef getForRowClass(Class rowClass) {
         String rowClassName = rowClass.getName();

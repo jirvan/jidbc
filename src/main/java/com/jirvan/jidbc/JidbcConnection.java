@@ -136,6 +136,10 @@ public class JidbcConnection {
         return QueryForHandler.queryFor_Day(jdbcConnection, false, sql, parameterValues);
     }
 
+    public int executeUpdate(String sql, Object... parameters) {
+        return UpdateStatementExecutor.executeUpdate(jdbcConnection, sql, parameters);
+    }
+
     /**
      * This method executes a query against the database and returns a Results iterable that
      * can be used to process the results of the query.  Note that using this in "for each"

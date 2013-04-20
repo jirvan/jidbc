@@ -39,7 +39,7 @@ import java.util.*;
 
 public class QueryForHandler {
 
-    public static <T> T queryFor(Connection connection, boolean exceptionIfNotFound, Class rowClass, String sql, Object... parameterValues) {
+    public static <T> T queryFor(Connection connection, boolean exceptionIfNotFound, Class rowClass, String sql, Object[] parameterValues, boolean isAGet) {
         TableDef tableDef;
         RowExtractor rowExtractor;
         String sqlToUse;
@@ -54,9 +54,16 @@ public class QueryForHandler {
         } else {
             tableDef = TableDef.getForRowClass(rowClass);
             rowExtractor = new ObjectRowExtractor();
-            sqlToUse = sql.matches("(?si)\\s*where\\s+.*")
-                       ? String.format("select * from %s %s", tableDef.tableName, sql)
-                       : sql;
+            if (isAGet) {
+                if (tableDef.pkColumnDefs.size() != 1) {
+                    throw new RuntimeException(String.format("Cannot perform a get for row class %s as it does not have exactly one id field (it has %d)", tableDef.rowClass.getName(), tableDef.pkColumnDefs.size()));
+                }
+                sqlToUse = String.format("select * from %s where %s = ?", tableDef.tableName, tableDef.pkColumnDefs.get(0).columnName);
+            } else if (sql.matches("(?si)\\s*where\\s+.*")) {
+                sqlToUse = String.format("select * from %s %s", tableDef.tableName, sql);
+            } else {
+                sqlToUse = sql;
+            }
         }
         try {
             PreparedStatement statement = connection.prepareStatement(sqlToUse);

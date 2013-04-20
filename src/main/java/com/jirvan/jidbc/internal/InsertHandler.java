@@ -45,7 +45,7 @@ public class InsertHandler {
         TableDef tableDef = TableDef.getForRowClass(row.getClass());
         if (tableDef.generatorSequence != null) {
             if (tableDef.pkColumnDefs.size() != 1) {
-                throw new RuntimeException(String.format("Cannot generate id for row class %s as id does not exactly one id field (it has %d)", tableDef.rowClass.getName(), tableDef.pkColumnDefs.size()));
+                throw new RuntimeException(String.format("Cannot generate id for row class %s as it does not have exactly one id field (it has %d)", tableDef.rowClass.getName(), tableDef.pkColumnDefs.size()));
             } else {
                 tableDef.pkColumnDefs.get(0).setValue(row, SequenceHandler.takeSequenceNextVal(connection, tableDef.generatorSequence));
             }

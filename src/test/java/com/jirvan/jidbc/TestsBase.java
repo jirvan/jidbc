@@ -45,7 +45,6 @@ public class TestsBase {
     private static final String TEST_DATABASE_RECREATE_SCRIPT = Io.getResourceFileString(CRUDTests.class, "testDatabaseRecreateScript.sql");
 
 
-    protected final static Department DEPARTMENT1 = createDepartment1();
     protected final static GetterSetterDepartment GETTER_SETTER_DEPARTMENT1 = createGetterSetterDepartment1();
 
     protected final static long DEPARTMENT2_ID = 42;
@@ -58,15 +57,33 @@ public class TestsBase {
     protected final static String DEPARTMENT3_NAME = "Threat Resolution";
     protected final static Date DEPARTMENT3_INACTIVATED_DATETIME = new GregorianCalendar(2012, 8, 1).getTime();
 
-    private static Department createDepartment1() {
-        Department department = new Department();
-        department.departmentAbbr = "HR";
-        department.departmentName = "Human Resources";
-        department.thingyType = "Strawberry";
-        department.thingyNumber = 42;
-        department.anotherThingy = new BigDecimal("42.58");
-        department.inactivatedDatetime = new GregorianCalendar(2012, 5, 1).getTime();
-        return department;
+    public static class DEPARTMENT1 {
+
+        public static final Long departmentId = null;
+
+        public static final String departmentAbbr = "HR";
+
+        public static final String departmentName = "Human Resources";
+
+        public static final String thingyType = "Strawberry";
+
+        public static final Integer thingyNumber = 42;
+
+        public static final BigDecimal anotherThingy = new BigDecimal("42.58");
+
+        public static final Date inactivatedDatetime = new GregorianCalendar(2012, 5, 1).getTime();
+
+        public static Department newInstance() {
+            Department department = new Department();
+            department.departmentAbbr = departmentAbbr;
+            department.departmentName = departmentName;
+            department.thingyType = thingyType;
+            department.thingyNumber = thingyNumber;
+            department.anotherThingy = anotherThingy;
+            department.inactivatedDatetime = inactivatedDatetime;
+            return department;
+        }
+
     }
 
     private static GetterSetterDepartment createGetterSetterDepartment1() {
@@ -99,37 +116,48 @@ public class TestsBase {
         }
     }
 
-    protected void retrieveFromDatabaseAndAssertAttributeValuesAreEqualToAttributesOf(long newDepartmentId, Department departmentToCompare) {
+    protected void retrieveFromDatabaseAndAssertAttributeValuesAreEqualToDepartment1(long newDepartmentId) {
         JidbcConnection jidbc2 = JidbcConnection.from(DATA_SOURCE);
         try {
 
             Department department = jidbc2.queryFor(Department.class, "where department_id = ?", newDepartmentId);
-            assertEquals("department.department_abbr", departmentToCompare.departmentAbbr, department.departmentAbbr);
-            assertEquals("department.department_name", departmentToCompare.departmentName, department.departmentName);
-            assertEquals("department.thingy_type", departmentToCompare.thingyType, department.thingyType);
-            assertEquals("department.thingy_number", departmentToCompare.thingyNumber, department.thingyNumber);
-            assertEquals("department.another_thingy", departmentToCompare.anotherThingy, department.anotherThingy);
-            assertEquals("department.inactivated_datetime", departmentToCompare.inactivatedDatetime, department.inactivatedDatetime);
+            assertEquals("department.department_abbr", DEPARTMENT1.departmentAbbr, department.departmentAbbr);
+            assertEquals("department.department_name", DEPARTMENT1.departmentName, department.departmentName);
+            assertEquals("department.thingy_type", DEPARTMENT1.thingyType, department.thingyType);
+            assertEquals("department.thingy_number", DEPARTMENT1.thingyNumber, department.thingyNumber);
+            assertEquals("department.another_thingy", DEPARTMENT1.anotherThingy, department.anotherThingy);
+            assertEquals("department.inactivated_datetime", DEPARTMENT1.inactivatedDatetime, department.inactivatedDatetime);
 
         } finally {
             jidbc2.release();
         }
     }
 
-    protected void retrieveFromDatabaseAndAssertAttributeValuesAreEqualToAttributesOf(long newDepartmentId, GetterSetterDepartment departmentToCompare) {
+    protected void retrieveFromDatabaseAndAssertAttributeValuesAreEqualToGetterSetterDepartment1(long newDepartmentId) {
         JidbcConnection jidbc2 = JidbcConnection.from(DATA_SOURCE);
         try {
 
             GetterSetterDepartment department = jidbc2.queryFor(GetterSetterDepartment.class, "where department_id = ?", newDepartmentId);
-            assertEquals("department.department_abbr", departmentToCompare.getDepartmentAbbr(), department.getDepartmentAbbr());
-            assertEquals("department.department_name", departmentToCompare.getDepartmentName(), department.getDepartmentName());
-            assertEquals("department.thingy_type", departmentToCompare.getThingyType(), department.getThingyType());
-            assertEquals("department.thingy_number", departmentToCompare.getThingyNumber(), department.getThingyNumber());
-            assertEquals("department.another_thingy", departmentToCompare.getAnotherThingy(), department.getAnotherThingy());
-            assertEquals("department.inactivated_datetime", departmentToCompare.getInactivatedDatetime(), department.getInactivatedDatetime());
+            assertEquals("department.department_abbr", DEPARTMENT1.departmentAbbr, department.getDepartmentAbbr());
+            assertEquals("department.department_name", DEPARTMENT1.departmentName, department.getDepartmentName());
+            assertEquals("department.thingy_type", DEPARTMENT1.thingyType, department.getThingyType());
+            assertEquals("department.thingy_number", DEPARTMENT1.thingyNumber, department.getThingyNumber());
+            assertEquals("department.another_thingy", DEPARTMENT1.anotherThingy, department.getAnotherThingy());
+            assertEquals("department.inactivated_datetime", DEPARTMENT1.inactivatedDatetime, department.getInactivatedDatetime());
 
         } finally {
             jidbc2.release();
+        }
+    }
+
+    protected long insertDepartment1() {
+        JidbcConnection jidbc = JidbcConnection.from(DATA_SOURCE);
+        try {
+            Department department = DEPARTMENT1.newInstance();
+            jidbc.insert(department);
+            return department.departmentId;
+        } finally {
+            jidbc.release();
         }
     }
 

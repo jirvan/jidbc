@@ -3,6 +3,8 @@ package com.jirvan.jidbc;
 
 import org.testng.annotations.*;
 
+import static org.testng.AssertJUnit.assertEquals;
+
 public class CRUDTests extends TestsBase {
 
 
@@ -31,7 +33,7 @@ public class CRUDTests extends TestsBase {
         }
 
         // Re-open the database connection and check the inserted row
-        retrieveFromDatabaseAndAssertAttributeValuesAreEqualToAttributesOf(newDepartmentId, DEPARTMENT1);
+        retrieveFromDatabaseAndAssertAttributeValuesAreEqualToDepartment1(newDepartmentId);
 
     }
 
@@ -60,7 +62,7 @@ public class CRUDTests extends TestsBase {
         }
 
         // Re-open the database connection and check the inserted row
-        retrieveFromDatabaseAndAssertAttributeValuesAreEqualToAttributesOf(newDepartmentId, GETTER_SETTER_DEPARTMENT1);
+        retrieveFromDatabaseAndAssertAttributeValuesAreEqualToGetterSetterDepartment1(newDepartmentId);
 
     }
 
@@ -88,7 +90,55 @@ public class CRUDTests extends TestsBase {
         }
 
         // Re-open the database connection and check the inserted row
-        retrieveFromDatabaseAndAssertAttributeValuesAreEqualToAttributesOf(newDepartmentId, DEPARTMENT1);
+        retrieveFromDatabaseAndAssertAttributeValuesAreEqualToDepartment1(newDepartmentId);
+
+    }
+
+    @Test
+    public void queryFor() {
+
+        // Open a new database connection and do the insert
+        long newDepartmentId = insertDepartment1();
+
+        // Re-open the database connection and check the inserted row
+        JidbcConnection jidbc2 = JidbcConnection.from(DATA_SOURCE);
+        try {
+
+            Department department = jidbc2.queryFor(Department.class, "where department_id = ?", newDepartmentId);
+            assertEquals("department.department_abbr", DEPARTMENT1.departmentAbbr, department.departmentAbbr);
+            assertEquals("department.department_name", DEPARTMENT1.departmentName, department.departmentName);
+            assertEquals("department.thingy_type", DEPARTMENT1.thingyType, department.thingyType);
+            assertEquals("department.thingy_number", DEPARTMENT1.thingyNumber, department.thingyNumber);
+            assertEquals("department.another_thingy", DEPARTMENT1.anotherThingy, department.anotherThingy);
+            assertEquals("department.inactivated_datetime", DEPARTMENT1.inactivatedDatetime, department.inactivatedDatetime);
+
+        } finally {
+            jidbc2.release();
+        }
+
+    }
+
+    @Test
+    public void get() {
+
+        // Open a new database connection and do the insert
+        long newDepartmentId = insertDepartment1();
+
+        // Re-open the database connection and check the inserted row
+        JidbcConnection jidbc2 = JidbcConnection.from(DATA_SOURCE);
+        try {
+
+            Department department = jidbc2.get(Department.class, newDepartmentId);
+            assertEquals("department.department_abbr", DEPARTMENT1.departmentAbbr, department.departmentAbbr);
+            assertEquals("department.department_name", DEPARTMENT1.departmentName, department.departmentName);
+            assertEquals("department.thingy_type", DEPARTMENT1.thingyType, department.thingyType);
+            assertEquals("department.thingy_number", DEPARTMENT1.thingyNumber, department.thingyNumber);
+            assertEquals("department.another_thingy", DEPARTMENT1.anotherThingy, department.anotherThingy);
+            assertEquals("department.inactivated_datetime", DEPARTMENT1.inactivatedDatetime, department.inactivatedDatetime);
+
+        } finally {
+            jidbc2.release();
+        }
 
     }
 

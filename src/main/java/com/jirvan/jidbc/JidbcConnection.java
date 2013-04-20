@@ -105,11 +105,15 @@ public class JidbcConnection {
     }
 
     public <T> T queryFor(Class rowClass, String sql, Object... parameterValues) {
-        return QueryForHandler.queryFor(jdbcConnection, true, rowClass, sql, parameterValues);
+        return QueryForHandler.queryFor(jdbcConnection, true, rowClass, sql, parameterValues, false);
+    }
+
+    public <T> T get(Class rowClass, Object pkValue) {
+        return QueryForHandler.queryFor(jdbcConnection, true, rowClass, null, new Object[]{pkValue}, true);
     }
 
     public <T> T queryForOptional(Class rowClass, String sql, Object... parameterValues) {
-        return QueryForHandler.queryFor(jdbcConnection, false, rowClass, sql, parameterValues);
+        return QueryForHandler.queryFor(jdbcConnection, false, rowClass, sql, parameterValues, false);
     }
 
     public String queryFor_String(String sql, Object... parameterValues) {

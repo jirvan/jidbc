@@ -30,7 +30,6 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 package com.jirvan.jidbc;
 
-import com.jirvan.jidbc.internal.*;
 import com.jirvan.util.*;
 import org.testng.annotations.*;
 
@@ -44,12 +43,7 @@ public class TestsBase {
     private static final String TEST_DATABASE_RECREATE_SCRIPT = Io.getResourceFileString(CRUDTests.class, "testDatabaseRecreateScript.sql");
 
 
-    protected final static String DEPARTMENT1_ABBR = "HR";
-    protected final static String DEPARTMENT1_NAME = "Human Resources";
-    protected final static String DEPARTMENT1_THINGY_TYPE = "Strawberry";
-    protected final static Integer DEPARTMENT1_THINGY_NUMBER = 42;
-    protected final static BigDecimal DEPARTMENT1_ANOTHER_THINGY = new BigDecimal("42.58");
-    protected final static Date DEPARTMENT1_INACTIVATED_DATETIME = new GregorianCalendar(2012, 5, 1).getTime();
+    protected final static Department DEPARTMENT1 = createDepartment1();
 
     protected final static long DEPARTMENT2_ID = 42;
     protected final static String DEPARTMENT2_ABBR = "HR";
@@ -60,6 +54,17 @@ public class TestsBase {
     protected final static String DEPARTMENT3_ABBR = "TR";
     protected final static String DEPARTMENT3_NAME = "Threat Resolution";
     protected final static Date DEPARTMENT3_INACTIVATED_DATETIME = new GregorianCalendar(2012, 8, 1).getTime();
+
+    private static Department createDepartment1() {
+        Department department = new Department();
+        department.departmentAbbr = "HR";
+        department.departmentName = "Human Resources";
+        department.thingyType = "Strawberry";
+        department.thingyNumber = 42;
+        department.anotherThingy = new BigDecimal("42.58");
+        department.inactivatedDatetime = new GregorianCalendar(2012, 5, 1).getTime();
+        return department;
+    }
 
     @BeforeMethod
     protected void beforeClass() throws Exception {

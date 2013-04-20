@@ -37,6 +37,8 @@ import javax.sql.*;
 import java.math.*;
 import java.util.*;
 
+import static org.testng.AssertJUnit.assertEquals;
+
 public class TestsBase {
 
     protected final static DataSource DATA_SOURCE = Jdbc.getPostgresDataSource("zac/x@gdansk/zacdev");
@@ -44,6 +46,7 @@ public class TestsBase {
 
 
     protected final static Department DEPARTMENT1 = createDepartment1();
+    protected final static GetterSetterDepartment GETTER_SETTER_DEPARTMENT1 = createGetterSetterDepartment1();
 
     protected final static long DEPARTMENT2_ID = 42;
     protected final static String DEPARTMENT2_ABBR = "HR";
@@ -66,6 +69,17 @@ public class TestsBase {
         return department;
     }
 
+    private static GetterSetterDepartment createGetterSetterDepartment1() {
+        GetterSetterDepartment department = new GetterSetterDepartment();
+        department.setDepartmentAbbr("HR");
+        department.setDepartmentName("Human Resources");
+        department.setThingyType("Strawberry");
+        department.setThingyNumber(42);
+        department.setAnotherThingy(new BigDecimal("42.58"));
+        department.setInactivatedDatetime(new GregorianCalendar(2012, 5, 1).getTime());
+        return department;
+    }
+
     @BeforeMethod
     protected void beforeClass() throws Exception {
         JidbcConnection jidbc = JidbcConnection.from(DATA_SOURCE);
@@ -82,6 +96,40 @@ public class TestsBase {
 
         } finally {
             jidbc.release();
+        }
+    }
+
+    protected void retrieveFromDatabaseAndAssertAttributeValuesAreEqualToAttributesOf(long newDepartmentId, Department departmentToCompare) {
+        JidbcConnection jidbc2 = JidbcConnection.from(DATA_SOURCE);
+        try {
+
+            Department department = jidbc2.queryFor(Department.class, "where department_id = ?", newDepartmentId);
+            assertEquals("department.department_abbr", departmentToCompare.departmentAbbr, department.departmentAbbr);
+            assertEquals("department.department_name", departmentToCompare.departmentName, department.departmentName);
+            assertEquals("department.thingy_type", departmentToCompare.thingyType, department.thingyType);
+            assertEquals("department.thingy_number", departmentToCompare.thingyNumber, department.thingyNumber);
+            assertEquals("department.another_thingy", departmentToCompare.anotherThingy, department.anotherThingy);
+            assertEquals("department.inactivated_datetime", departmentToCompare.inactivatedDatetime, department.inactivatedDatetime);
+
+        } finally {
+            jidbc2.release();
+        }
+    }
+
+    protected void retrieveFromDatabaseAndAssertAttributeValuesAreEqualToAttributesOf(long newDepartmentId, GetterSetterDepartment departmentToCompare) {
+        JidbcConnection jidbc2 = JidbcConnection.from(DATA_SOURCE);
+        try {
+
+            GetterSetterDepartment department = jidbc2.queryFor(GetterSetterDepartment.class, "where department_id = ?", newDepartmentId);
+            assertEquals("department.department_abbr", departmentToCompare.getDepartmentAbbr(), department.getDepartmentAbbr());
+            assertEquals("department.department_name", departmentToCompare.getDepartmentName(), department.getDepartmentName());
+            assertEquals("department.thingy_type", departmentToCompare.getThingyType(), department.getThingyType());
+            assertEquals("department.thingy_number", departmentToCompare.getThingyNumber(), department.getThingyNumber());
+            assertEquals("department.another_thingy", departmentToCompare.getAnotherThingy(), department.getAnotherThingy());
+            assertEquals("department.inactivated_datetime", departmentToCompare.getInactivatedDatetime(), department.getInactivatedDatetime());
+
+        } finally {
+            jidbc2.release();
         }
     }
 

@@ -33,7 +33,7 @@ package com.jirvan.jidbc;
 import java.math.*;
 import java.util.*;
 
-public class DepartmentTwo {
+public class GetterSetterDepartment {
 
     private Long departmentId;
 

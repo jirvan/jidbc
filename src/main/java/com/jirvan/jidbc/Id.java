@@ -36,4 +36,5 @@ import java.lang.annotation.*;
 @Target(ElementType.FIELD)
 
 public @interface Id {
+    public String generatorSequence() default "<None>";
 }

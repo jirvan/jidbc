@@ -37,4 +37,21 @@ public class ColumnDef {
     public Field field;
     public String columnName;
 
+    public Object getValue(Object object) {
+        try {
+            return field.get(object);
+        } catch (IllegalAccessException e) {
+            throw new RuntimeException(e);
+        }
+    }
+
+    public void setValue(Object object, Object value) {
+        try {
+            field.set(object, value);
+        } catch (IllegalAccessException e) {
+            throw new RuntimeException(e);
+        }
+
+    }
+
 }

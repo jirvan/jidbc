@@ -38,8 +38,13 @@ public class ObjectRowExtractor<T> implements RowExtractor<T> {
     public T extractRowFromResultSet(Class rowClass, TableDef tableDef, final ResultSet resultSet) {
         try {
             // Create and return the row
-            final T row = (T) rowClass.newInstance();
-            for (final ColumnDef columnDef : tableDef.columnDefMap.values()) {
+            final T row;
+            try {
+                row = (T) rowClass.newInstance();
+            } catch (IllegalAccessException e) {
+                throw new RuntimeException(e);
+            }
+            for (final ColumnDef columnDef : tableDef.columnDefs) {
 
 
                 FieldValueHandler.performForClass(columnDef.field.getType(),
@@ -47,9 +52,7 @@ public class ObjectRowExtractor<T> implements RowExtractor<T> {
 
                                                       public void performFor_String() {
                                                           try {
-                                                              columnDef.field.set(row, resultSet.getString(columnDef.columnName));
-                                                          } catch (IllegalAccessException e) {
-                                                              throw new RuntimeException(e);
+                                                              columnDef.setValue(row, resultSet.getString(columnDef.columnName));
                                                           } catch (SQLException e) {
                                                               throw new SQLRuntimeException(e);
                                                           }
@@ -59,14 +62,12 @@ public class ObjectRowExtractor<T> implements RowExtractor<T> {
                                                           try {
                                                               int value = resultSet.getInt(columnDef.columnName);
                                                               if (resultSet.wasNull()) {
-                                                                  columnDef.field.set(row, null);
+                                                                  columnDef.setValue(row, null);
                                                               } else {
-                                                                  columnDef.field.set(row, value);
+                                                                  columnDef.setValue(row, value);
                                                               }
                                                           } catch (SQLException e) {
                                                               throw new SQLRuntimeException(e);
-                                                          } catch (IllegalAccessException e) {
-                                                              throw new RuntimeException(e);
                                                           }
                                                       }
 
@@ -74,14 +75,12 @@ public class ObjectRowExtractor<T> implements RowExtractor<T> {
                                                           try {
                                                               long value = resultSet.getLong(columnDef.columnName);
                                                               if (resultSet.wasNull()) {
-                                                                  columnDef.field.set(row, null);
+                                                                  columnDef.setValue(row, null);
                                                               } else {
-                                                                  columnDef.field.set(row, value);
+                                                                  columnDef.setValue(row, value);
                                                               }
                                                           } catch (SQLException e) {
                                                               throw new SQLRuntimeException(e);
-                                                          } catch (IllegalAccessException e) {
-                                                              throw new RuntimeException(e);
                                                           }
                                                       }
 
@@ -89,24 +88,20 @@ public class ObjectRowExtractor<T> implements RowExtractor<T> {
                                                           try {
                                                               int value = resultSet.getInt(columnDef.columnName);
                                                               if (resultSet.wasNull()) {
-                                                                  columnDef.field.set(row, null);
+                                                                  columnDef.setValue(row, null);
                                                               } else {
-                                                                  columnDef.field.set(row, value != 0);
+                                                                  columnDef.setValue(row, value != 0);
                                                               }
                                                           } catch (SQLException e) {
                                                               throw new SQLRuntimeException(e);
-                                                          } catch (IllegalAccessException e) {
-                                                              throw new RuntimeException(e);
                                                           }
                                                       }
 
                                                       public void performFor_BigDecimal() {
                                                           try {
-                                                              columnDef.field.set(row, resultSet.getBigDecimal(columnDef.columnName));
+                                                              columnDef.setValue(row, resultSet.getBigDecimal(columnDef.columnName));
                                                           } catch (SQLException e) {
                                                               throw new SQLRuntimeException(e);
-                                                          } catch (IllegalAccessException e) {
-                                                              throw new RuntimeException(e);
                                                           }
                                                       }
 
@@ -114,14 +109,12 @@ public class ObjectRowExtractor<T> implements RowExtractor<T> {
                                                           try {
                                                               Timestamp value = resultSet.getTimestamp(columnDef.columnName);
                                                               if (resultSet.wasNull()) {
-                                                                  columnDef.field.set(row, null);
+                                                                  columnDef.setValue(row, null);
                                                               } else {
-                                                                  columnDef.field.set(row, new java.util.Date(value.getTime()));
+                                                                  columnDef.setValue(row, new java.util.Date(value.getTime()));
                                                               }
                                                           } catch (SQLException e) {
                                                               throw new SQLRuntimeException(e);
-                                                          } catch (IllegalAccessException e) {
-                                                              throw new RuntimeException(e);
                                                           }
                                                       }
 
@@ -129,14 +122,12 @@ public class ObjectRowExtractor<T> implements RowExtractor<T> {
                                                           try {
                                                               Timestamp value = resultSet.getTimestamp(columnDef.columnName);
                                                               if (resultSet.wasNull()) {
-                                                                  columnDef.field.set(row, null);
+                                                                  columnDef.setValue(row, null);
                                                               } else {
-                                                                  columnDef.field.set(row, Day.from(new java.util.Date(value.getTime())));
+                                                                  columnDef.setValue(row, Day.from(new java.util.Date(value.getTime())));
                                                               }
                                                           } catch (SQLException e) {
                                                               throw new SQLRuntimeException(e);
-                                                          } catch (IllegalAccessException e) {
-                                                              throw new RuntimeException(e);
                                                           }
                                                       }
 
@@ -145,8 +136,6 @@ public class ObjectRowExtractor<T> implements RowExtractor<T> {
             }
             return row;
         } catch (InstantiationException e) {
-            throw new RuntimeException(e);
-        } catch (IllegalAccessException e) {
             throw new RuntimeException(e);
         }
     }

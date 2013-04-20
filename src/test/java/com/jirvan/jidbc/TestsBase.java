@@ -30,6 +30,7 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 package com.jirvan.jidbc;
 
+import com.jirvan.jidbc.internal.*;
 import com.jirvan.util.*;
 import org.testng.annotations.*;
 
@@ -40,7 +41,7 @@ public class TestsBase {
     protected final static DataSource DATA_SOURCE = Jdbc.getPostgresDataSource("zac/x@gdansk/zacdev");
     private static final String TEST_DATABASE_RECREATE_SCRIPT = Io.getResourceFileString(CRUDTests.class, "testDatabaseRecreateScript.sql");
 
-    @BeforeClass
+    @BeforeMethod
     protected void beforeClass() throws Exception {
         JidbcConnection jidbc = JidbcConnection.from(DATA_SOURCE);
         try {
@@ -51,6 +52,8 @@ public class TestsBase {
                                                                  .split("(?m); *\\n")) {
                 jidbc.executeUpdate(statement);
             }
+//            TableDef.deregisterRowClasses();
+//            TableDef.registerRowClass(Department.class, "departmentId").setGeneratorSequence("common_id_sequence");
 
         } finally {
             jidbc.release();

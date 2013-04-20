@@ -31,7 +31,6 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 package com.jirvan.jidbc.internal;
 
 import com.jirvan.dates.*;
-import com.jirvan.jidbc.*;
 import com.jirvan.jidbc.lang.*;
 import com.jirvan.util.*;
 
@@ -52,7 +51,7 @@ public class UpdateHandler {
         final List<Object> columnSetParameterValues = new ArrayList<Object>();
         final List<Object> columnEqualityParameterValues = new ArrayList<Object>();
         final List<String> idColumnsRemaining = new ArrayList<String>(Arrays.asList(idColumns));
-        for (ColumnDef columnDef : tableDef.columnDefMap.values()) {
+        for (ColumnDef columnDef : tableDef.columnDefs) {
             if (Strings.in(columnDef.columnName, idColumnsRemaining.toArray(new String[idColumnsRemaining.size()]))) {
                 processPkColumn(row, columnEqualityClausesStringBuilder, columnEqualityParameterValues, columnDef);
                 idColumnsRemaining.remove(columnDef.columnName);
@@ -95,12 +94,7 @@ public class UpdateHandler {
     }
 
     private static void processNonPkColumn(Object row, StringBuilder columnSetClausesStringBuilder, final List<Object> parameterValues, ColumnDef columnDef) {
-        Object value = null;
-        try {
-            value = columnDef.field.get(row);
-        } catch (IllegalAccessException e) {
-            throw new RuntimeException(e);
-        }
+        Object value = columnDef.getValue(row);
         if (columnSetClausesStringBuilder.length() != 0) {
             columnSetClausesStringBuilder.append(",\n   ");
         }
@@ -143,12 +137,7 @@ public class UpdateHandler {
     }
 
     private static void processPkColumn(Object row, StringBuilder columnEqualityClausesStringBuilder, final List<Object> parameterValues, ColumnDef columnDef) {
-        Object value = null;
-        try {
-            value = columnDef.field.get(row);
-        } catch (IllegalAccessException e) {
-            throw new RuntimeException(e);
-        }
+        Object value = columnDef.getValue(row);
         if (columnEqualityClausesStringBuilder.length() != 0) {
             columnEqualityClausesStringBuilder.append("\n  and ");
         }

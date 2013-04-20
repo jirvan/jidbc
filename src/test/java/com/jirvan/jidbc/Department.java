@@ -33,10 +33,9 @@ package com.jirvan.jidbc;
 import java.math.*;
 import java.util.*;
 
-@TableRow
 public class Department {
 
-    @Id
+    @Id(generatorSequence = "common_id_sequence")
     public Long departmentId;
 
     public String departmentAbbr;

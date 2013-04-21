@@ -32,6 +32,8 @@ package com.jirvan.jidbc;
 
 import com.jirvan.dates.*;
 import com.jirvan.jidbc.internal.*;
+import com.jirvan.jidbc.lang.*;
+import com.jirvan.jidbc.lang.NotFoundRuntimeException;
 import com.jirvan.lang.*;
 import com.jirvan.util.*;
 
@@ -88,16 +90,12 @@ public class JidbcConnection {
         InsertHandler.insert(jdbcConnection, row, null);
     }
 
-    public void update(Object row, String idColumn) {
-        UpdateHandler.update(jdbcConnection, row, new String[]{idColumn});
+    public void update(Object row) {
+        UpdateHandler.update(jdbcConnection, row);
     }
 
-    public void update(Object row, String[] idColumns) {
-        UpdateHandler.update(jdbcConnection, row, idColumns);
-    }
-
-    public Long insert(Object row, String columnToReturn) {
-        return InsertHandler.insert(jdbcConnection, row, columnToReturn);
+    public void delete(Object row) {
+        DeleteHandler.delete(jdbcConnection, row);
     }
 
     public Long takeSequenceNextVal(String sequenceName) {
@@ -109,7 +107,15 @@ public class JidbcConnection {
     }
 
     public <T> T get(Class rowClass, Object pkValue) {
-        return QueryForHandler.queryFor(jdbcConnection, true, rowClass, null, new Object[]{pkValue}, true);
+        try {
+            return QueryForHandler.queryFor(jdbcConnection, true, rowClass, null, new Object[]{pkValue}, true);
+        } catch (NoRowsRuntimeException e) {
+            throw new NotFoundRuntimeException(String.format("%s:%s not found", rowClass.getSimpleName().replaceFirst("sRow$", ""), pkValue.toString()));
+        }
+    }
+
+    public <T> T getIfExists(Class rowClass, Object pkValue) {
+        return QueryForHandler.queryFor(jdbcConnection, false, rowClass, null, new Object[]{pkValue}, true);
     }
 
     public <T> T queryForOptional(Class rowClass, String sql, Object... parameterValues) {

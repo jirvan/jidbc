@@ -1,9 +1,12 @@
 package com.jirvan.jidbc;
 
 
+import com.jirvan.jidbc.lang.*;
 import org.testng.annotations.*;
 
-import static org.testng.AssertJUnit.assertEquals;
+import java.util.*;
+
+import static org.testng.AssertJUnit.*;
 
 public class CRUDTests extends TestsBase {
 
@@ -19,12 +22,12 @@ public class CRUDTests extends TestsBase {
 
             Department department = new Department();
             department.departmentId = jidbc.takeSequenceNextVal("common_id_sequence");
-            department.departmentAbbr = DEPARTMENT1.departmentAbbr;
-            department.departmentName = DEPARTMENT1.departmentName;
-            department.thingyType = DEPARTMENT1.thingyType;
-            department.thingyNumber = DEPARTMENT1.thingyNumber;
-            department.anotherThingy = DEPARTMENT1.anotherThingy;
-            department.inactivatedDatetime = DEPARTMENT1.inactivatedDatetime;
+            department.departmentAbbr = DEPARTMENT1.DEPARTMENT_ABBR;
+            department.departmentName = DEPARTMENT1.DEPARTMENT_NAME;
+            department.thingyType = DEPARTMENT1.THINGY_TYPE;
+            department.thingyNumber = DEPARTMENT1.THINGY_NUMBER;
+            department.anotherThingy = DEPARTMENT1.ANOTHER_THINGY;
+            department.inactivatedDatetime = DEPARTMENT1.INACTIVATED_DATETIME;
             jidbc.insert(department);
             newDepartmentId = department.departmentId;
 
@@ -42,27 +45,25 @@ public class CRUDTests extends TestsBase {
 
 
         // Open a new database connection and do the insert
-        long newDepartmentId;
         JidbcConnection jidbc = JidbcConnection.from(DATA_SOURCE);
         try {
 
             GetterSetterDepartment department = new GetterSetterDepartment();
-            department.setDepartmentId(jidbc.takeSequenceNextVal("common_id_sequence"));
-            department.setDepartmentAbbr(DEPARTMENT1.departmentAbbr);
-            department.setDepartmentName(DEPARTMENT1.departmentName);
-            department.setThingyType(DEPARTMENT1.thingyType);
-            department.setThingyNumber(DEPARTMENT1.thingyNumber);
-            department.setAnotherThingy(DEPARTMENT1.anotherThingy);
-            department.setInactivatedDatetime(DEPARTMENT1.inactivatedDatetime);
+            department.setDepartmentId(4242l);
+            department.setDepartmentAbbr(DEPARTMENT1.DEPARTMENT_ABBR);
+            department.setDepartmentName(DEPARTMENT1.DEPARTMENT_NAME);
+            department.setThingyType(DEPARTMENT1.THINGY_TYPE);
+            department.setThingyNumber(DEPARTMENT1.THINGY_NUMBER);
+            department.setAnotherThingy(DEPARTMENT1.ANOTHER_THINGY);
+            department.setInactivatedDatetime(DEPARTMENT1.INACTIVATED_DATETIME);
             jidbc.insert(department);
-            newDepartmentId = department.getDepartmentId();
 
         } finally {
             jidbc.release();
         }
 
         // Re-open the database connection and check the inserted row
-        retrieveFromDatabaseAndAssertAttributeValuesAreEqualToGetterSetterDepartment1(newDepartmentId);
+        retrieveFromDatabaseAndAssertAttributeValuesAreEqualToGetterSetterDepartment1(4242l);
 
     }
 
@@ -76,12 +77,12 @@ public class CRUDTests extends TestsBase {
         try {
 
             Department department = new Department();
-            department.departmentAbbr = DEPARTMENT1.departmentAbbr;
-            department.departmentName = DEPARTMENT1.departmentName;
-            department.thingyType = DEPARTMENT1.thingyType;
-            department.thingyNumber = DEPARTMENT1.thingyNumber;
-            department.anotherThingy = DEPARTMENT1.anotherThingy;
-            department.inactivatedDatetime = DEPARTMENT1.inactivatedDatetime;
+            department.departmentAbbr = DEPARTMENT1.DEPARTMENT_ABBR;
+            department.departmentName = DEPARTMENT1.DEPARTMENT_NAME;
+            department.thingyType = DEPARTMENT1.THINGY_TYPE;
+            department.thingyNumber = DEPARTMENT1.THINGY_NUMBER;
+            department.anotherThingy = DEPARTMENT1.ANOTHER_THINGY;
+            department.inactivatedDatetime = DEPARTMENT1.INACTIVATED_DATETIME;
             jidbc.insert(department);
             newDepartmentId = department.departmentId;
 
@@ -97,20 +98,20 @@ public class CRUDTests extends TestsBase {
     @Test
     public void queryFor() {
 
-        // Open a new database connection and do the insert
-        long newDepartmentId = insertDepartment1();
+        // Open a separate database connection and insert a test row
+        long newDepartmentId = openASeperateConnectionAndInsertDepartment(DEPARTMENT1.newInstance());
 
         // Re-open the database connection and check the inserted row
         JidbcConnection jidbc2 = JidbcConnection.from(DATA_SOURCE);
         try {
 
             Department department = jidbc2.queryFor(Department.class, "where department_id = ?", newDepartmentId);
-            assertEquals("department.department_abbr", DEPARTMENT1.departmentAbbr, department.departmentAbbr);
-            assertEquals("department.department_name", DEPARTMENT1.departmentName, department.departmentName);
-            assertEquals("department.thingy_type", DEPARTMENT1.thingyType, department.thingyType);
-            assertEquals("department.thingy_number", DEPARTMENT1.thingyNumber, department.thingyNumber);
-            assertEquals("department.another_thingy", DEPARTMENT1.anotherThingy, department.anotherThingy);
-            assertEquals("department.inactivated_datetime", DEPARTMENT1.inactivatedDatetime, department.inactivatedDatetime);
+            assertEquals("department.department_abbr", DEPARTMENT1.DEPARTMENT_ABBR, department.departmentAbbr);
+            assertEquals("department.department_name", DEPARTMENT1.DEPARTMENT_NAME, department.departmentName);
+            assertEquals("department.thingy_type", DEPARTMENT1.THINGY_TYPE, department.thingyType);
+            assertEquals("department.thingy_number", DEPARTMENT1.THINGY_NUMBER, department.thingyNumber);
+            assertEquals("department.another_thingy", DEPARTMENT1.ANOTHER_THINGY, department.anotherThingy);
+            assertEquals("department.inactivated_datetime", DEPARTMENT1.INACTIVATED_DATETIME, department.inactivatedDatetime);
 
         } finally {
             jidbc2.release();
@@ -121,20 +122,93 @@ public class CRUDTests extends TestsBase {
     @Test
     public void get() {
 
-        // Open a new database connection and do the insert
-        long newDepartmentId = insertDepartment1();
+        // Open a separate database connection and insert a test row
+        long newDepartmentId = openASeperateConnectionAndInsertDepartment(DEPARTMENT1.newInstance());
 
-        // Re-open the database connection and check the inserted row
+        // Open a different  database connection and check the inserted row
+        JidbcConnection jidbc = JidbcConnection.from(DATA_SOURCE);
+        try {
+
+            Department department = jidbc.get(Department.class, newDepartmentId);
+            assertEquals("department.department_abbr", DEPARTMENT1.DEPARTMENT_ABBR, department.departmentAbbr);
+            assertEquals("department.department_name", DEPARTMENT1.DEPARTMENT_NAME, department.departmentName);
+            assertEquals("department.thingy_type", DEPARTMENT1.THINGY_TYPE, department.thingyType);
+            assertEquals("department.thingy_number", DEPARTMENT1.THINGY_NUMBER, department.thingyNumber);
+            assertEquals("department.another_thingy", DEPARTMENT1.ANOTHER_THINGY, department.anotherThingy);
+            assertEquals("department.inactivated_datetime", DEPARTMENT1.INACTIVATED_DATETIME, department.inactivatedDatetime);
+
+        } finally {
+            jidbc.release();
+        }
+
+    }
+
+    @Test
+    public void getIfExists() {
+
+        // Open a separate database connection and insert a test row
+        openASeperateConnectionAndInsertDepartment(DEPARTMENT3.newInstance());
+
+        // Open a different  database connection and check the inserted row is found
+        JidbcConnection jidbc = JidbcConnection.from(DATA_SOURCE);
+        try {
+
+            assertNotNull(String.format("Expected Department:%d to exist", DEPARTMENT3.DEPARTMENT_ID), jidbc.getIfExists(Department.class, DEPARTMENT3.DEPARTMENT_ID));
+
+        } finally {
+            jidbc.release();
+        }
+
+        // Open another database connection and check non-existent row is not found
         JidbcConnection jidbc2 = JidbcConnection.from(DATA_SOURCE);
         try {
 
-            Department department = jidbc2.get(Department.class, newDepartmentId);
-            assertEquals("department.department_abbr", DEPARTMENT1.departmentAbbr, department.departmentAbbr);
-            assertEquals("department.department_name", DEPARTMENT1.departmentName, department.departmentName);
-            assertEquals("department.thingy_type", DEPARTMENT1.thingyType, department.thingyType);
-            assertEquals("department.thingy_number", DEPARTMENT1.thingyNumber, department.thingyNumber);
-            assertEquals("department.another_thingy", DEPARTMENT1.anotherThingy, department.anotherThingy);
-            assertEquals("department.inactivated_datetime", DEPARTMENT1.inactivatedDatetime, department.inactivatedDatetime);
+            Long departmentId = 575757l;
+            assertNull(String.format("Expected Department:%d not to exist", departmentId), jidbc2.getIfExists(Department.class, departmentId));
+
+        } finally {
+            jidbc.release();
+        }
+
+    }
+
+    @Test
+    public void update() {
+
+        // Open a separate database connection and insert test rows
+        openASeperateConnectionAndInsertDepartment(DEPARTMENT3.newInstance());
+        openASeperateConnectionAndInsertDepartment(DEPARTMENT2.newInstance());
+
+        // Re-connect to the database and fetch the row and update it
+        JidbcConnection jidbc = JidbcConnection.from(DATA_SOURCE);
+        try {
+
+            Department department = jidbc.get(Department.class, DEPARTMENT3.DEPARTMENT_ID);
+            department.departmentAbbr = "Zac";
+            department.departmentName = "Zac's Department";
+            department.inactivatedDatetime = new GregorianCalendar(2009, 8, 14).getTime();
+            jidbc.update(department);
+
+        } finally {
+            jidbc.release();
+        }
+
+
+        // Re-connect to the database and check the updated row and that at least one other row has not been updated
+        JidbcConnection jidbc2 = JidbcConnection.from(DATA_SOURCE);
+        try {
+
+            Department department = jidbc2.get(Department.class, DEPARTMENT3.DEPARTMENT_ID);
+            assertEquals("department.department_id", DEPARTMENT3.DEPARTMENT_ID, department.departmentId);
+            assertEquals("department.department_abbr", "Zac", department.departmentAbbr);
+            assertEquals("department.department_name", "Zac's Department", department.departmentName);
+            assertEquals("department.inactivated_datetime", new GregorianCalendar(2009, 8, 14).getTime(), department.inactivatedDatetime);
+
+            Department department2 = jidbc2.get(Department.class, DEPARTMENT2.DEPARTMENT_ID);
+            assertEquals("department.department_id", DEPARTMENT2.DEPARTMENT_ID, department2.departmentId);
+            assertEquals("department.department_abbr", DEPARTMENT2.DEPARTMENT_ABBR, department2.departmentAbbr);
+            assertEquals("department.department_name", DEPARTMENT2.DEPARTMENT_NAME, department2.departmentName);
+            assertEquals("department.inactivated_datetime", DEPARTMENT2.INACTIVATED_DATETIME, department2.inactivatedDatetime);
 
         } finally {
             jidbc2.release();
@@ -142,197 +216,60 @@ public class CRUDTests extends TestsBase {
 
     }
 
-//    public void test_insert_explicitPk() {
-//
-//        // Open a new database connection and do the insert
-//        long id;
-//        DbConnection conn1 = EnvironmentHelper.openConnectionToTestDatabase();
-//        try {
-//
-//            Department department = new Department();
-//            department.departmentId = DEPARTMENT2_ID;
-//            department.departmentAbbr = DEPARTMENT2_ABBR;
-//            department.departmentName = DEPARTMENT2_NAME;
-//            department.thingyType = "Strawberry";
-//            department.thingyNumber = 42;
-//            department.anotherThingy = BigDecimal.valueOf(42);
-//            department.inactivatedDatetime = DEPARTMENT2_INACTIVATED_DATETIME;
-//            id = department.insert(conn1);
-//
-//            // Check the returned ID
-//            assertEquals("returned ID", DEPARTMENT2_ID, id);
-//
-//        } finally {
-//            conn1.release();
-//        }
-//
-//        // Re-open the database connection and check the inserted row
-//        DbConnection conn2 = EnvironmentHelper.openConnectionToTestDatabase();
-//        try {
-//
-//            Department department = Department.fetch(conn2, id);
-//            assertEquals("department.department_abbr", DEPARTMENT2_ABBR, department.departmentAbbr);
-//            assertEquals("department.department_name", DEPARTMENT2_NAME, department.departmentName);
-//            assertEquals("department.inactivated_datetime", DEPARTMENT2_INACTIVATED_DATETIME, department.inactivatedDatetime);
-//
-//        } finally {
-//            conn2.release();
-//        }
-//
-//    }
-//
-//    public void test_fetch() {
-//
-//        // Open a new connection and insert a test row
-//        DbConnection conn1 = EnvironmentHelper.openConnectionToTestDatabase();
-//        try {
-//
-//            Department department = new Department();
-//            department.departmentId = DEPARTMENT3_ID;
-//            department.departmentAbbr = DEPARTMENT3_ABBR;
-//            department.departmentName = DEPARTMENT3_NAME;
-//            department.thingyType = "Strawberry";
-//            department.thingyNumber = 42;
-//            department.anotherThingy = BigDecimal.valueOf(42);
-//            department.inactivatedDatetime = DEPARTMENT3_INACTIVATED_DATETIME;
-//            department.insert(conn1);
-//
-//        } finally {
-//            conn1.release();
-//        }
-//
-//        // Re-connect to the database and test the fetch method
-//        DbConnection conn2 = EnvironmentHelper.openConnectionToTestDatabase();
-//        try {
-//
-//            Department department = Department.fetch(conn2, DEPARTMENT3_ID);
-//            assertEquals("department.department_id", DEPARTMENT3_ID, (long) department.departmentId);
-//            assertEquals("department.department_abbr", DEPARTMENT3_ABBR, department.departmentAbbr);
-//            assertEquals("department.department_name", DEPARTMENT3_NAME, department.departmentName);
-//            assertEquals("department.inactivated_datetime", DEPARTMENT3_INACTIVATED_DATETIME, department.inactivatedDatetime);
-//
-//        } finally {
-//            conn2.release();
-//        }
-//
-//    }
-//
-//    public void test_update() {
-//
-//        // Open a new connection and insert a test row
-//        DbConnection conn1 = EnvironmentHelper.openConnectionToTestDatabase();
-//        try {
-//
-//            Department department = new Department();
-//            department.departmentId = DEPARTMENT3_ID;
-//            department.departmentAbbr = DEPARTMENT3_ABBR;
-//            department.departmentName = DEPARTMENT3_NAME;
-//            department.thingyType = "Strawberry";
-//            department.thingyNumber = 42;
-//            department.anotherThingy = BigDecimal.valueOf(42);
-//            department.inactivatedDatetime = DEPARTMENT3_INACTIVATED_DATETIME;
-//            department.insert(conn1);
-//
-//        } finally {
-//            conn1.release();
-//        }
-//
-//        // Re-connect to the database and fetch the row and update it
-//        DbConnection conn2 = EnvironmentHelper.openConnectionToTestDatabase();
-//        try {
-//
-//            Department department = Department.fetch(conn2, DEPARTMENT3_ID);
-//            department.departmentAbbr = DEPARTMENT1_ABBR;
-//            department.departmentName = DEPARTMENT2_NAME;
-//            department.inactivatedDatetime = DEPARTMENT1_INACTIVATED_DATETIME;
-//            department.update(conn2);
-//
-//        } finally {
-//            conn2.release();
-//        }
-//
-//
-//        // Re-open the database and check the updated row
-//        DbConnection conn3 = EnvironmentHelper.openConnectionToTestDatabase();
-//        try {
-//
-//            Department department = Department.fetch(conn3, DEPARTMENT3_ID);
-//            assertEquals("department.department_id", (Long) DEPARTMENT3_ID, department.departmentId);
-//            assertEquals("department.department_abbr", DEPARTMENT1_ABBR, department.departmentAbbr);
-//            assertEquals("department.department_name", DEPARTMENT2_NAME, department.departmentName);
-//            assertEquals("department.inactivated_datetime", DEPARTMENT1_INACTIVATED_DATETIME, department.inactivatedDatetime);
-//
-//        } finally {
-//            conn3.release();
-//        }
-//
-//    }
-//
-//
-//    public void test_delete() {
-//
-//        // Open a new connection and insert a test row
-//        DbConnection conn1 = EnvironmentHelper.openConnectionToTestDatabase();
-//        try {
-//
-//            Department department = new Department();
-//            department.departmentId = DEPARTMENT3_ID;
-//            department.departmentAbbr = DEPARTMENT3_ABBR;
-//            department.departmentName = DEPARTMENT3_NAME;
-//            department.thingyType = "Strawberry";
-//            department.thingyNumber = 42;
-//            department.anotherThingy = BigDecimal.valueOf(42);
-//            department.inactivatedDatetime = DEPARTMENT3_INACTIVATED_DATETIME;
-//            department.insert(conn1);
-//
-//        } finally {
-//            conn1.release();
-//        }
-//
-//        // Re-open the database and verify the row is present
-//        DbConnection conn2 = EnvironmentHelper.openConnectionToTestDatabase();
-//        try {
-//
-//            Department department = Department.fetch(conn2, DEPARTMENT3_ID);
-//
-//        } finally {
-//            conn2.release();
-//        }
-//
-//        // Re-open the database and perform the deletion
-//        DbConnection conn3 = EnvironmentHelper.openConnectionToTestDatabase();
-//        try {
-//
-//            Department idOnlyDepartment = new Department();
-//            idOnlyDepartment.departmentId = DEPARTMENT3_ID;
-//            idOnlyDepartment.delete(conn3);
-//
-//        } finally {
-//            conn3.release();
-//        }
-//
-//        // Re-open the database and verify the row is absent
-//        DbConnection conn4 = EnvironmentHelper.openConnectionToTestDatabase();
-//        try {
-//
-//            if (Department.fetchIfExists(conn4, DEPARTMENT3_ID) != null) {
-//                throw new AssertionError(String.format("Department:%d does not appear to have been deleted", DEPARTMENT3_ID));
-//            }
-//
-//        } finally {
-//            conn4.release();
-//        }
-//
-//    }
-//
-//    protected void tearDown() throws Exception {
-//        super.tearDown();
-//        DbConnection conn = EnvironmentHelper.openConnectionToTestDatabase();
-//        try {
-//            conn.executeUpdate("drop table if exists departments_test_table");
-//        } finally {
-//            conn.release();
-//        }
-//    }
+    @Test
+    public void delete() {
+
+        // Open a separate database connection and insert a test row
+        openASeperateConnectionAndInsertDepartment(DEPARTMENT3.newInstance());
+
+        // Re-open the database and verify the row is present
+        JidbcConnection jidbc = JidbcConnection.from(DATA_SOURCE);
+        try {
+
+            Department department = jidbc.get(Department.class, DEPARTMENT3.DEPARTMENT_ID);
+
+        } finally {
+            jidbc.release();
+        }
+
+        // Re-open the database and perform the deletion
+        JidbcConnection jidbc2 = JidbcConnection.from(DATA_SOURCE);
+        try {
+
+            Department idOnlyDepartment = new Department();
+            idOnlyDepartment.departmentId = DEPARTMENT3.DEPARTMENT_ID;
+            jidbc2.delete(idOnlyDepartment);
+
+        } finally {
+            jidbc2.release();
+        }
+
+        // Re-open the database and verify the row is absent
+        JidbcConnection jidbc3 = JidbcConnection.from(DATA_SOURCE);
+        try {
+
+            assertNull(String.format("Department:%d does not appear to have been deleted", DEPARTMENT3.DEPARTMENT_ID), jidbc3.getIfExists(Department.class, DEPARTMENT3.DEPARTMENT_ID));
+
+        } finally {
+            jidbc3.release();
+        }
+
+        // Re-open the database, attempt to delete a non-existent row and check exception
+        JidbcConnection jidbc4 = JidbcConnection.from(DATA_SOURCE);
+        try {
+
+            Department idOnlyDepartment = new Department();
+            idOnlyDepartment.departmentId = 575757l;
+            try {
+                jidbc4.delete(idOnlyDepartment);
+                fail("Expected NotFoundRuntimeException");
+            } catch (NotFoundRuntimeException e) {
+            }
+
+        } finally {
+            jidbc4.release();
+        }
+
+    }
 
 }

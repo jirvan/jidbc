@@ -28,17 +28,48 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 */
 
-package com.jirvan.jidbc.lang;
+package com.jirvan.jidbc.internal;
 
-public class NotFoundRuntimeException extends RuntimeException {
+import com.jirvan.jidbc.lang.*;
+import com.jirvan.jidbc.lang.NotFoundRuntimeException;
+import com.jirvan.lang.*;
 
-    public NotFoundRuntimeException() {
-        super("Not Found");
-    }
+import java.sql.*;
 
-    public NotFoundRuntimeException(String detailMessage) {
-        super(detailMessage);
+public class DeleteHandler extends AbstractPkWhereClauseHandler {
+
+    public static void delete(Connection connection, Object row) {
+
+        try {
+            TableDef tableDef = TableDef.getForRowClass(row.getClass());
+
+            WhereClause whereClause = new WhereClause(tableDef, row);
+
+            String sql = String.format("delete from %s\n%s",
+                                       tableDef.tableName,
+                                       whereClause.sql);
+
+            // Delete the object
+            PreparedStatement statement = connection.prepareStatement(sql);
+            try {
+                int paramIndex = 0;
+                for (int i = 0; i < whereClause.parameterValues.size(); i++) {
+                    statement.setObject(++paramIndex, whereClause.parameterValues.get(i));
+                }
+                int count = statement.executeUpdate();
+                if (count == 0) {
+                    throw new NotFoundRuntimeException("Delete failed - row not found");
+                }
+                if (count > 1) {
+                    throw new MultipleRowsRuntimeException("Delete failed - more than one row deleted");
+                }
+            } finally {
+                statement.close();
+            }
+
+        } catch (SQLException e) {
+            throw new SQLRuntimeException(e);
+        }
     }
 
 }
-

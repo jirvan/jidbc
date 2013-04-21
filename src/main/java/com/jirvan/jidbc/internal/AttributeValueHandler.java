@@ -79,13 +79,13 @@ public class AttributeValueHandler {
     public static void performForClass(Class fieldClass, ClassAction classAction) {
         if (fieldClass == String.class) {
             classAction.performFor_String();
-        } else if (fieldClass == Integer.class) {
+        } else if (fieldClass == Integer.class || fieldClass == int.class) {
             classAction.performFor_Integer();
-        } else if (fieldClass == Long.class) {
+        } else if (fieldClass == Long.class || fieldClass == long.class) {
             classAction.performFor_Long();
         } else if (fieldClass == BigDecimal.class) {
             classAction.performFor_BigDecimal();
-        } else if (fieldClass == Boolean.class) {
+        } else if (fieldClass == Boolean.class || fieldClass == boolean.class) {
             classAction.performFor_Boolean();
         } else if (fieldClass == Date.class) {
             classAction.performFor_Date();
@@ -105,13 +105,13 @@ public class AttributeValueHandler {
     public static void performWithValue(Class fieldClass, Object value, ValueAction actionSet) {
         if (fieldClass == String.class) {
             actionSet.performWith((String) value);
-        } else if (fieldClass == Integer.class) {
+        } else if (fieldClass == Integer.class || fieldClass == int.class) {
             actionSet.performWith((Integer) value);
-        } else if (fieldClass == Long.class) {
+        } else if (fieldClass == Long.class || fieldClass == long.class) {
             actionSet.performWith((Long) value);
         } else if (fieldClass == BigDecimal.class) {
             actionSet.performWith((BigDecimal) value);
-        } else if (fieldClass == Boolean.class) {
+        } else if (fieldClass == Boolean.class || fieldClass == boolean.class) {
             actionSet.performWith((Boolean) value);
         } else if (fieldClass == Date.class) {
             actionSet.performWith((Date) value);

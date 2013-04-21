@@ -31,71 +31,39 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 package com.jirvan.jidbc.internal;
 
 import com.jirvan.dates.*;
-import com.jirvan.jidbc.lang.*;
-import com.jirvan.jidbc.lang.NotFoundRuntimeException;
-import com.jirvan.lang.*;
 
 import java.math.*;
 import java.sql.*;
 import java.util.*;
 import java.util.Date;
 
-public class UpdateHandler extends AbstractPkWhereClauseHandler {
+public class AbstractPkWhereClauseHandler {
 
-    public static void update(Connection connection, Object row) {
-        try {
+    protected static class WhereClause {
 
-            TableDef tableDef = TableDef.getForRowClass(row.getClass());
+        public String sql;
+        public List<Object> parameterValues = new ArrayList<Object>();
 
-            // Build update sql and parameters
-            StringBuilder columnSetClausesStringBuilder = new StringBuilder();
-            final List<Object> columnSetParameterValues = new ArrayList<Object>();
-            for (ColumnDef columnDef : tableDef.nonPkColumnDefs) {
-                processNonPkColumn(row, columnSetClausesStringBuilder, columnSetParameterValues, columnDef);
+        public WhereClause(TableDef tableDef, Object row) {
+            StringBuilder columnEqualityClausesStringBuilder = new StringBuilder();
+            this.parameterValues = new ArrayList<Object>();
+            if (tableDef.pkColumnDefs.size() == 0) {
+                throw new RuntimeException(String.format("%s has no Id columns", row.getClass().getName()));
             }
-
-
-            WhereClause whereClause = new WhereClause(tableDef, row);
-
-
-            String sql = String.format("update %s set\n   %s\n%s",
-                                       tableDef.tableName,
-                                       columnSetClausesStringBuilder.toString(),
-                                       whereClause.sql);
-
-            // Update the object
-            PreparedStatement statement = connection.prepareStatement(sql);
-            try {
-                int paramIndex = 0;
-                for (int i = 0; i < columnSetParameterValues.size(); i++) {
-                    statement.setObject(++paramIndex, columnSetParameterValues.get(i));
-                }
-                for (int i = 0; i < whereClause.parameterValues.size(); i++) {
-                    statement.setObject(++paramIndex, whereClause.parameterValues.get(i));
-                }
-                int count = statement.executeUpdate();
-                if (count == 0) {
-                    throw new NotFoundRuntimeException("Update failed - row not found");
-                }
-                if (count > 1) {
-                    throw new MultipleRowsRuntimeException("Update failed - more than one row updated");
-                }
-            } finally {
-                statement.close();
+            for (ColumnDef columnDef : tableDef.pkColumnDefs) {
+                processPkColumn(row, columnEqualityClausesStringBuilder, this.parameterValues, columnDef);
             }
-
-        } catch (SQLException e) {
-            throw new SQLRuntimeException(e);
+            this.sql = "where " + columnEqualityClausesStringBuilder.toString();
         }
     }
 
-    private static void processNonPkColumn(Object row, StringBuilder columnSetClausesStringBuilder, final List<Object> parameterValues, ColumnDef columnDef) {
+    private static void processPkColumn(Object row, StringBuilder columnEqualityClausesStringBuilder, final List<Object> parameterValues, ColumnDef columnDef) {
         Object value = columnDef.getValue(row);
-        if (columnSetClausesStringBuilder.length() != 0) {
-            columnSetClausesStringBuilder.append(",\n   ");
+        if (columnEqualityClausesStringBuilder.length() != 0) {
+            columnEqualityClausesStringBuilder.append("\n  and ");
         }
-        columnSetClausesStringBuilder.append(columnDef.columnName);
-        columnSetClausesStringBuilder.append(" = ?");
+        columnEqualityClausesStringBuilder.append(columnDef.columnName);
+        columnEqualityClausesStringBuilder.append(" = ?");
 
         AttributeValueHandler.performWithValue(columnDef.attributeType, value,
                                                new AttributeValueHandler.ValueAction() {

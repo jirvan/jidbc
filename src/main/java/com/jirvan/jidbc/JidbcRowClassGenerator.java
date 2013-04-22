@@ -40,7 +40,7 @@ import java.util.*;
 
 import static com.jirvan.util.Assertions.assertFileDoesNotExist;
 
-public class RowClassGenerator {
+public class JidbcRowClassGenerator {
 
 
     public static void main(String[] args) {
@@ -101,7 +101,7 @@ public class RowClassGenerator {
         printStream.printf("public class %s {\n", classSimpleName);
         printStream.printf("\n");
         for (ColumnDetails columnDetails : columnDetailses) {
-            printStream.printf("    public %s %s;\n", columnDetails.javaClassSimpleName, columnDetails.fieldName);
+            printStream.printf("    private %s %s;\n", columnDetails.javaClassSimpleName, columnDetails.fieldName);
         }
         for (ColumnDetails columnDetails : columnDetailses) {
             printStream.printf("\n");

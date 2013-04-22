@@ -57,6 +57,14 @@ public class Results<T> implements Iterable<T> {
         } else {
             tableDef = TableDef.getForRowClass(rowClass);
             rowExtractor = new ObjectRowExtractor();
+            if (sql.equalsIgnoreCase("all")) {
+                sqlToUse = String.format("select * from %s", tableDef.tableName);
+            } else if (sql.matches("(?si)\\s*where\\s+.*")) {
+                sqlToUse = String.format("select * from %s %s", tableDef.tableName, sql);
+            } else {
+                sqlToUse = sql;
+            }
+
             sqlToUse = sql.matches("(?si)\\s*where\\s+.*")
                        ? String.format("select * from %s %s", tableDef.tableName, sql)
                        : sql;

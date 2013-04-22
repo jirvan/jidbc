@@ -38,6 +38,7 @@ import com.jirvan.lang.*;
 import com.jirvan.util.*;
 
 import javax.sql.*;
+import java.io.*;
 import java.sql.*;
 import java.util.*;
 
@@ -67,7 +68,7 @@ public class JidbcConnection {
         return new JidbcConnection(Jdbc.getConnectionFromHomeDirectoryConfigFile(homeDirectoryConfigFile, connectionName));
     }
 
-    public void release() {
+    public void close() {
         try {
             closeAnyOpenQueryIterables();
             jdbcConnection.close();
@@ -86,24 +87,10 @@ public class JidbcConnection {
         return jdbcConnection;
     }
 
+//============================== "CRUD" (create, retrieve, update, delete) methods ==============================
+
     public void insert(Object row) {
         InsertHandler.insert(jdbcConnection, row, null);
-    }
-
-    public void update(Object row) {
-        UpdateHandler.update(jdbcConnection, row);
-    }
-
-    public void delete(Object row) {
-        DeleteHandler.delete(jdbcConnection, row);
-    }
-
-    public Long takeSequenceNextVal(String sequenceName) {
-        return SequenceHandler.takeSequenceNextVal(jdbcConnection, sequenceName);
-    }
-
-    public <T> T queryFor(Class rowClass, String sql, Object... parameterValues) {
-        return QueryForHandler.queryFor(jdbcConnection, true, rowClass, sql, parameterValues, false);
     }
 
     public <T> T get(Class rowClass, Object pkValue) {
@@ -116,6 +103,20 @@ public class JidbcConnection {
 
     public <T> T getIfExists(Class rowClass, Object pkValue) {
         return QueryForHandler.queryFor(jdbcConnection, false, rowClass, null, new Object[]{pkValue}, true);
+    }
+
+    public void update(Object row) {
+        UpdateHandler.update(jdbcConnection, row);
+    }
+
+    public void delete(Object row) {
+        DeleteHandler.delete(jdbcConnection, row);
+    }
+
+//============================== Single returned object row/value methods ==============================
+
+    public <T> T queryFor(Class rowClass, String sql, Object... parameterValues) {
+        return QueryForHandler.queryFor(jdbcConnection, true, rowClass, sql, parameterValues, false);
     }
 
     public <T> T queryForOptional(Class rowClass, String sql, Object... parameterValues) {
@@ -146,9 +147,7 @@ public class JidbcConnection {
         return QueryForHandler.queryFor_Day(jdbcConnection, false, sql, parameterValues);
     }
 
-    public int executeUpdate(String sql, Object... parameters) {
-        return UpdateStatementExecutor.executeUpdate(jdbcConnection, sql, parameters);
-    }
+//============================== Multiple returned row/object methods ==============================
 
     /**
      * This method executes a query against the database and returns a Results iterable that
@@ -173,6 +172,70 @@ public class JidbcConnection {
         return new Results<T>(jdbcConnection, openResultses, rowClass, sql, parameterValues);
     }
 
+
+//============================== "Pass through methods to jdbc methods ==============================
+
+    public int executeUpdate(String sql, Object... parameters) {
+        return UpdateStatementExecutor.executeUpdate(jdbcConnection, sql, parameters);
+    }
+
+    public String getDatabaseProductName() {
+        try {
+            return jdbcConnection.getMetaData().getDatabaseProductName();
+        } catch (SQLException e) {
+            throw new SQLRuntimeException(e);
+        }
+    }
+
+    public String getDatabaseProductVersion() {
+        try {
+            return jdbcConnection.getMetaData().getDatabaseProductVersion();
+        } catch (SQLException e) {
+            throw new SQLRuntimeException(e);
+        }
+    }
+
+    public int getDatabaseMajorVersion() {
+        try {
+            return jdbcConnection.getMetaData().getDatabaseMajorVersion();
+        } catch (SQLException e) {
+            throw new SQLRuntimeException(e);
+        }
+    }
+
+    public int getDatabaseMinorVersion() {
+        try {
+            return jdbcConnection.getMetaData().getDatabaseMinorVersion();
+        } catch (SQLException e) {
+            throw new SQLRuntimeException(e);
+        }
+    }
+
+//============================== Data import/export methods ==============================
+
+    public void importTableDataFromJsonFile(Class rowClass, File inputJsonFile) {
+        JidbcImporter.importTableDataFromJsonFile(this, rowClass, inputJsonFile);
+    }
+
+    public void importTableDataFromJsonString(Class rowClass, String jsonString) {
+        JidbcImporter.importTableDataFromJsonString(this, rowClass, jsonString);
+    }
+
+    public void exportTableDataToJsonFile(String tableName, Class rowClass, File outputJsonFile) {
+        JidbcExporter.exportTableDataToJsonFile(this, rowClass, outputJsonFile);
+    }
+
+    public void exportTableDataToJsonFile(String tableName, Class rowClass, File outputJsonFile, boolean overwriteExistingFile) {
+        JidbcExporter.exportTableDataToJsonFile(this, rowClass, outputJsonFile, overwriteExistingFile);
+    }
+
+//============================== Other methods ==============================
+
+    public Long takeSequenceNextVal(String sequenceName) {
+        return SequenceHandler.takeSequenceNextVal(jdbcConnection, sequenceName);
+    }
+
+
 //    public static void main(String[] args) {
 //
 //        JidbcConnection jibc = JidbcConnection.fromHomeDirectoryConfigFile(".kfund.config", "main");
@@ -186,7 +249,7 @@ public class JidbcConnection {
 //
 //
 //        } finally {
-//            jibc.release();
+//            jibc.close();
 //        }
 //
 //    }

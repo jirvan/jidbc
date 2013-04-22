@@ -161,7 +161,7 @@ public class TestsBase {
 //            TableDef.registerRowClass(DepartmentTwo.class, "departmentId").setGeneratorSequence("common_id_sequence");
 
         } finally {
-            jidbc.release();
+            jidbc.close();
         }
     }
 
@@ -178,7 +178,7 @@ public class TestsBase {
             assertEquals("department.inactivated_datetime", DEPARTMENT1.INACTIVATED_DATETIME, department.inactivatedDatetime);
 
         } finally {
-            jidbc2.release();
+            jidbc2.close();
         }
     }
 
@@ -195,7 +195,7 @@ public class TestsBase {
             assertEquals("department.inactivated_datetime", DEPARTMENT1.INACTIVATED_DATETIME, department.getInactivatedDatetime());
 
         } finally {
-            jidbc2.release();
+            jidbc2.close();
         }
     }
 
@@ -205,7 +205,7 @@ public class TestsBase {
             jidbc.insert(department);
             return department.departmentId;
         } finally {
-            jidbc.release();
+            jidbc.close();
         }
     }
 

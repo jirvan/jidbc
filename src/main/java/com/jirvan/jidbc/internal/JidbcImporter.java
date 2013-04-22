@@ -28,40 +28,38 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 */
 
-package com.jirvan.jidbc;
+package com.jirvan.jidbc.internal;
 
+import com.jirvan.jidbc.*;
 import com.jirvan.util.*;
 
 import java.io.*;
-import java.sql.*;
 
 import static com.jirvan.util.Assertions.assertFileExists;
 
-public class JidbcImport {
+public class JidbcImporter {
 
-
-    public static void importTableDataFromJsonFile(Connection connection, String tableName, final Class rowClass, File inputJsonFile) {
+    public static void importTableDataFromJsonFile(JidbcConnection jidbc, Class rowClass, File inputJsonFile) {
         assertFileExists(inputJsonFile);
         String jsonString = Io.getFileString(inputJsonFile);
-        importTableDataFromJsonString(connection, tableName, rowClass, jsonString);
+        importTableDataFromJsonString(jidbc, rowClass, jsonString);
     }
 
-    public static void importTableDataFromJsonString(Connection connection, String tableName, Class rowClass, String jsonString) {
-        throw new UnsupportedOperationException(); // todo
+    public static void importTableDataFromJsonString(JidbcConnection jidbc, Class rowClass, String jsonString) {
 
-//        // Determine array class
-//        Class rowArrayClass = null;
-//        try {
-//            rowArrayClass = Class.forName("[L" + rowClass.getName() + ";");
-//        } catch (ClassNotFoundException e) {
-//            throw new RuntimeException(e);
-//        }
-//
-//        // Get the rows and insert them
-//        Object[] objects = (Object[]) Json.fromJsonString(jsonString, rowArrayClass);    // Todo read from stream
-//        for (Object row : objects) {
-//            JdbcDbConnection.insert(connection, tableName, row, null);
-//        }
+        // Determine array class
+        Class rowArrayClass = null;
+        try {
+            rowArrayClass = Class.forName("[L" + rowClass.getName() + ";");
+        } catch (ClassNotFoundException e) {
+            throw new RuntimeException(e);
+        }
+
+        // Get the rows and insert them
+        Object[] objects = (Object[]) Json.fromJsonString(jsonString, rowArrayClass);    // Todo read from stream
+        for (Object row : objects) {
+            jidbc.insert(row);
+        }
 
     }
 

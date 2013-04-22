@@ -32,7 +32,7 @@ public class CRUDTests extends TestsBase {
             newDepartmentId = department.departmentId;
 
         } finally {
-            jidbc.release();
+            jidbc.close();
         }
 
         // Re-open the database connection and check the inserted row
@@ -59,7 +59,7 @@ public class CRUDTests extends TestsBase {
             jidbc.insert(department);
 
         } finally {
-            jidbc.release();
+            jidbc.close();
         }
 
         // Re-open the database connection and check the inserted row
@@ -87,7 +87,7 @@ public class CRUDTests extends TestsBase {
             newDepartmentId = department.departmentId;
 
         } finally {
-            jidbc.release();
+            jidbc.close();
         }
 
         // Re-open the database connection and check the inserted row
@@ -114,7 +114,7 @@ public class CRUDTests extends TestsBase {
             assertEquals("department.inactivated_datetime", DEPARTMENT1.INACTIVATED_DATETIME, department.inactivatedDatetime);
 
         } finally {
-            jidbc2.release();
+            jidbc2.close();
         }
 
     }
@@ -138,7 +138,7 @@ public class CRUDTests extends TestsBase {
             assertEquals("department.inactivated_datetime", DEPARTMENT1.INACTIVATED_DATETIME, department.inactivatedDatetime);
 
         } finally {
-            jidbc.release();
+            jidbc.close();
         }
 
     }
@@ -156,7 +156,7 @@ public class CRUDTests extends TestsBase {
             assertNotNull(String.format("Expected Department:%d to exist", DEPARTMENT3.DEPARTMENT_ID), jidbc.getIfExists(Department.class, DEPARTMENT3.DEPARTMENT_ID));
 
         } finally {
-            jidbc.release();
+            jidbc.close();
         }
 
         // Open another database connection and check non-existent row is not found
@@ -167,7 +167,7 @@ public class CRUDTests extends TestsBase {
             assertNull(String.format("Expected Department:%d not to exist", departmentId), jidbc2.getIfExists(Department.class, departmentId));
 
         } finally {
-            jidbc.release();
+            jidbc.close();
         }
 
     }
@@ -190,7 +190,7 @@ public class CRUDTests extends TestsBase {
             jidbc.update(department);
 
         } finally {
-            jidbc.release();
+            jidbc.close();
         }
 
 
@@ -211,7 +211,7 @@ public class CRUDTests extends TestsBase {
             assertEquals("department.inactivated_datetime", DEPARTMENT2.INACTIVATED_DATETIME, department2.inactivatedDatetime);
 
         } finally {
-            jidbc2.release();
+            jidbc2.close();
         }
 
     }
@@ -229,7 +229,7 @@ public class CRUDTests extends TestsBase {
             Department department = jidbc.get(Department.class, DEPARTMENT3.DEPARTMENT_ID);
 
         } finally {
-            jidbc.release();
+            jidbc.close();
         }
 
         // Re-open the database and perform the deletion
@@ -241,7 +241,7 @@ public class CRUDTests extends TestsBase {
             jidbc2.delete(idOnlyDepartment);
 
         } finally {
-            jidbc2.release();
+            jidbc2.close();
         }
 
         // Re-open the database and verify the row is absent
@@ -251,7 +251,7 @@ public class CRUDTests extends TestsBase {
             assertNull(String.format("Department:%d does not appear to have been deleted", DEPARTMENT3.DEPARTMENT_ID), jidbc3.getIfExists(Department.class, DEPARTMENT3.DEPARTMENT_ID));
 
         } finally {
-            jidbc3.release();
+            jidbc3.close();
         }
 
         // Re-open the database, attempt to delete a non-existent row and check exception
@@ -267,7 +267,7 @@ public class CRUDTests extends TestsBase {
             }
 
         } finally {
-            jidbc4.release();
+            jidbc4.close();
         }
 
     }

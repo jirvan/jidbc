@@ -34,11 +34,13 @@ import java.lang.reflect.*;
 
 public class ColumnDef {
 
+    public String attributeName;
     public Field field;
     public Class<?> attributeType;
     public Method getterMethod;
     public Method setterMethod;
     public String columnName;
+    public boolean isInPk;
 
     public Object getValue(Object object) {
         try {

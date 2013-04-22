@@ -84,7 +84,7 @@ public class TableDef {
         }
     }
 
-    private static TableDef extractTableDefFromRowClass(final Class rowClass, final String[] idFields) {
+    private static TableDef extractTableDefFromRowClass(final Class rowClass, final String[] idAttributes) {
 
         // Extract table stuff
         final TableDef tableDef = new TableDef(rowClass);
@@ -108,31 +108,31 @@ public class TableDef {
                                                   new AttributeValueHandler.ClassAction() {
 
                                                       public void performFor_String() {
-                                                          extractAndAddColumnDefFromField(rowClass, field, tableDef, idFields);
+                                                          extractAndAddColumnDefFromField(field, tableDef);
                                                       }
 
                                                       public void performFor_Integer() {
-                                                          extractAndAddColumnDefFromField(rowClass, field, tableDef, idFields);
+                                                          extractAndAddColumnDefFromField(field, tableDef);
                                                       }
 
                                                       public void performFor_Long() {
-                                                          extractAndAddColumnDefFromField(rowClass, field, tableDef, idFields);
+                                                          extractAndAddColumnDefFromField(field, tableDef);
                                                       }
 
                                                       public void performFor_BigDecimal() {
-                                                          extractAndAddColumnDefFromField(rowClass, field, tableDef, idFields);
+                                                          extractAndAddColumnDefFromField(field, tableDef);
                                                       }
 
                                                       public void performFor_Boolean() {
-                                                          extractAndAddColumnDefFromField(rowClass, field, tableDef, idFields);
+                                                          extractAndAddColumnDefFromField(field, tableDef);
                                                       }
 
                                                       public void performFor_Date() {
-                                                          extractAndAddColumnDefFromField(rowClass, field, tableDef, idFields);
+                                                          extractAndAddColumnDefFromField(field, tableDef);
                                                       }
 
                                                       public void performFor_Day() {
-                                                          extractAndAddColumnDefFromField(rowClass, field, tableDef, idFields);
+                                                          extractAndAddColumnDefFromField(field, tableDef);
                                                       }
 
                                                   });
@@ -150,45 +150,67 @@ public class TableDef {
                         final Method getterMethod = method;
                         final String afterGetString = matcher.group(1);
                         final String attributeName = afterGetString.substring(0, 1).toLowerCase() + afterGetString.substring(1);
-                        final Method setterMethod = rowClass.getMethod("set" + afterGetString, method.getReturnType());
-                        AttributeValueHandler.performForClass(getterMethod.getReturnType(),
-                                                              new AttributeValueHandler.ClassAction() {
+                        ColumnDef columnDef = tableDef.columnDefForAttribute(attributeName);
+                        if (columnDef != null) {
+                            columnDef.getterMethod = getterMethod;
+                        } else {
+                            final Method setterMethod = rowClass.getMethod("set" + afterGetString, method.getReturnType());
+                            AttributeValueHandler.performForClass(getterMethod.getReturnType(),
+                                                                  new AttributeValueHandler.ClassAction() {
 
-                                                                  public void performFor_String() {
-                                                                      extractAndAddColumnDefFromGetterSetterMethods(rowClass, attributeName, getterMethod, setterMethod, tableDef, idFields);
-                                                                  }
+                                                                      public void performFor_String() {
+                                                                          extractAndAddColumnDefFromGetterSetterMethods(attributeName, getterMethod, setterMethod, tableDef);
+                                                                      }
 
-                                                                  public void performFor_Integer() {
-                                                                      extractAndAddColumnDefFromGetterSetterMethods(rowClass, attributeName, getterMethod, setterMethod, tableDef, idFields);
-                                                                  }
+                                                                      public void performFor_Integer() {
+                                                                          extractAndAddColumnDefFromGetterSetterMethods(attributeName, getterMethod, setterMethod, tableDef);
+                                                                      }
 
-                                                                  public void performFor_Long() {
-                                                                      extractAndAddColumnDefFromGetterSetterMethods(rowClass, attributeName, getterMethod, setterMethod, tableDef, idFields);
-                                                                  }
+                                                                      public void performFor_Long() {
+                                                                          extractAndAddColumnDefFromGetterSetterMethods(attributeName, getterMethod, setterMethod, tableDef);
+                                                                      }
 
-                                                                  public void performFor_BigDecimal() {
-                                                                      extractAndAddColumnDefFromGetterSetterMethods(rowClass, attributeName, getterMethod, setterMethod, tableDef, idFields);
-                                                                  }
+                                                                      public void performFor_BigDecimal() {
+                                                                          extractAndAddColumnDefFromGetterSetterMethods(attributeName, getterMethod, setterMethod, tableDef);
+                                                                      }
 
-                                                                  public void performFor_Boolean() {
-                                                                      extractAndAddColumnDefFromGetterSetterMethods(rowClass, attributeName, getterMethod, setterMethod, tableDef, idFields);
-                                                                  }
+                                                                      public void performFor_Boolean() {
+                                                                          extractAndAddColumnDefFromGetterSetterMethods(attributeName, getterMethod, setterMethod, tableDef);
+                                                                      }
 
-                                                                  public void performFor_Date() {
-                                                                      extractAndAddColumnDefFromGetterSetterMethods(rowClass, attributeName, getterMethod, setterMethod, tableDef, idFields);
-                                                                  }
+                                                                      public void performFor_Date() {
+                                                                          extractAndAddColumnDefFromGetterSetterMethods(attributeName, getterMethod, setterMethod, tableDef);
+                                                                      }
 
-                                                                  public void performFor_Day() {
-                                                                      extractAndAddColumnDefFromGetterSetterMethods(rowClass, attributeName, getterMethod, setterMethod, tableDef, idFields);
-                                                                  }
+                                                                      public void performFor_Day() {
+                                                                          extractAndAddColumnDefFromGetterSetterMethods(attributeName, getterMethod, setterMethod, tableDef);
+                                                                      }
 
-                                                              });
+                                                                  });
+                        }
                     } catch (NoSuchMethodException e) {
                     }
                 }
 
             }
 
+        }
+
+        // Process annotations
+        for (ColumnDef columnDef : tableDef.columnDefs) {
+            if (columnDef.field != null) {
+                processAnnotationsForField(rowClass, tableDef, idAttributes, columnDef);
+            }
+            if (columnDef.getterMethod != null) {
+                processAnnotationsForGetterSetter(rowClass, tableDef, idAttributes, columnDef);
+            }
+        }
+        for (ColumnDef columnDef : tableDef.columnDefs) {
+            if (columnDef.isInPk) {
+                tableDef.pkColumnDefs.add(columnDef);
+            } else {
+                tableDef.nonPkColumnDefs.add(columnDef);
+            }
         }
 
         // Check id fields and return tableDef
@@ -202,13 +224,29 @@ public class TableDef {
 
     }
 
-    private static void extractAndAddColumnDefFromField(Class rowClass, Field field, TableDef tableDef, String[] idFields) {
+    public ColumnDef columnDefForAttribute(String attributeName) {
+        for (ColumnDef columnDef : columnDefs) {
+            if (columnDef.attributeName.equals(attributeName)) {
+                return columnDef;
+            }
+        }
+        return null;
+    }
+
+    private static void extractAndAddColumnDefFromField(Field field, TableDef tableDef) {
         ColumnDef columnDef = new ColumnDef();
+        columnDef.attributeName = field.getName();
         columnDef.attributeType = field.getType();
         columnDef.field = field;
         columnDef.columnName = guessDatabaseNameFromJavaName(field.getName());
         tableDef.columnDefs.add(columnDef);
-        Annotation annotation = field.getAnnotation(Id.class);
+    }
+
+    private static void processAnnotationsForField(Class rowClass,
+                                                   TableDef tableDef,
+                                                   String[] idFields,
+                                                   ColumnDef columnDef) {
+        Annotation annotation = columnDef.field.getAnnotation(Id.class);
         if (annotation instanceof Id) {
             if (idFields != null && idFields.length > 0) {
                 throw new RuntimeException(String.format("Row class %s has annotated id fields and you have specified id fields in TableDef.registerRowClass(Class rowClass, String... idFields) (you can't do both)", rowClass.getName()));
@@ -224,22 +262,27 @@ public class TableDef {
                     throw new RuntimeException(String.format("Row class %s has more than one id field with a generatorSequence", rowClass.getName()));
                 }
             }
-            tableDef.pkColumnDefs.add(columnDef);
-        } else if (idFields != null && idFields.length > 0 && Strings.in(field.getName(), idFields)) {
-            tableDef.pkColumnDefs.add(columnDef);
-        } else {
-            tableDef.nonPkColumnDefs.add(columnDef);
+            columnDef.isInPk = true;
+        } else if (idFields != null && idFields.length > 0 && Strings.in(columnDef.field.getName(), idFields)) {
+            columnDef.isInPk = true;
         }
     }
 
-    private static void extractAndAddColumnDefFromGetterSetterMethods(Class rowClass, String attributeName, Method getterMethod, Method setterMethod, TableDef tableDef, String[] idAttributes) {
+    private static void extractAndAddColumnDefFromGetterSetterMethods(String attributeName, Method getterMethod, Method setterMethod, TableDef tableDef) {
         ColumnDef columnDef = new ColumnDef();
+        columnDef.attributeName = attributeName;
         columnDef.attributeType = getterMethod.getReturnType();
         columnDef.getterMethod = getterMethod;
         columnDef.setterMethod = setterMethod;
         columnDef.columnName = guessDatabaseNameFromJavaName(attributeName);
         tableDef.columnDefs.add(columnDef);
-        Annotation annotation = getterMethod.getAnnotation(Id.class);
+    }
+
+    private static void processAnnotationsForGetterSetter(Class rowClass,
+                                                          TableDef tableDef,
+                                                          String[] idAttributes,
+                                                          ColumnDef columnDef) {
+        Annotation annotation = columnDef.getterMethod.getAnnotation(Id.class);
         if (annotation instanceof Id) {
             if (idAttributes != null && idAttributes.length > 0) {
                 throw new RuntimeException(String.format("Row class %s has annotated id attributes and you have specified id attributes in TableDef.registerRowClass(Class rowClass, String... idAttributes) (you can't do both)", rowClass.getName()));
@@ -247,7 +290,7 @@ public class TableDef {
             Id idAnnotation = (Id) annotation;
             if (!"<None>".equals(idAnnotation.generatorSequence())) {
                 if (tableDef.generatorSequence == null) {
-                    if (getterMethod.getReturnType() != Long.class) {
+                    if (columnDef.getterMethod.getReturnType() != Long.class) {
                         throw new RuntimeException(String.format("Id attribute %s.%s() has a generatorSequence assigned but is not a Long (only type Long can be generated)", rowClass.getSimpleName(), columnDef.getterMethod.getName()));
                     }
                     tableDef.generatorSequence = idAnnotation.generatorSequence();
@@ -255,11 +298,9 @@ public class TableDef {
                     throw new RuntimeException(String.format("Row class %s has more than one id attribute with a generatorSequence", rowClass.getName()));
                 }
             }
-            tableDef.pkColumnDefs.add(columnDef);
-        } else if (idAttributes != null && idAttributes.length > 0 && Strings.in(attributeName, idAttributes)) {
-            tableDef.pkColumnDefs.add(columnDef);
-        } else {
-            tableDef.nonPkColumnDefs.add(columnDef);
+            columnDef.isInPk = true;
+        } else if (idAttributes != null && idAttributes.length > 0 && Strings.in(columnDef.attributeName, idAttributes)) {
+            columnDef.isInPk = true;
         }
     }
 

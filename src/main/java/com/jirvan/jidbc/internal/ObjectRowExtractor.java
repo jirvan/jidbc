@@ -35,7 +35,7 @@ import java.sql.*;
 
 public class ObjectRowExtractor<T> implements RowExtractor<T> {
 
-    public T extractRowFromResultSet(Class rowClass, TableDef tableDef, final ResultSet resultSet) {
+    public T extractRowFromResultSet(Class rowClass, RowDef rowDef, final ResultSet resultSet) {
         try {
             // Create and return the row
             final T row;
@@ -44,7 +44,7 @@ public class ObjectRowExtractor<T> implements RowExtractor<T> {
             } catch (IllegalAccessException e) {
                 throw new RuntimeException(e);
             }
-            for (final ColumnDef columnDef : tableDef.columnDefs) {
+            for (final ColumnDef columnDef : rowDef.columnDefs) {
 
 
                 AttributeValueHandler.performForClass(columnDef.attributeType,

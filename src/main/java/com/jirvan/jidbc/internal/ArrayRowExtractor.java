@@ -34,7 +34,7 @@ import java.sql.*;
 
 public class ArrayRowExtractor<T> implements RowExtractor<T> {
 
-    public T extractRowFromResultSet(Class rowClass, TableDef tableDef, ResultSet resultSet) {
+    public T extractRowFromResultSet(Class rowClass, RowDef tableDef, ResultSet resultSet) {
         try {
             // Create and return the row
             ResultSetMetaData metaData = resultSet.getMetaData();

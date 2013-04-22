@@ -34,60 +34,52 @@ import com.jirvan.jidbc.*;
 import com.jirvan.util.*;
 
 import java.lang.annotation.*;
-import java.lang.reflect.*;
 import java.util.*;
-import java.util.regex.*;
 
-public class TableDef {
+public class TableDef extends RowDef {
 
-    private static Map<String, TableDef> tableDefMap = new HashMap<String, TableDef>();
-
-    Class rowClass;
     String tableName;
     String generatorSequence;
-    List<ColumnDef> columnDefs = new ArrayList<ColumnDef>();
     List<ColumnDef> pkColumnDefs = new ArrayList<ColumnDef>();
     List<ColumnDef> nonPkColumnDefs = new ArrayList<ColumnDef>();
 
-    public TableDef(Class rowClass) {
-        this.rowClass = rowClass;
+    private TableDef(Class rowClass) {
+        super(rowClass);
+    }
+
+    public static TableDef registerTableDefRowClass(Class rowClass, String... idAttributes) {
+        String rowClassName = rowClass.getName();
+        RowDef rowDef = rowDefMap.get(rowClassName);
+        if (rowDef != null) {
+            throw new RuntimeException("A RowDef for %s already exists.  You need to ensure that the row class is registered only once and that it happens before the row class is ever used (which would trigger an automatic registration)");
+        } else {
+            TableDef tableDef = extractTableDefFromRowClass(rowClass, idAttributes);
+            rowDefMap.put(rowClassName, tableDef);
+            return tableDef;
+        }
+    }
+
+    public static TableDef getTableDefForRowClass(Class rowClass) {
+        String rowClassName = rowClass.getName();
+        RowDef rowDef = rowDefMap.get(rowClassName);
+        if (rowDef == null || !(rowDef instanceof TableDef)) {
+            rowDef = extractTableDefFromRowClass(rowClass, null);
+            rowDefMap.put(rowClassName, rowDef);
+        }
+        return (TableDef) rowDef;
     }
 
     public void setGeneratorSequence(String generatorSequence) {
         this.generatorSequence = generatorSequence;
     }
 
-    public static TableDef getForRowClass(Class rowClass) {
-        String rowClassName = rowClass.getName();
-        String zrowClassSimpleName = rowClass.getSimpleName();
-        TableDef tableDef = tableDefMap.get(rowClassName);
-        if (tableDef == null) {
-            tableDef = extractTableDefFromRowClass(rowClass, null);
-            tableDefMap.put(rowClassName, tableDef);
-        }
-        return tableDef;
-    }
-
-    public static void deregisterRowClasses() {
-        tableDefMap = new HashMap<String, TableDef>();
-    }
-
-    public static TableDef registerRowClass(Class rowClass, String... idAttributes) {
-        String rowClassName = rowClass.getName();
-        TableDef tableDef = tableDefMap.get(rowClassName);
-        if (tableDef != null) {
-            throw new RuntimeException("A TableDef for %s already exists.  You need to ensure that the row class is registered only once and that it happens before the row class is ever used (which would trigger an automatic registration)");
-        } else {
-            tableDef = extractTableDefFromRowClass(rowClass, idAttributes);
-            tableDefMap.put(rowClassName, tableDef);
-            return tableDef;
-        }
-    }
-
     private static TableDef extractTableDefFromRowClass(final Class rowClass, final String[] idAttributes) {
 
-        // Extract table stuff
+        // Add basic column defs
         final TableDef tableDef = new TableDef(rowClass);
+        addBasicColumnDefsToRowDef(rowClass, tableDef);
+
+        // Extract table stuff
         String rowClassSimpleName = rowClass.getSimpleName();
         Annotation annotation = rowClass.getAnnotation(TableRow.class);
         String tableName = annotation instanceof TableRow
@@ -99,101 +91,6 @@ public class TableDef {
             tableDef.tableName = guessDatabaseNameFromJavaName(rowClassSimpleName.replaceFirst("Row$", ""));
         } else {
             tableDef.tableName = guessDatabaseNameFromJavaName(rowClassSimpleName) + "s";
-        }
-
-        // Extract public field based column defs
-        for (final Field field : rowClass.getFields()) {
-
-            AttributeValueHandler.performForClass(field.getType(),
-                                                  new AttributeValueHandler.ClassAction() {
-
-                                                      public void performFor_String() {
-                                                          extractAndAddColumnDefFromField(field, tableDef);
-                                                      }
-
-                                                      public void performFor_Integer() {
-                                                          extractAndAddColumnDefFromField(field, tableDef);
-                                                      }
-
-                                                      public void performFor_Long() {
-                                                          extractAndAddColumnDefFromField(field, tableDef);
-                                                      }
-
-                                                      public void performFor_BigDecimal() {
-                                                          extractAndAddColumnDefFromField(field, tableDef);
-                                                      }
-
-                                                      public void performFor_Boolean() {
-                                                          extractAndAddColumnDefFromField(field, tableDef);
-                                                      }
-
-                                                      public void performFor_Date() {
-                                                          extractAndAddColumnDefFromField(field, tableDef);
-                                                      }
-
-                                                      public void performFor_Day() {
-                                                          extractAndAddColumnDefFromField(field, tableDef);
-                                                      }
-
-                                                  });
-
-        }
-
-        // Extract get/set method based column defs
-        Pattern GET_METHOD_PATTERN = Pattern.compile("^get([A-Z].*)$");
-        for (final Method method : rowClass.getMethods()) {
-            if (method.getParameterTypes().length == 0) {
-
-                Matcher matcher = GET_METHOD_PATTERN.matcher(method.getName());
-                if (matcher.matches()) {
-                    try {
-                        final Method getterMethod = method;
-                        final String afterGetString = matcher.group(1);
-                        final String attributeName = afterGetString.substring(0, 1).toLowerCase() + afterGetString.substring(1);
-                        ColumnDef columnDef = tableDef.columnDefForAttribute(attributeName);
-                        if (columnDef != null) {
-                            columnDef.getterMethod = getterMethod;
-                        } else {
-                            final Method setterMethod = rowClass.getMethod("set" + afterGetString, method.getReturnType());
-                            AttributeValueHandler.performForClass(getterMethod.getReturnType(),
-                                                                  new AttributeValueHandler.ClassAction() {
-
-                                                                      public void performFor_String() {
-                                                                          extractAndAddColumnDefFromGetterSetterMethods(attributeName, getterMethod, setterMethod, tableDef);
-                                                                      }
-
-                                                                      public void performFor_Integer() {
-                                                                          extractAndAddColumnDefFromGetterSetterMethods(attributeName, getterMethod, setterMethod, tableDef);
-                                                                      }
-
-                                                                      public void performFor_Long() {
-                                                                          extractAndAddColumnDefFromGetterSetterMethods(attributeName, getterMethod, setterMethod, tableDef);
-                                                                      }
-
-                                                                      public void performFor_BigDecimal() {
-                                                                          extractAndAddColumnDefFromGetterSetterMethods(attributeName, getterMethod, setterMethod, tableDef);
-                                                                      }
-
-                                                                      public void performFor_Boolean() {
-                                                                          extractAndAddColumnDefFromGetterSetterMethods(attributeName, getterMethod, setterMethod, tableDef);
-                                                                      }
-
-                                                                      public void performFor_Date() {
-                                                                          extractAndAddColumnDefFromGetterSetterMethods(attributeName, getterMethod, setterMethod, tableDef);
-                                                                      }
-
-                                                                      public void performFor_Day() {
-                                                                          extractAndAddColumnDefFromGetterSetterMethods(attributeName, getterMethod, setterMethod, tableDef);
-                                                                      }
-
-                                                                  });
-                        }
-                    } catch (NoSuchMethodException e) {
-                    }
-                }
-
-            }
-
         }
 
         // Process annotations
@@ -224,24 +121,6 @@ public class TableDef {
 
     }
 
-    public ColumnDef columnDefForAttribute(String attributeName) {
-        for (ColumnDef columnDef : columnDefs) {
-            if (columnDef.attributeName.equals(attributeName)) {
-                return columnDef;
-            }
-        }
-        return null;
-    }
-
-    private static void extractAndAddColumnDefFromField(Field field, TableDef tableDef) {
-        ColumnDef columnDef = new ColumnDef();
-        columnDef.attributeName = field.getName();
-        columnDef.attributeType = field.getType();
-        columnDef.field = field;
-        columnDef.columnName = guessDatabaseNameFromJavaName(field.getName());
-        tableDef.columnDefs.add(columnDef);
-    }
-
     private static void processAnnotationsForField(Class rowClass,
                                                    TableDef tableDef,
                                                    String[] idFields,
@@ -249,7 +128,7 @@ public class TableDef {
         Annotation annotation = columnDef.field.getAnnotation(Id.class);
         if (annotation instanceof Id) {
             if (idFields != null && idFields.length > 0) {
-                throw new RuntimeException(String.format("Row class %s has annotated id fields and you have specified id fields in TableDef.registerRowClass(Class rowClass, String... idFields) (you can't do both)", rowClass.getName()));
+                throw new RuntimeException(String.format("Row class %s has annotated id fields and you have specified id fields in RowDef.registerRowClass(Class rowClass, String... idFields) (you can't do both)", rowClass.getName()));
             }
             Id idAnnotation = (Id) annotation;
             if (!"<None>".equals(idAnnotation.generatorSequence())) {
@@ -268,16 +147,6 @@ public class TableDef {
         }
     }
 
-    private static void extractAndAddColumnDefFromGetterSetterMethods(String attributeName, Method getterMethod, Method setterMethod, TableDef tableDef) {
-        ColumnDef columnDef = new ColumnDef();
-        columnDef.attributeName = attributeName;
-        columnDef.attributeType = getterMethod.getReturnType();
-        columnDef.getterMethod = getterMethod;
-        columnDef.setterMethod = setterMethod;
-        columnDef.columnName = guessDatabaseNameFromJavaName(attributeName);
-        tableDef.columnDefs.add(columnDef);
-    }
-
     private static void processAnnotationsForGetterSetter(Class rowClass,
                                                           TableDef tableDef,
                                                           String[] idAttributes,
@@ -285,7 +154,7 @@ public class TableDef {
         Annotation annotation = columnDef.getterMethod.getAnnotation(Id.class);
         if (annotation instanceof Id) {
             if (idAttributes != null && idAttributes.length > 0) {
-                throw new RuntimeException(String.format("Row class %s has annotated id attributes and you have specified id attributes in TableDef.registerRowClass(Class rowClass, String... idAttributes) (you can't do both)", rowClass.getName()));
+                throw new RuntimeException(String.format("Row class %s has annotated id attributes and you have specified id attributes in RowDef.registerRowClass(Class rowClass, String... idAttributes) (you can't do both)", rowClass.getName()));
             }
             Id idAnnotation = (Id) annotation;
             if (!"<None>".equals(idAnnotation.generatorSequence())) {
@@ -302,35 +171,6 @@ public class TableDef {
         } else if (idAttributes != null && idAttributes.length > 0 && Strings.in(columnDef.attributeName, idAttributes)) {
             columnDef.isInPk = true;
         }
-    }
-
-    private static String guessDatabaseNameFromJavaName(String fieldName) {
-        StringBuffer buf = new StringBuffer();
-        char[] chars = fieldName.toCharArray();
-        for (int i = 0; i < chars.length; i++) {
-            char c = chars[i];
-            if (i == 0) {
-                if (c < 'A' || c > 'Z') {
-                    buf.append(c);
-                } else {
-                    buf.append((char) (c - ('A' - 'a')));
-                }
-            } else {
-                if ('0' <= c && c <= '9') {
-                    char previousChar = chars[i - 1];
-                    if ('a' <= previousChar && previousChar <= 'z') {
-                        buf.append('_');
-                    }
-                    buf.append(c);
-                } else if (c < 'A' || c > 'Z') {
-                    buf.append(c);
-                } else {
-                    buf.append('_');
-                    buf.append((char) (c - ('A' - 'a')));
-                }
-            }
-        }
-        return buf.toString();
     }
 
 }

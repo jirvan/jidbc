@@ -42,7 +42,7 @@ public class InsertHandler {
     public static Long insert(Connection connection, Object row, String columnToReturn) {
 
         // Get table def and get auto generated id if appropriate
-        TableDef tableDef = TableDef.getForRowClass(row.getClass());
+        TableDef tableDef = TableDef.getTableDefForRowClass(row.getClass());
         if (tableDef.generatorSequence != null) {
             if (tableDef.pkColumnDefs.size() != 1) {
                 throw new RuntimeException(String.format("Cannot generate id for row class %s as it does not have exactly one id field (it has %d)", tableDef.rowClass.getName(), tableDef.pkColumnDefs.size()));

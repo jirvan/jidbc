@@ -40,28 +40,32 @@ import java.util.*;
 public class QueryForHandler {
 
     public static <T> T queryFor(Connection connection, boolean exceptionIfNotFound, Class rowClass, String sql, Object[] parameterValues, boolean isAGet) {
-        TableDef tableDef;
+        RowDef rowDef;
         RowExtractor rowExtractor;
         String sqlToUse;
         if (Map.class.isAssignableFrom(rowClass)) {
-            tableDef = null;
+            rowDef = null;
             rowExtractor = new MapRowExtractor();
             sqlToUse = sql;
         } else if (Object[].class.isAssignableFrom(rowClass)) {
-            tableDef = null;
+            rowDef = null;
             rowExtractor = new ArrayRowExtractor();
             sqlToUse = sql;
         } else {
-            tableDef = TableDef.getForRowClass(rowClass);
             rowExtractor = new ObjectRowExtractor();
             if (isAGet) {
+                TableDef tableDef = TableDef.getTableDefForRowClass(rowClass);
                 if (tableDef.pkColumnDefs.size() != 1) {
                     throw new RuntimeException(String.format("Cannot perform a get for row class %s as it does not have exactly one id field (it has %d)", tableDef.rowClass.getName(), tableDef.pkColumnDefs.size()));
                 }
+                rowDef = tableDef;
                 sqlToUse = String.format("select * from %s where %s = ?", tableDef.tableName, tableDef.pkColumnDefs.get(0).columnName);
             } else if (sql.matches("(?si)\\s*where\\s+.*")) {
+                TableDef tableDef = TableDef.getTableDefForRowClass(rowClass);
+                rowDef = tableDef;
                 sqlToUse = String.format("select * from %s %s", tableDef.tableName, sql);
             } else {
+                rowDef = RowDef.getRowDefForRowClass(rowClass);
                 sqlToUse = sql;
             }
         }
@@ -78,7 +82,7 @@ public class QueryForHandler {
                 ResultSet resultSet = statement.executeQuery();
                 T result;
                 if (resultSet.next()) {
-                    result = (T) rowExtractor.extractRowFromResultSet(rowClass, tableDef, resultSet);
+                    result = (T) rowExtractor.extractRowFromResultSet(rowClass, rowDef, resultSet);
                 } else {
                     if (exceptionIfNotFound) {
                         throw new NoRowsRuntimeException();

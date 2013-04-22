@@ -41,7 +41,7 @@ public class DeleteHandler extends AbstractPkWhereClauseHandler {
     public static void delete(Connection connection, Object row) {
 
         try {
-            TableDef tableDef = TableDef.getForRowClass(row.getClass());
+            TableDef tableDef = TableDef.getTableDefForRowClass(row.getClass());
 
             WhereClause whereClause = new WhereClause(tableDef, row);
 

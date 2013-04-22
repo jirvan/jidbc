@@ -45,7 +45,7 @@ public class UpdateHandler extends AbstractPkWhereClauseHandler {
     public static void update(Connection connection, Object row) {
         try {
 
-            TableDef tableDef = TableDef.getForRowClass(row.getClass());
+            TableDef tableDef = TableDef.getTableDefForRowClass(row.getClass());
 
             // Build update sql and parameters
             StringBuilder columnSetClausesStringBuilder = new StringBuilder();

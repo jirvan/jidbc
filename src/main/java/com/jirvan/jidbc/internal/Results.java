@@ -35,7 +35,7 @@ import java.util.*;
 
 public class Results<T> implements Iterable<T> {
 
-    private TableDef tableDef;
+    private RowDef rowDef;
     private RowExtractor rowExtractor;
     private List<Results> connectionOpenResultses;
     private Class rowClass;
@@ -47,27 +47,25 @@ public class Results<T> implements Iterable<T> {
 
         String sqlToUse;
         if (Map.class.isAssignableFrom(rowClass)) {
-            tableDef = null;
+            rowDef = null;
             rowExtractor = new MapRowExtractor();
             sqlToUse = sql;
         } else if (Object[].class.isAssignableFrom(rowClass)) {
-            tableDef = null;
+            rowDef = null;
             rowExtractor = new ArrayRowExtractor();
             sqlToUse = sql;
         } else {
-            tableDef = TableDef.getForRowClass(rowClass);
             rowExtractor = new ObjectRowExtractor();
             if (sql.equalsIgnoreCase("all")) {
-                sqlToUse = String.format("select * from %s", tableDef.tableName);
+                rowDef = TableDef.getTableDefForRowClass(rowClass);
+                sqlToUse = String.format("select * from %s", ((TableDef)rowDef).tableName);
             } else if (sql.matches("(?si)\\s*where\\s+.*")) {
-                sqlToUse = String.format("select * from %s %s", tableDef.tableName, sql);
+                rowDef = TableDef.getTableDefForRowClass(rowClass);
+                sqlToUse = String.format("select * from %s %s", ((TableDef)rowDef).tableName, sql);
             } else {
+                rowDef = RowDef.getRowDefForRowClass(rowClass);
                 sqlToUse = sql;
             }
-
-            sqlToUse = sql.matches("(?si)\\s*where\\s+.*")
-                       ? String.format("select * from %s %s", tableDef.tableName, sql)
-                       : sql;
         }
 
         connectionOpenResultses.add(this);
@@ -90,7 +88,7 @@ public class Results<T> implements Iterable<T> {
     private void fetchNext() {
         try {
             if (resultSet.next()) {
-                nextRow = rowExtractor.extractRowFromResultSet(rowClass, tableDef, resultSet);
+                nextRow = rowExtractor.extractRowFromResultSet(rowClass, rowDef, resultSet);
             } else {
                 close();
             }

@@ -35,7 +35,7 @@ import java.util.*;
 
 public class MapRowExtractor<T> implements RowExtractor<T> {
 
-    public T extractRowFromResultSet(Class rowClass, TableDef tableDef, ResultSet resultSet) {
+    public T extractRowFromResultSet(Class rowClass, RowDef rowDef, ResultSet resultSet) {
         try {
             // Create and return the row
             final Map row = rowClass == Map.class

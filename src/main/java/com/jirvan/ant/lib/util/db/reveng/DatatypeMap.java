@@ -64,12 +64,12 @@ public class DatatypeMap {
     }
 
     public static DataTypeDef mappingFor(DataTypeDef fromDataTypeDef, DatatypeMap[] datatypeMaps) {
-        if (datatypeMaps != null) {                                                    zzz
+        if (datatypeMaps != null) {
             for (DatatypeMap datatypeMap : datatypeMaps) {
                 if (DataTypeDef.match(datatypeMap.from, fromDataTypeDef)) {
                     if (datatypeMap.from.getColumnSize().equals(BigDecimal.valueOf(-1))) {
                         return new DataTypeDef(datatypeMap.to.getTypeName(),
-                                               datatypeMap.from.getColumnSize(),
+                                               fromDataTypeDef.getColumnSize(),
                                                datatypeMap.to.getDecimalDigits());
                     } else {
                         return datatypeMap.to;

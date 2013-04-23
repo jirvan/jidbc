@@ -52,15 +52,18 @@ public class UniqueKey {
             while (rset.next()) {
                 String uniqueKeyName = rset.getString("INDEX_NAME");
 //                Map columns = Jdbc.mapRow(rset);
-                System.out.printf("WARNING: unique key with a null name ignored (could be the primary key?)\n");
-                if (uniqueKeyName != null && !uniqueKeyName.equals(primaryKeyName)) {
-                    SortedMap<Integer, String> columnsSortedMap = keysSortedMap.get(uniqueKeyName);
-                    if (columnsSortedMap == null) {
-                        columnsSortedMap = new TreeMap<Integer, String>();
-                        keysSortedMap.put(uniqueKeyName, columnsSortedMap);
+                if (uniqueKeyName == null) {
+                    System.out.printf("WARNING: unique key with a null name ignored (could be the primary key?)\n");
+                } else {
+                    if (!uniqueKeyName.equals(primaryKeyName)) {
+                        SortedMap<Integer, String> columnsSortedMap = keysSortedMap.get(uniqueKeyName);
+                        if (columnsSortedMap == null) {
+                            columnsSortedMap = new TreeMap<Integer, String>();
+                            keysSortedMap.put(uniqueKeyName, columnsSortedMap);
+                        }
+                        columnsSortedMap.put(rset.getInt("ORDINAL_POSITION"),
+                                             rset.getString("COLUMN_NAME"));
                     }
-                    columnsSortedMap.put(rset.getInt("ORDINAL_POSITION"),
-                                         rset.getString("COLUMN_NAME"));
                 }
             }
             String[] uniqueKeyNames = keysSortedMap.keySet().toArray(new String[keysSortedMap.size()]);

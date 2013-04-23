@@ -37,117 +37,125 @@ import java.sql.*;
 
 public class TableReverseEngineer {
 
-    public static void reverseEngineer(File tablesDir, Table table, CaseSetter nameCase, boolean lowerCaseDataTypes) throws SQLException, IOException {
-
-        int maxDataDefinitionWidth = maxDataDefinitionWidth(table, lowerCaseDataTypes);
-
+    public static void reverseEngineer(File tablesDir, Table table, CaseSetter nameCase, boolean lowerCaseDataTypes) throws IOException {
         String fileName = "CrTab_" + nameCase.set(table.tableName) + ".sql";
         PrintWriter writer = new PrintWriter(new File(tablesDir, fileName));
         try {
+            reverseEngineer(writer, table, nameCase, lowerCaseDataTypes);
+        } finally {
+            writer.close();
+        }
 
-            // Write create clause
-            writer.printf("create table %s (", nameCase.set(table.tableName));
+    }
 
-            // Write column definitions
-            for (int i = 0; i < table.columns.length; i++) {
-                Column column = table.columns[i];
-                if (i != 0) writer.printf(",");
-                if (column.notNull) {
-                    writer.printf("\n  %-" + table.maxColumnNameLength + "s  %-" + maxDataDefinitionWidth + "s   not null", nameCase.set(column.columnName), formatDataDefinition(column, lowerCaseDataTypes));
-                } else {
-                    writer.printf("\n  %-" + table.maxColumnNameLength + "s  %s", nameCase.set(column.columnName), formatDataDefinition(column, lowerCaseDataTypes));
-                }
+    public static void reverseEngineer(PrintWriter writer, Table table, CaseSetter nameCase, boolean lowerCaseDataTypes) {
+
+        int maxDataDefinitionWidth = maxDataDefinitionWidth(table, lowerCaseDataTypes);
+
+        // Write create clause
+        writer.printf("create table %s (", nameCase.set(table.tableName));
+
+        // Write column definitions
+        for (int i = 0; i < table.columns.length; i++) {
+            Column column = table.columns[i];
+            if (i != 0) writer.printf(",");
+            if (column.notNull) {
+                writer.printf("\n  %-" + table.maxColumnNameLength + "s  %-" + maxDataDefinitionWidth + "s   not null", nameCase.set(column.columnName), formatDataDefinition(column, lowerCaseDataTypes));
+            } else {
+                writer.printf("\n  %-" + table.maxColumnNameLength + "s  %s", nameCase.set(column.columnName), formatDataDefinition(column, lowerCaseDataTypes));
             }
+        }
 
-            // Write Primary Key (if any)
-            if (table.primaryKey != null) {
-                writer.printf(",\nconstraint %s primary key (", table.primaryKey.primaryKeyName);
-                for (int i = 0; i < table.primaryKey.columnNames.length; i++) {
+        // Write Primary Key (if any)
+        if (table.primaryKey != null) {
+            writer.printf(",\nconstraint %s primary key (", table.primaryKey.primaryKeyName);
+            for (int i = 0; i < table.primaryKey.columnNames.length; i++) {
+                if (i != 0) {
+                    writer.printf(",\n           %" + table.primaryKey.primaryKeyName.length() + "s              ", "");
+                }
+                writer.print(nameCase.set(table.primaryKey.columnNames[i]));
+            }
+            writer.print(")");
+        }
+
+        // Write Unique Keys (if any)
+        if (table.uniqueKeys != null) {
+            for (UniqueKey uniqueKey : table.uniqueKeys) {
+                writer.printf(",\nconstraint %s unique (", uniqueKey.uniqueKeyName);
+                for (int i = 0; i < uniqueKey.columnNames.length; i++) {
                     if (i != 0) {
-                        writer.printf(",\n           %" + table.primaryKey.primaryKeyName.length() + "s              ", "");
+                        writer.printf(",\n           %" + uniqueKey.uniqueKeyName.length() + "s         ", "");
                     }
-                    writer.print(nameCase.set(table.primaryKey.columnNames[i]));
+                    writer.print(nameCase.set(uniqueKey.columnNames[i]));
                 }
                 writer.print(")");
             }
+        }
 
-            // Write Unique Keys (if any)
-            if (table.uniqueKeys != null) {
-                for (UniqueKey uniqueKey : table.uniqueKeys) {
-                    writer.printf(",\nconstraint %s unique (", uniqueKey.uniqueKeyName);
-                    for (int i = 0; i < uniqueKey.columnNames.length; i++) {
-                        if (i != 0) {
-                            writer.printf(",\n           %" + uniqueKey.uniqueKeyName.length() + "s         ", "");
-                        }
-                        writer.print(nameCase.set(uniqueKey.columnNames[i]));
-                    }
-                    writer.print(")");
-                }
+        // Write Check Constraints (if any)
+        if (table.checkConstraints != null) {
+            for (CheckConstraint checkConstraint : table.checkConstraints) {
+                writer.printf(",\nconstraint %s\n", checkConstraint.checkConstraintName);
+                writer.print("   check (\n");
+                writer.printf("      %s\n", checkConstraint.checkConstraintText);
+                writer.print("   )");
             }
-
-            // Write Check Constraints (if any)
-            if (table.checkConstraints != null) {
-                for (CheckConstraint checkConstraint : table.checkConstraints) {
-                    writer.printf(",\nconstraint %s\n", checkConstraint.checkConstraintName);
-                    writer.print("   check (\n");
-                    writer.printf("      %s\n", checkConstraint.checkConstraintText);
-                    writer.print("   )");
-                }
-            }
+        }
 
 //            writer.printf(",\n  current_upload_status    varchar(100)      not null");
 //            writer.printf(",\n  single_row_lock_column   integer default 1 not null");
 
 
-            writer.printf("\n);");
+        writer.printf("\n);");
 
-            if (table.nonUniqueIndexes != null && table.nonUniqueIndexes.length > 0) {
-                writer.printf("\n");
-                for (NonUniqueIndex nonUniqueIndex : table.nonUniqueIndexes) {
-                    writer.printf("\ncreate index %s on %s (", nonUniqueIndex.indexName, nameCase.set(table.tableName));
-                    for (int i = 0; i < nonUniqueIndex.columnNames.length; i++) {
-                        if (i != 0) {
-                            writer.printf(",\n             %" + nonUniqueIndex.indexName.length() + "s    %" + table.tableName.length() + "s (", "", "");
-                        }
-                        writer.print(nameCase.set(nonUniqueIndex.columnNames[i]));
+        if (table.nonUniqueIndexes != null && table.nonUniqueIndexes.length > 0) {
+            writer.printf("\n");
+            for (NonUniqueIndex nonUniqueIndex : table.nonUniqueIndexes) {
+                writer.printf("\ncreate index %s on %s (", nonUniqueIndex.indexName, nameCase.set(table.tableName));
+                for (int i = 0; i < nonUniqueIndex.columnNames.length; i++) {
+                    if (i != 0) {
+                        writer.printf(",\n             %" + nonUniqueIndex.indexName.length() + "s    %" + table.tableName.length() + "s (", "", "");
                     }
-                    writer.print(");");
+                    writer.print(nameCase.set(nonUniqueIndex.columnNames[i]));
                 }
+                writer.print(");");
             }
+        }
+    }
+
+    public static void reverseEngineerAsTable(File tablesDir, View view, CaseSetter nameCase, boolean lowerCaseDataTypes) throws SQLException, IOException {
+
+        String fileName = "CrTab_" + nameCase.set(view.viewName) + ".sql";
+        PrintWriter writer = new PrintWriter(new File(tablesDir, fileName));
+        try {
+
+            reverseEngineerAsTable(writer, view, nameCase, lowerCaseDataTypes);
 
         } finally {
             writer.close();
         }
     }
 
-    public static void reverseEngineerAsTable(File tablesDir, View view, CaseSetter nameCase, boolean lowerCaseDataTypes) throws SQLException, IOException {
+    public static void reverseEngineerAsTable(PrintWriter writer, View view, CaseSetter nameCase, boolean lowerCaseDataTypes) {
 
         int maxDataDefinitionWidth = maxDataDefinitionWidth(view, lowerCaseDataTypes);
 
-        String fileName = "CrTab_" + nameCase.set(view.viewName) + ".sql";
-        PrintWriter writer = new PrintWriter(new File(tablesDir, fileName));
-        try {
+        // Write create clause
+        writer.printf("create table %s (", nameCase.set(view.viewName));
 
-            // Write create clause
-            writer.printf("create table %s (", nameCase.set(view.viewName));
-
-            // Write column definitions
-            for (int i = 0; i < view.columns.length; i++) {
-                Column column = view.columns[i];
-                if (i != 0) writer.printf(",");
-                if (column.notNull) {
-                    writer.printf("\n  %-" + view.maxColumnNameLength + "s  %-" + maxDataDefinitionWidth + "s   not null", nameCase.set(column.columnName), formatDataDefinition(column, lowerCaseDataTypes));
-                } else {
-                    writer.printf("\n  %-" + view.maxColumnNameLength + "s  %s", nameCase.set(column.columnName), formatDataDefinition(column, lowerCaseDataTypes));
-                }
+        // Write column definitions
+        for (int i = 0; i < view.columns.length; i++) {
+            Column column = view.columns[i];
+            if (i != 0) writer.printf(",");
+            if (column.notNull) {
+                writer.printf("\n  %-" + view.maxColumnNameLength + "s  %-" + maxDataDefinitionWidth + "s   not null", nameCase.set(column.columnName), formatDataDefinition(column, lowerCaseDataTypes));
+            } else {
+                writer.printf("\n  %-" + view.maxColumnNameLength + "s  %s", nameCase.set(column.columnName), formatDataDefinition(column, lowerCaseDataTypes));
             }
-
-
-            writer.printf("\n);");
-
-        } finally {
-            writer.close();
         }
+
+
+        writer.printf("\n);");
     }
 
     public static void reverseEngineerForeignKeys(File tablesDir, Table table, CaseSetter nameCase) throws SQLException, IOException {
@@ -155,27 +163,29 @@ public class TableReverseEngineer {
         String fileName = "CrFKeysFor_" + nameCase.set(table.tableName) + ".sql";
         PrintWriter writer = new PrintWriter(new File(tablesDir, fileName));
         try {
-
-            for (int fkIndex = 0; fkIndex < table.foreignKeys.length; fkIndex++) {
-                ForeignKey foreignKey = table.foreignKeys[fkIndex];
-                if (fkIndex != 0) writer.print("\n\n");
-                writer.printf("alter table %s add\n", nameCase.set(table.tableName));
-                writer.printf(" constraint %s foreign key (", foreignKey.foreignKeyName);
-                for (int i = 0; i < foreignKey.columnNamePairs.length; i++) {
-                    if (i != 0) writer.printf(",\n            %" + foreignKey.foreignKeyName.length() + "s              ", "");
-                    writer.print(nameCase.set(foreignKey.columnNamePairs[i].columnName));
-                }
-                writer.print(")\n");
-                writer.printf(" references %-" + (foreignKey.foreignKeyName + " foreign key ").length() + "s(", nameCase.set(foreignKey.referencedTableName));
-                for (int i = 0; i < foreignKey.columnNamePairs.length; i++) {
-                    if (i != 0) writer.printf(",\n            %" + foreignKey.foreignKeyName.length() + "s              ", "");
-                    writer.print(nameCase.set(foreignKey.columnNamePairs[i].referencedColumnName));
-                }
-                writer.print(");");
-            }
-
+            reverseEngineerForeignKeys(writer, table, nameCase);
         } finally {
             writer.close();
+        }
+    }
+
+    public static void reverseEngineerForeignKeys(PrintWriter writer, Table table, CaseSetter nameCase) {
+        for (int fkIndex = 0; fkIndex < table.foreignKeys.length; fkIndex++) {
+            ForeignKey foreignKey = table.foreignKeys[fkIndex];
+            if (fkIndex != 0) writer.print("\n\n");
+            writer.printf("alter table %s add\n", nameCase.set(table.tableName));
+            writer.printf(" constraint %s foreign key (", foreignKey.foreignKeyName);
+            for (int i = 0; i < foreignKey.columnNamePairs.length; i++) {
+                if (i != 0) writer.printf(",\n            %" + foreignKey.foreignKeyName.length() + "s              ", "");
+                writer.print(nameCase.set(foreignKey.columnNamePairs[i].columnName));
+            }
+            writer.print(")\n");
+            writer.printf(" references %-" + (foreignKey.foreignKeyName + " foreign key ").length() + "s(", nameCase.set(foreignKey.referencedTableName));
+            for (int i = 0; i < foreignKey.columnNamePairs.length; i++) {
+                if (i != 0) writer.printf(",\n            %" + foreignKey.foreignKeyName.length() + "s              ", "");
+                writer.print(nameCase.set(foreignKey.columnNamePairs[i].referencedColumnName));
+            }
+            writer.print(");");
         }
     }
 

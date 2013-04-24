@@ -31,7 +31,6 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 package com.jirvan.jidbc.internal;
 
 import com.jirvan.jidbc.lang.*;
-import com.jirvan.jidbc.lang.NotFoundRuntimeException;
 import com.jirvan.lang.*;
 
 import java.sql.*;

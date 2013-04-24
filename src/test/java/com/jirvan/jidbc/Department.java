@@ -30,6 +30,8 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 package com.jirvan.jidbc;
 
+import com.jirvan.dates.*;
+
 import java.math.*;
 import java.util.*;
 
@@ -41,6 +43,8 @@ public class Department {
     public String departmentAbbr;
 
     public String departmentName;
+
+    public Day creationAnniversary;
 
     public String thingyType;
 

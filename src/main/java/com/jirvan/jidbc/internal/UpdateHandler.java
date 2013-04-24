@@ -32,7 +32,6 @@ package com.jirvan.jidbc.internal;
 
 import com.jirvan.dates.*;
 import com.jirvan.jidbc.lang.*;
-import com.jirvan.jidbc.lang.NotFoundRuntimeException;
 import com.jirvan.lang.*;
 
 import java.math.*;

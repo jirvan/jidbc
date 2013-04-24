@@ -30,6 +30,7 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 package com.jirvan.jidbc;
 
+import com.jirvan.dates.*;
 import com.jirvan.util.*;
 import org.testng.annotations.*;
 
@@ -42,16 +43,16 @@ import static org.testng.AssertJUnit.assertEquals;
 public class TestsBase {
 
     protected final static DataSource DATA_SOURCE = Jdbc.getPostgresDataSource("zac/x@gdansk/zacdev");
-    private static final String TEST_DATABASE_RECREATE_SCRIPT = Io.getResourceFileString(CRUDTests.class, "testDatabaseRecreateScript.sql");
+    private static final String TEST_DATABASE_RECREATE_SCRIPT = Io.getResourceFileString(JidbcConnection_CRUDTests.class, "testDatabaseRecreateScript.sql");
 
-
-    protected final static GetterSetterDepartment GETTER_SETTER_DEPARTMENT1 = createGetterSetterDepartment1();
 
     public static class DEPARTMENT1 {
 
         public static final String DEPARTMENT_ABBR = "HR";
 
         public static final String DEPARTMENT_NAME = "Human Resources";
+
+        public static final Day CREATION_ANNIVERSARY = new Day(2002, 5, 4);
 
         public static final String THINGY_TYPE = "Strawberry";
 
@@ -66,6 +67,7 @@ public class TestsBase {
             department.departmentId = null;
             department.departmentAbbr = DEPARTMENT_ABBR;
             department.departmentName = DEPARTMENT_NAME;
+            department.creationAnniversary = CREATION_ANNIVERSARY;
             department.thingyType = THINGY_TYPE;
             department.thingyNumber = THINGY_NUMBER;
             department.anotherThingy = ANOTHER_THINGY;
@@ -79,13 +81,15 @@ public class TestsBase {
 
         public static final Long DEPARTMENT_ID = 42l;
 
-        public static final String DEPARTMENT_ABBR = "HR";
+        public static final String DEPARTMENT_ABBR = "Pers.";
 
-        public static final String DEPARTMENT_NAME = "Human Resources";
+        public static final String DEPARTMENT_NAME = "Personnel";
+
+        public static final Day CREATION_ANNIVERSARY = new Day(2002, 5, 7);
 
         public static final String THINGY_TYPE = "Chocolate";
 
-        public static final Integer THINGY_NUMBER = 57;
+        public static final Integer THINGY_NUMBER = 58;
 
         public static final BigDecimal ANOTHER_THINGY = new BigDecimal("57.07");
 
@@ -96,6 +100,7 @@ public class TestsBase {
             department.departmentId = DEPARTMENT_ID;
             department.departmentAbbr = DEPARTMENT_ABBR;
             department.departmentName = DEPARTMENT_NAME;
+            department.creationAnniversary = CREATION_ANNIVERSARY;
             department.thingyType = THINGY_TYPE;
             department.thingyNumber = THINGY_NUMBER;
             department.anotherThingy = ANOTHER_THINGY;
@@ -113,9 +118,11 @@ public class TestsBase {
 
         public static final String DEPARTMENT_NAME = "Threat Resolution";
 
+        public static final Day CREATION_ANNIVERSARY = new Day(2002, 5, 2);
+
         public static final String THINGY_TYPE = "Strawberry";
 
-        public static final Integer THINGY_NUMBER = 42;
+        public static final Integer THINGY_NUMBER = 412;
 
         public static final BigDecimal ANOTHER_THINGY = new BigDecimal("42.58");
 
@@ -126,6 +133,7 @@ public class TestsBase {
             department.departmentId = DEPARTMENT_ID;
             department.departmentAbbr = DEPARTMENT_ABBR;
             department.departmentName = DEPARTMENT_NAME;
+            department.creationAnniversary = CREATION_ANNIVERSARY;
             department.thingyType = THINGY_TYPE;
             department.thingyNumber = THINGY_NUMBER;
             department.anotherThingy = ANOTHER_THINGY;
@@ -135,78 +143,44 @@ public class TestsBase {
 
     }
 
-    private static GetterSetterDepartment createGetterSetterDepartment1() {
-        GetterSetterDepartment department = new GetterSetterDepartment();
-        department.setDepartmentAbbr("HR");
-        department.setDepartmentName("Human Resources");
-        department.setThingyType("Strawberry");
-        department.setThingyNumber(42);
-        department.setAnotherThingy(new BigDecimal("42.58"));
-        department.setInactivatedDatetime(new GregorianCalendar(2012, 5, 1).getTime());
-        return department;
-    }
-
     @BeforeMethod
     protected void beforeClass() throws Exception {
-        JidbcConnection jidbc = JidbcConnection.from(DATA_SOURCE);
-        try {
-
-            for (String statement : TEST_DATABASE_RECREATE_SCRIPT.replaceAll("(?m)^\\s+--.*$", "")
-                                                                 .replaceAll("^\\s*\\n+", "")
-                                                                 .replaceAll("(?m);\\s*\\n\\s*", ";\n")
-                                                                 .split("(?m); *\\n")) {
-                jidbc.executeUpdate(statement);
-            }
+        for (String statement : TEST_DATABASE_RECREATE_SCRIPT.replaceAll("(?m)^\\s+--.*$", "")
+                                                             .replaceAll("^\\s*\\n+", "")
+                                                             .replaceAll("(?m);\\s*\\n\\s*", ";\n")
+                                                             .split("(?m); *\\n")) {
+            Jidbc.executeUpdate(DATA_SOURCE, statement);
+        }
 //            TableDef.deregisterRowClasses();
 //            TableDef.registerRowClass(DepartmentTwo.class, "departmentId").setGeneratorSequence("common_id_sequence");
 
-        } finally {
-            jidbc.close();
-        }
     }
 
     protected void retrieveFromDatabaseAndAssertAttributeValuesAreEqualToDepartment1(long newDepartmentId) {
-        JidbcConnection jidbc2 = JidbcConnection.from(DATA_SOURCE);
-        try {
-
-            Department department = jidbc2.queryFor(Department.class, "where department_id = ?", newDepartmentId);
-            assertEquals("department.department_abbr", DEPARTMENT1.DEPARTMENT_ABBR, department.departmentAbbr);
-            assertEquals("department.department_name", DEPARTMENT1.DEPARTMENT_NAME, department.departmentName);
-            assertEquals("department.thingy_type", DEPARTMENT1.THINGY_TYPE, department.thingyType);
-            assertEquals("department.thingy_number", DEPARTMENT1.THINGY_NUMBER, department.thingyNumber);
-            assertEquals("department.another_thingy", DEPARTMENT1.ANOTHER_THINGY, department.anotherThingy);
-            assertEquals("department.inactivated_datetime", DEPARTMENT1.INACTIVATED_DATETIME, department.inactivatedDatetime);
-
-        } finally {
-            jidbc2.close();
-        }
+        Department department = Jidbc.queryFor(DATA_SOURCE, Department.class, "where department_id = ?", newDepartmentId);
+        assertEquals("department.department_abbr", DEPARTMENT1.DEPARTMENT_ABBR, department.departmentAbbr);
+        assertEquals("department.department_name", DEPARTMENT1.DEPARTMENT_NAME, department.departmentName);
+        assertEquals("department.creation_anniversary", DEPARTMENT1.CREATION_ANNIVERSARY, department.creationAnniversary);
+        assertEquals("department.thingy_type", DEPARTMENT1.THINGY_TYPE, department.thingyType);
+        assertEquals("department.thingy_number", DEPARTMENT1.THINGY_NUMBER, department.thingyNumber);
+        assertEquals("department.another_thingy", DEPARTMENT1.ANOTHER_THINGY, department.anotherThingy);
+        assertEquals("department.inactivated_datetime", DEPARTMENT1.INACTIVATED_DATETIME, department.inactivatedDatetime);
     }
 
     protected void retrieveFromDatabaseAndAssertAttributeValuesAreEqualToGetterSetterDepartment1(long newDepartmentId) {
-        JidbcConnection jidbc2 = JidbcConnection.from(DATA_SOURCE);
-        try {
-
-            GetterSetterDepartment department = jidbc2.queryFor(GetterSetterDepartment.class, "where department_id = ?", newDepartmentId);
-            assertEquals("department.department_abbr", DEPARTMENT1.DEPARTMENT_ABBR, department.getDepartmentAbbr());
-            assertEquals("department.department_name", DEPARTMENT1.DEPARTMENT_NAME, department.getDepartmentName());
-            assertEquals("department.thingy_type", DEPARTMENT1.THINGY_TYPE, department.getThingyType());
-            assertEquals("department.thingy_number", DEPARTMENT1.THINGY_NUMBER, department.getThingyNumber());
-            assertEquals("department.another_thingy", DEPARTMENT1.ANOTHER_THINGY, department.getAnotherThingy());
-            assertEquals("department.inactivated_datetime", DEPARTMENT1.INACTIVATED_DATETIME, department.getInactivatedDatetime());
-
-        } finally {
-            jidbc2.close();
-        }
+        GetterSetterDepartment department = Jidbc.queryFor(DATA_SOURCE, GetterSetterDepartment.class, "where department_id = ?", newDepartmentId);
+        assertEquals("department.department_abbr", DEPARTMENT1.DEPARTMENT_ABBR, department.getDepartmentAbbr());
+        assertEquals("department.department_name", DEPARTMENT1.DEPARTMENT_NAME, department.getDepartmentName());
+        assertEquals("department.creation_anniversary", DEPARTMENT1.CREATION_ANNIVERSARY, department.getCreationAnniversary());
+        assertEquals("department.thingy_type", DEPARTMENT1.THINGY_TYPE, department.getThingyType());
+        assertEquals("department.thingy_number", DEPARTMENT1.THINGY_NUMBER, department.getThingyNumber());
+        assertEquals("department.another_thingy", DEPARTMENT1.ANOTHER_THINGY, department.getAnotherThingy());
+        assertEquals("department.inactivated_datetime", DEPARTMENT1.INACTIVATED_DATETIME, department.getInactivatedDatetime());
     }
 
-    protected long openASeperateConnectionAndInsertDepartment(Department department) {
-        JidbcConnection jidbc = JidbcConnection.from(DATA_SOURCE);
-        try {
-            jidbc.insert(department);
-            return department.departmentId;
-        } finally {
-            jidbc.close();
-        }
-    }
+//    protected long openASeperateConnectionAndInsertDepartment(Department department) {
+//        Jidbc.insert(DATA_SOURCE, department);
+//        return department.departmentId;
+//    }
 
 }

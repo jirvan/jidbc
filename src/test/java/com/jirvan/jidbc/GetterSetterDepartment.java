@@ -30,6 +30,8 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 package com.jirvan.jidbc;
 
+import com.jirvan.dates.*;
+
 import java.math.*;
 import java.util.*;
 
@@ -40,6 +42,8 @@ public class GetterSetterDepartment {
     private String departmentAbbr;
 
     private String departmentName;
+
+    private Day creationAnniversary;
 
     private String thingyType;
 
@@ -72,6 +76,14 @@ public class GetterSetterDepartment {
 
     public void setDepartmentName(String departmentName) {
         this.departmentName = departmentName;
+    }
+
+    public Day getCreationAnniversary() {
+        return creationAnniversary;
+    }
+
+    public void setCreationAnniversary(Day creationAnniversary) {
+        this.creationAnniversary = creationAnniversary;
     }
 
     public String getThingyType() {

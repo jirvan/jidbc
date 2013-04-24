@@ -85,7 +85,7 @@ public class QueryForHandler {
                     result = (T) rowExtractor.extractRowFromResultSet(rowClass, rowDef, resultSet);
                 } else {
                     if (exceptionIfNotFound) {
-                        throw new NoRowsRuntimeException();
+                        throw new NotFoundRuntimeException();
                     } else {
                         result = null;
                     }
@@ -122,7 +122,7 @@ public class QueryForHandler {
                         result = resultSet.wasNull() ? null : value;
                     } else {
                         if (exceptionIfNotFound) {
-                            throw new NoRowsRuntimeException();
+                            throw new NotFoundRuntimeException();
                         } else {
                             return null;
                         }
@@ -165,7 +165,7 @@ public class QueryForHandler {
                         result = resultSet.wasNull() ? null : value;
                     } else {
                         if (exceptionIfNotFound) {
-                            throw new NoRowsRuntimeException();
+                            throw new NotFoundRuntimeException();
                         } else {
                             return null;
                         }
@@ -208,7 +208,7 @@ public class QueryForHandler {
                         result = resultSet.wasNull() ? null : Day.from(value);
                     } else {
                         if (exceptionIfNotFound) {
-                            throw new NoRowsRuntimeException();
+                            throw new NotFoundRuntimeException();
                         } else {
                             return null;
                         }

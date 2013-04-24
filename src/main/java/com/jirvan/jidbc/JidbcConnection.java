@@ -32,8 +32,6 @@ package com.jirvan.jidbc;
 
 import com.jirvan.dates.*;
 import com.jirvan.jidbc.internal.*;
-import com.jirvan.jidbc.lang.*;
-import com.jirvan.jidbc.lang.NotFoundRuntimeException;
 import com.jirvan.lang.*;
 import com.jirvan.util.*;
 
@@ -46,32 +44,71 @@ import java.util.*;
 public class JidbcConnection {
 
     private Connection jdbcConnection;
+    private boolean usingExternalConnection;
     private List<Results> openResultses = new ArrayList<Results>();
 
-    public JidbcConnection(Connection jdbcConnection) {
-        this.jdbcConnection = jdbcConnection;
+    private JidbcConnection(Connection jdbcConnection, boolean usingExternalConnection) {
+        try {
+            this.jdbcConnection = jdbcConnection;
+            this.usingExternalConnection = usingExternalConnection;
+            if ((!usingExternalConnection) && jdbcConnection.getAutoCommit()) {
+                jdbcConnection.setAutoCommit(false);
+            }
+        } catch (SQLException e) {
+            throw new SQLRuntimeException(e);
+        }
+    }
+
+    public static JidbcConnection using(Connection connection) {
+        return new JidbcConnection(connection, true);
     }
 
     public static JidbcConnection from(DataSource dataSource) {
         try {
-            return new JidbcConnection(dataSource.getConnection());
+            return new JidbcConnection(dataSource.getConnection(), false);
         } catch (SQLException e) {
             throw new SQLRuntimeException(e);
         }
     }
 
     public static JidbcConnection from(JdbcConnectionConfig connectionConfig) {
-        return new JidbcConnection(Jdbc.getConnection(connectionConfig));
+        return new JidbcConnection(Jdbc.getConnection(connectionConfig), false);
     }
 
     public static JidbcConnection fromHomeDirectoryConfigFile(String homeDirectoryConfigFile, String connectionName) {
-        return new JidbcConnection(Jdbc.getConnectionFromHomeDirectoryConfigFile(homeDirectoryConfigFile, connectionName));
+        return new JidbcConnection(Jdbc.getConnectionFromHomeDirectoryConfigFile(homeDirectoryConfigFile, connectionName), false);
     }
 
-    public void close() {
+    public RuntimeException rollbackCloseAndWrap(Throwable t) {
+        rollbackAndClose();
+        if (t instanceof RuntimeException) {
+            throw (RuntimeException) t;
+        } else if (t instanceof SQLException) {
+            throw new SQLRuntimeException((SQLException) t);
+        } else {
+            throw new RuntimeException(t);
+        }
+    }
+
+    private void rollbackAndClose() {
         try {
+            boolean autoCommit = jdbcConnection.getAutoCommit();
             closeAnyOpenQueryIterables();
+            jdbcConnection.rollback();
             jdbcConnection.close();
+            if (autoCommit) throw new RuntimeException("Expected autoCommit to be off");
+        } catch (SQLException e) {
+            throw new SQLRuntimeException(e);
+        }
+    }
+
+    public void commitAndClose() {
+        try {
+            boolean autoCommit = jdbcConnection.getAutoCommit();
+            closeAnyOpenQueryIterables();
+            jdbcConnection.commit();
+            jdbcConnection.close();
+            if (autoCommit) throw new RuntimeException("Expected autoCommit to be off");
         } catch (SQLException e) {
             throw new SQLRuntimeException(e);
         }
@@ -87,6 +124,7 @@ public class JidbcConnection {
         return jdbcConnection;
     }
 
+
 //============================== "CRUD" (create, retrieve, update, delete) methods ==============================
 
     public void insert(Object row) {
@@ -96,7 +134,7 @@ public class JidbcConnection {
     public <T> T get(Class rowClass, Object pkValue) {
         try {
             return QueryForHandler.queryFor(jdbcConnection, true, rowClass, null, new Object[]{pkValue}, true);
-        } catch (NoRowsRuntimeException e) {
+        } catch (NotFoundRuntimeException e) {
             throw new NotFoundRuntimeException(String.format("%s:%s not found", rowClass.getSimpleName().replaceFirst("sRow$", ""), pkValue.toString()));
         }
     }
@@ -112,6 +150,7 @@ public class JidbcConnection {
     public void delete(Object row) {
         DeleteHandler.delete(jdbcConnection, row);
     }
+
 
 //============================== Single returned object row/value methods ==============================
 
@@ -147,6 +186,7 @@ public class JidbcConnection {
         return QueryForHandler.queryFor_Day(jdbcConnection, false, sql, parameterValues);
     }
 
+
 //============================== Multiple returned row/object methods ==============================
 
     /**
@@ -170,6 +210,27 @@ public class JidbcConnection {
      */
     public <T> Results<? extends T> query(Class rowClass, String sql, Object... parameterValues) {
         return new Results<T>(jdbcConnection, openResultses, rowClass, sql, parameterValues);
+    }
+
+    /**
+     * This method executes a query against the database and returns a List containing the
+     * results.
+     *
+     * @param rowClass        The class of the rows to be returned
+     * @param sql             The sql for selecting the rows from the database.  If
+     *                        the sql starts with "where " then "select * from tableName "
+     *                        will be prepended to the sql (the table name is determined from
+     *                        the row class)
+     * @param parameterValues Any parameter values associated with the sql
+     * @return A List containing the results
+     *         of the query.
+     */
+    public <T> List<T> queryForList(Class rowClass, String sql, Object... parameterValues) {
+        List<T> list = new ArrayList<T>();
+        for (T row : this.<T>query(rowClass, sql, parameterValues)) {
+            list.add(row);
+        }
+        return list;
     }
 
 

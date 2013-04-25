@@ -50,8 +50,12 @@ public class JidbcRowClassGenerator {
     }
 
     public static void generateJavaFilesIntoDirectory(DataSource dataSource, String packageName, File outputDirectory) {
-        try {
+        generateJavaFilesIntoDirectory(dataSource, packageName, null, "Row", outputDirectory);
+    }
 
+    public static void generateJavaFilesIntoDirectory(DataSource dataSource, String packageName, String classNamePrefix, String classNameSuffix, File outputDirectory) {
+        try {
+            Io.ensureDirectoryExists(outputDirectory);
             Connection connection = dataSource.getConnection();
             try {
                 ResultSet resultSet = connection.getMetaData().getTables(null, null, null, new String[]{"TABLE"});
@@ -59,16 +63,24 @@ public class JidbcRowClassGenerator {
 
                     while (resultSet.next()) {
                         String tableName = resultSet.getString("TABLE_NAME");
-                        String classSimpleName = toCamelHumpName(tableName, true) + "Row";
+                        String classSimpleName = (classNamePrefix == null ? "" : classNamePrefix)
+                                                 + toCamelHumpName(tableName, true)
+                                                 + (classNameSuffix == null ? "" : classNameSuffix);
+                        String tableCatalog = resultSet.getString("TABLE_CAT");
                         String tableSchema = resultSet.getString("TABLE_SCHEM");
-                        Set<String> imports = new HashSet<String>();
-                        List<ColumnDetails> columnDetailses = getColumnDetailses(connection, tableSchema, tableName, imports);
+                        SortedSet<String> imports = new TreeSet<String>();
+                        List<String> pkColumnNames = getPkColumnNames(connection, tableCatalog, tableSchema, tableName);
+                        List<ColumnDetails> columnDetailses = getColumnDetailses(connection, tableSchema, tableName, pkColumnNames, imports);
                         try {
                             File outputJavaFile = new File(outputDirectory, classSimpleName + ".java");
                             assertFileDoesNotExist(outputJavaFile);
                             PrintStream printStream = new PrintStream(outputJavaFile);
                             try {
-                                generateJavaFile(printStream, packageName, imports, columnDetailses, classSimpleName);
+                                if (classNamePrefix != null || (classNameSuffix != null && !classNameSuffix.equals("Row"))) {
+                                    generateJavaFile(printStream, packageName, imports, columnDetailses, classSimpleName, tableName);
+                                } else {
+                                    generateJavaFile(printStream, packageName, imports, columnDetailses, classSimpleName, null);
+                                }
                             } finally {
                                 printStream.close();
                             }
@@ -89,15 +101,24 @@ public class JidbcRowClassGenerator {
         }
     }
 
-    public static void generateJavaFile(PrintStream printStream, String packageName, Set<String> imports, List<ColumnDetails> columnDetailses, String classSimpleName) {
+    public static void generateJavaFile(PrintStream printStream, String packageName, Set<String> imports, List<ColumnDetails> columnDetailses, String classSimpleName, String tableName) {
         printStream.printf("package %s;\n", packageName);
         if (imports.size() > 0) {
             printStream.printf("\n");
+            String previousPackageAncestor = null;
             for (String anImport : imports) {
+                String packageAncestor = anImport.replaceFirst("\\.", "!").replaceFirst("\\..*$", "").replace('!', '.');
+                if (previousPackageAncestor != null && !previousPackageAncestor.equals(packageAncestor)) {
+                    printStream.printf("\n");
+                }
                 printStream.printf("%s\n", anImport);
+                previousPackageAncestor = packageAncestor;
             }
         }
         printStream.printf("\n");
+        if (tableName != null) {
+            printStream.printf("@TableRow(tableName = \"%s\")\n", tableName);
+        }
         printStream.printf("public class %s {\n", classSimpleName);
         printStream.printf("\n");
         for (ColumnDetails columnDetails : columnDetailses) {
@@ -105,6 +126,9 @@ public class JidbcRowClassGenerator {
         }
         for (ColumnDetails columnDetails : columnDetailses) {
             printStream.printf("\n");
+            if (columnDetails.isInPrimaryKey) {
+                printStream.printf("    @Id\n");
+            }
             printStream.printf("    public %s get%s() {\n", columnDetails.javaClassSimpleName, columnDetails.leadingUCFieldName);
             printStream.printf("        return %s;\n", columnDetails.fieldName);
             printStream.printf("    }\n");
@@ -117,14 +141,37 @@ public class JidbcRowClassGenerator {
         printStream.printf("}");
     }
 
-    private static List<ColumnDetails> getColumnDetailses(Connection connection, String tableSchema, String tableName, Set<String> imports) {
+    private static List<String> getPkColumnNames(Connection connection, String catalog, String schema, String table) {
+        List<String> list = new ArrayList<String>();
+        try {
+            ResultSet resultSet = connection.getMetaData().getPrimaryKeys(catalog, schema, table);
+            try {
+
+                while (resultSet.next()) {
+                    list.add(resultSet.getString("COLUMN_NAME"));
+                }
+
+            } finally {
+                resultSet.close();
+            }
+        } catch (SQLException e) {
+            throw new SQLRuntimeException(e);
+        }
+        return list;
+    }
+
+    private static List<ColumnDetails> getColumnDetailses(Connection connection, String tableSchema, String tableName, List<String> pkColumnNames, SortedSet<String> imports) {
         List<ColumnDetails> columnDetailses = new ArrayList<ColumnDetails>();
         try {
             ResultSet resultSet = connection.getMetaData().getColumns(null, tableSchema, tableName, null);
             try {
 
                 while (resultSet.next()) {
-                    columnDetailses.add(new ColumnDetails(resultSet.getString("COLUMN_NAME"), resultSet.getInt("DATA_TYPE"), imports));
+                    String columnName = resultSet.getString("COLUMN_NAME");
+                    columnDetailses.add(new ColumnDetails(columnName,
+                                                          resultSet.getInt("DATA_TYPE"),
+                                                          Strings.in(columnName, pkColumnNames),
+                                                          imports));
                 }
 
             } finally {
@@ -143,11 +190,13 @@ public class JidbcRowClassGenerator {
         public String fieldName;
         public String leadingUCFieldName;
         public String javaClassSimpleName;
+        public boolean isInPrimaryKey;
 
-        private ColumnDetails(String name, int sqlType, Set<String> imports) {
+        private ColumnDetails(String name, int sqlType, boolean isInPrimaryKey, SortedSet<String> imports) {
             this.name = name;
             this.fieldName = toCamelHumpName(name, false);
             this.leadingUCFieldName = fieldName.substring(0, 1).toUpperCase() + fieldName.substring(1);
+            this.isInPrimaryKey = isInPrimaryKey;
             if (sqlType == Types.VARCHAR) {
                 this.javaClassSimpleName = "String";
             } else if (sqlType == Types.BIGINT) {
@@ -159,14 +208,20 @@ public class JidbcRowClassGenerator {
                 this.javaClassSimpleName = "Boolean";
             } else if (sqlType == Types.INTEGER) {
                 this.javaClassSimpleName = "Integer";
-            } else if (sqlType == Types.DATE) {
-                this.javaClassSimpleName = "Date";
-                imports.add("import java.util.*;");
-            } else if (sqlType == Types.TIMESTAMP) {
-                this.javaClassSimpleName = "Date";
-                imports.add("import java.util.*;");
+            } else if (sqlType == Types.DATE || sqlType == Types.TIMESTAMP) {
+                if (fieldName.endsWith("Date")) {
+                    this.javaClassSimpleName = "Day";
+                    imports.add("import com.jirvan.dates.*;");
+                } else {
+                    this.javaClassSimpleName = "Date";
+                    imports.add("import java.util.*;");
+                }
             } else {
                 throw new RuntimeException(String.format("Cannot handle columns sql data type %d", sqlType));
+            }
+            this.isInPrimaryKey = isInPrimaryKey;
+            if (isInPrimaryKey) {
+                imports.add("import com.jirvan.jidbc.*;");
             }
         }
 

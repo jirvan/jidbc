@@ -146,6 +146,47 @@ public class Jidbc_SingleReturnedObjectTests extends TestsBase {
     }
 
     @Test
+    public void queryFor_BigDecimal() {
+
+        // Create and insert a test row
+        Jidbc.insert(DATA_SOURCE, DEPARTMENT1.newInstance());
+        Jidbc.insert(DATA_SOURCE, DEPARTMENT2.newInstance());
+        Jidbc.insert(DATA_SOURCE, DEPARTMENT3.newInstance());
+
+        // Test queryFor success
+        assertEquals("department.department_name",
+                     DEPARTMENT2.ANOTHER_THINGY,
+                     Jidbc.queryFor_BigDecimal(DATA_SOURCE, "select another_thingy from departments where department_id = ?", DEPARTMENT2.DEPARTMENT_ID));
+
+        // Test not found
+        try {
+            Jidbc.queryFor_BigDecimal(DATA_SOURCE, "select department_id from departments where department_id = ?", 342092348);
+            fail("Expected NotFoundRuntimeException");
+        } catch (NotFoundRuntimeException e) {
+        }
+
+    }
+
+    @Test
+    public void queryForOptional_BigDecimal() {
+
+        // Create and insert a test row
+        Jidbc.insert(DATA_SOURCE, DEPARTMENT1.newInstance());
+        Jidbc.insert(DATA_SOURCE, DEPARTMENT2.newInstance());
+        Jidbc.insert(DATA_SOURCE, DEPARTMENT3.newInstance());
+
+        // Test queryFor success
+        assertEquals("department.department_id",
+                     DEPARTMENT2.ANOTHER_THINGY,
+                     Jidbc.queryForOptional_BigDecimal(DATA_SOURCE, "select another_thingy from departments where department_id = ?", DEPARTMENT2.DEPARTMENT_ID));
+
+        // Test not found
+        assertNull(String.format("Did not expect to find department:%d", 82340923840328l),
+                   Jidbc.queryForOptional_BigDecimal(DATA_SOURCE, "select department_id from departments where department_id = ?", 82340923840328l));
+
+    }
+
+    @Test
     public void queryFor_Day() {
 
         // Create and insert a test row

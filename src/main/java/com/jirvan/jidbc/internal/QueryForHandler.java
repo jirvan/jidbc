@@ -34,6 +34,7 @@ import com.jirvan.dates.*;
 import com.jirvan.jidbc.lang.*;
 import com.jirvan.lang.*;
 
+import java.math.*;
 import java.sql.*;
 import java.util.*;
 
@@ -119,6 +120,49 @@ public class QueryForHandler {
                     // Get result and check for anything other than exactly one row
                     if (resultSet.next()) {
                         long value = resultSet.getLong(1);
+                        result = resultSet.wasNull() ? null : value;
+                    } else {
+                        if (exceptionIfNotFound) {
+                            throw new NotFoundRuntimeException();
+                        } else {
+                            return null;
+                        }
+                    }
+                    if (resultSet.next()) {
+                        throw new MultipleRowsRuntimeException();
+                    }
+
+                } finally {
+                    resultSet.close();
+                }
+
+                // Return the result
+                return result;
+
+            } finally {
+                statement.close();
+            }
+        } catch (SQLException e) {
+            throw new SQLRuntimeException(e);
+        }
+    }
+
+    public static BigDecimal queryFor_BigDecimal(Connection connection, boolean exceptionIfNotFound, String sql, Object... parameterValues) {
+        try {
+            PreparedStatement statement = connection.prepareStatement(sql);
+            try {
+
+                // Set parameter values and execute query
+                for (int i = 0; i < parameterValues.length; i++) {
+                    statement.setObject(i + 1, parameterValues[i]);
+                }
+                ResultSet resultSet = statement.executeQuery();
+                BigDecimal result;
+                try {
+
+                    // Get result and check for anything other than exactly one row
+                    if (resultSet.next()) {
+                        BigDecimal value = resultSet.getBigDecimal(1);
                         result = resultSet.wasNull() ? null : value;
                     } else {
                         if (exceptionIfNotFound) {

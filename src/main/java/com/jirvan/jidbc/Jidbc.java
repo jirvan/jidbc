@@ -35,6 +35,7 @@ import com.jirvan.jidbc.internal.*;
 
 import javax.sql.*;
 import java.io.*;
+import java.math.*;
 import java.util.*;
 
 public class Jidbc {
@@ -137,10 +138,10 @@ public class Jidbc {
         JidbcConnection jidbc = JidbcConnection.from(dataSource);
         try {
 
-            String row = jidbc.queryFor_String(sql, parameterValues);
+            String value = jidbc.queryFor_String(sql, parameterValues);
 
             jidbc.commitAndClose();
-            return row;
+            return value;
         } catch (Throwable t) {
             throw jidbc.rollbackCloseAndWrap(t);
         }
@@ -150,10 +151,10 @@ public class Jidbc {
         JidbcConnection jidbc = JidbcConnection.from(dataSource);
         try {
 
-            String row = jidbc.queryForOptional_String(sql, parameterValues);
+            String value = jidbc.queryForOptional_String(sql, parameterValues);
 
             jidbc.commitAndClose();
-            return row;
+            return value;
         } catch (Throwable t) {
             throw jidbc.rollbackCloseAndWrap(t);
         }
@@ -163,10 +164,10 @@ public class Jidbc {
         JidbcConnection jidbc = JidbcConnection.from(dataSource);
         try {
 
-            Long row = jidbc.queryFor_Long(sql, parameterValues);
+            Long value = jidbc.queryFor_Long(sql, parameterValues);
 
             jidbc.commitAndClose();
-            return row;
+            return value;
         } catch (Throwable t) {
             throw jidbc.rollbackCloseAndWrap(t);
         }
@@ -176,10 +177,36 @@ public class Jidbc {
         JidbcConnection jidbc = JidbcConnection.from(dataSource);
         try {
 
-            Long row = jidbc.queryForOptional_Long(sql, parameterValues);
+            Long value = jidbc.queryForOptional_Long(sql, parameterValues);
 
             jidbc.commitAndClose();
-            return row;
+            return value;
+        } catch (Throwable t) {
+            throw jidbc.rollbackCloseAndWrap(t);
+        }
+    }
+
+    public static BigDecimal queryFor_BigDecimal(DataSource dataSource, String sql, Object... parameterValues) {
+        JidbcConnection jidbc = JidbcConnection.from(dataSource);
+        try {
+
+            BigDecimal value = jidbc.queryFor_BigDecimal(sql, parameterValues);
+
+            jidbc.commitAndClose();
+            return value;
+        } catch (Throwable t) {
+            throw jidbc.rollbackCloseAndWrap(t);
+        }
+    }
+
+    public static BigDecimal queryForOptional_BigDecimal(DataSource dataSource, String sql, Object... parameterValues) {
+        JidbcConnection jidbc = JidbcConnection.from(dataSource);
+        try {
+
+            BigDecimal value = jidbc.queryForOptional_BigDecimal(sql, parameterValues);
+
+            jidbc.commitAndClose();
+            return value;
         } catch (Throwable t) {
             throw jidbc.rollbackCloseAndWrap(t);
         }
@@ -189,10 +216,10 @@ public class Jidbc {
         JidbcConnection jidbc = JidbcConnection.from(dataSource);
         try {
 
-            Day row = jidbc.queryFor_Day(sql, parameterValues);
+            Day value = jidbc.queryFor_Day(sql, parameterValues);
 
             jidbc.commitAndClose();
-            return row;
+            return value;
         } catch (Throwable t) {
             throw jidbc.rollbackCloseAndWrap(t);
         }
@@ -202,10 +229,10 @@ public class Jidbc {
         JidbcConnection jidbc = JidbcConnection.from(dataSource);
         try {
 
-            Day row = jidbc.queryForOptional_Day(sql, parameterValues);
+            Day value = jidbc.queryForOptional_Day(sql, parameterValues);
 
             jidbc.commitAndClose();
-            return row;
+            return value;
         } catch (Throwable t) {
             throw jidbc.rollbackCloseAndWrap(t);
         }

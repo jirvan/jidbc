@@ -37,6 +37,7 @@ import com.jirvan.util.*;
 
 import javax.sql.*;
 import java.io.*;
+import java.math.*;
 import java.sql.*;
 import java.util.*;
 
@@ -176,6 +177,14 @@ public class JidbcConnection {
 
     public Long queryForOptional_Long(String sql, Object... parameterValues) {
         return QueryForHandler.queryFor_Long(jdbcConnection, false, sql, parameterValues);
+    }
+
+    public BigDecimal queryFor_BigDecimal(String sql, Object... parameterValues) {
+        return QueryForHandler.queryFor_BigDecimal(jdbcConnection, true, sql, parameterValues);
+    }
+
+    public BigDecimal queryForOptional_BigDecimal(String sql, Object... parameterValues) {
+        return QueryForHandler.queryFor_BigDecimal(jdbcConnection, false, sql, parameterValues);
     }
 
     public Day queryFor_Day(String sql, Object... parameterValues) {

@@ -85,17 +85,63 @@ public class ObjectRowExtractor<T> implements RowExtractor<T> {
                                                           }
 
                                                           public void performFor_Boolean() {
-                                                              try {
-                                                                  int value = resultSet.getInt(columnDef.columnName);
+                                                             try {
+                                                                  Boolean value = resultSet.getBoolean(columnDef.columnName);
                                                                   if (resultSet.wasNull()) {
                                                                       columnDef.setValue(row, null);
                                                                   } else {
-                                                                      columnDef.setValue(row, value != 0);
+                                                                      columnDef.setValue(row, value);
                                                                   }
                                                               } catch (SQLException e) {
                                                                   throw new SQLRuntimeException(e);
                                                               }
                                                           }
+
+//                                                          public void performFor_Boolean() {
+//                                                              try {
+//                                                                  Object value = resultSet.getBoolean(columnDef.columnName);
+//                                                                  if (resultSet.wasNull()) {
+//                                                                      columnDef.setValue(row, null);
+//                                                                  } else {
+//                                                                      if (value instanceof Number) {
+//                                                                          int intValue = ((Number) value).intValue();
+//                                                                          if (intValue == 1) {
+//                                                                              columnDef.setValue(row, true);
+//                                                                          } else if (intValue == 0) {
+//                                                                              columnDef.setValue(row, false);
+//                                                                          } else {
+//                                                                              throw new RuntimeException(String.format("%s is an inappropriate value for a boolean", value.toString()));
+//
+//                                                                          }
+//                                                                      } else if (value instanceof String) {
+//                                                                          if ("y".equalsIgnoreCase((String) value)) {
+//                                                                              columnDef.setValue(row, true);
+//                                                                          } else if ("n".equalsIgnoreCase((String) value)) {
+//                                                                              columnDef.setValue(row, false);
+//                                                                          } else if ("t".equalsIgnoreCase((String) value)) {
+//                                                                              columnDef.setValue(row, true);
+//                                                                          } else if ("f".equalsIgnoreCase((String) value)) {
+//                                                                              columnDef.setValue(row, false);
+//                                                                          } else if ("true".equalsIgnoreCase((String) value)) {
+//                                                                              columnDef.setValue(row, true);
+//                                                                          } else if ("false".equalsIgnoreCase((String) value)) {
+//                                                                              columnDef.setValue(row, false);
+//                                                                          } else if ("yes".equalsIgnoreCase((String) value)) {
+//                                                                              columnDef.setValue(row, true);
+//                                                                          } else if ("no".equalsIgnoreCase((String) value)) {
+//                                                                              columnDef.setValue(row, false);
+//                                                                          } else {
+//                                                                              throw new RuntimeException(String.format("%s is an inappropriate value for a boolean", (String) value));
+//
+//                                                                          }
+//                                                                      } else {
+//                                                                          throw new RuntimeException(String.format("Don't know how to interpret %s as a boolean", value.toString()));
+//                                                                      }
+//                                                                  }
+//                                                              } catch (SQLException e) {
+//                                                                  throw new SQLRuntimeException(e);
+//                                                              }
+//                                                          }
 
                                                           public void performFor_BigDecimal() {
                                                               try {

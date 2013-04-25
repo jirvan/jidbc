@@ -75,15 +75,24 @@ public class TableDef extends RowDef {
 
     private static TableDef extractTableDefFromRowClass(final Class rowClass, final String[] idAttributes) {
 
+        // Check for extension classes
+        Class effectiveRowClass;
+        Annotation tableRowExtensionClassAnnotation = rowClass.getAnnotation(TableRowExtensionClass.class);
+        if (tableRowExtensionClassAnnotation != null)  {
+            effectiveRowClass = ((TableRowExtensionClass)tableRowExtensionClassAnnotation).baseClass();
+        } else {
+            effectiveRowClass = rowClass;
+        }
+
         // Add basic column defs
-        final TableDef tableDef = new TableDef(rowClass);
-        addBasicColumnDefsToRowDef(rowClass, tableDef);
+        final TableDef tableDef = new TableDef(effectiveRowClass);
+        addBasicColumnDefsToRowDef(effectiveRowClass, tableDef);
 
         // Extract table stuff
-        String rowClassSimpleName = rowClass.getSimpleName();
-        Annotation annotation = rowClass.getAnnotation(TableRow.class);
-        String tableName = annotation instanceof TableRow
-                           ? ((TableRow) annotation).tableName()
+        String rowClassSimpleName = effectiveRowClass.getSimpleName();
+        Annotation tableRowAnnotation = effectiveRowClass.getAnnotation(TableRow.class);
+        String tableName = tableRowAnnotation instanceof TableRow
+                           ? ((TableRow) tableRowAnnotation).tableName()
                            : "<Guessed>";
         if (!"<Guessed>".equals(tableName)) {
             tableDef.tableName = tableName;
@@ -96,10 +105,10 @@ public class TableDef extends RowDef {
         // Process annotations
         for (ColumnDef columnDef : tableDef.columnDefs) {
             if (columnDef.field != null) {
-                processAnnotationsForField(rowClass, tableDef, idAttributes, columnDef);
+                processAnnotationsForField(effectiveRowClass, tableDef, idAttributes, columnDef);
             }
             if (columnDef.getterMethod != null) {
-                processAnnotationsForGetterSetter(rowClass, tableDef, idAttributes, columnDef);
+                processAnnotationsForGetterSetter(effectiveRowClass, tableDef, idAttributes, columnDef);
             }
         }
         for (ColumnDef columnDef : tableDef.columnDefs) {
@@ -112,10 +121,10 @@ public class TableDef extends RowDef {
 
         // Check id fields and return tableDef
         if (tableDef.pkColumnDefs.size() == 0) {
-            throw new RuntimeException(String.format("Row class %s does not have any id fields (they need to be annotated with @Id or registered via TableDef.registerRowClass(Class rowClass, String... idFields)", rowClass.getName()));
+            throw new RuntimeException(String.format("Row class %s does not have any id fields (they need to be annotated with @Id or registered via TableDef.registerRowClass(Class rowClass, String... idFields)", effectiveRowClass.getName()));
         }
         if (tableDef.pkColumnDefs.size() > 1 && tableDef.generatorSequence != null) {
-            throw new RuntimeException(String.format("Row class %s has more than one id field and a generatorSequence has been assigned", rowClass.getName()));
+            throw new RuntimeException(String.format("Row class %s has more than one id field and a generatorSequence has been assigned", effectiveRowClass.getName()));
         }
         return tableDef;
 

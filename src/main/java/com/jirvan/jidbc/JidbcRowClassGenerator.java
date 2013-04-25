@@ -50,10 +50,15 @@ public class JidbcRowClassGenerator {
     }
 
     public static void generateJavaFilesIntoDirectory(DataSource dataSource, String packageName, File outputDirectory) {
-        generateJavaFilesIntoDirectory(dataSource, packageName, null, "Row", outputDirectory);
+        generateJavaFilesIntoDirectory(dataSource, packageName, null, "Row", false, outputDirectory);
     }
 
-    public static void generateJavaFilesIntoDirectory(DataSource dataSource, String packageName, String classNamePrefix, String classNameSuffix, File outputDirectory) {
+    public static void generateJavaFilesIntoDirectory(DataSource dataSource,
+                                                      String packageName,
+                                                      String classNamePrefix,
+                                                      String classNameSuffix,
+                                                      boolean includeCloneMethod,
+                                                      File outputDirectory) {
         try {
             Io.ensureDirectoryExists(outputDirectory);
             Connection connection = dataSource.getConnection();
@@ -77,9 +82,9 @@ public class JidbcRowClassGenerator {
                             PrintStream printStream = new PrintStream(outputJavaFile);
                             try {
                                 if (classNamePrefix != null || (classNameSuffix != null && !classNameSuffix.equals("Row"))) {
-                                    generateJavaFile(printStream, packageName, imports, columnDetailses, classSimpleName, tableName);
+                                    generateJavaFile(printStream, packageName, imports, columnDetailses, classSimpleName, tableName, includeCloneMethod);
                                 } else {
-                                    generateJavaFile(printStream, packageName, imports, columnDetailses, classSimpleName, null);
+                                    generateJavaFile(printStream, packageName, imports, columnDetailses, classSimpleName, null, includeCloneMethod);
                                 }
                             } finally {
                                 printStream.close();
@@ -101,7 +106,13 @@ public class JidbcRowClassGenerator {
         }
     }
 
-    public static void generateJavaFile(PrintStream printStream, String packageName, Set<String> imports, List<ColumnDetails> columnDetailses, String classSimpleName, String tableName) {
+    public static void generateJavaFile(PrintStream printStream,
+                                        String packageName,
+                                        Set<String> imports,
+                                        List<ColumnDetails> columnDetailses,
+                                        String classSimpleName,
+                                        String tableName,
+                                        boolean includeCloneMethod) {
         printStream.printf("package %s;\n", packageName);
         if (imports.size() > 0) {
             printStream.printf("\n");
@@ -135,6 +146,16 @@ public class JidbcRowClassGenerator {
             printStream.printf("\n");
             printStream.printf("    public void set%s(%s %s) {\n", columnDetails.leadingUCFieldName, columnDetails.javaClassSimpleName, columnDetails.fieldName);
             printStream.printf("        this.%s = %s;\n", columnDetails.fieldName, columnDetails.fieldName);
+            printStream.printf("    }\n");
+        }
+        if (includeCloneMethod) {
+            printStream.printf("\n");
+            printStream.printf("    public %s clone() {\n", classSimpleName);
+            printStream.printf("        %s clone = new %s();\n", classSimpleName, classSimpleName);
+            for (ColumnDetails columnDetails : columnDetailses) {
+                printStream.printf("        clone.set%s(this.get%s());\n", columnDetails.leadingUCFieldName, columnDetails.leadingUCFieldName);
+            }
+            printStream.printf("        return clone;\n");
             printStream.printf("    }\n");
         }
         printStream.printf("\n");

@@ -45,8 +45,8 @@ public class JidbcRowClassGenerator {
 
     public static void main(String[] args) {
         generateJavaFilesIntoDirectory(Jdbc.getPostgresDataSource("kfund/x@gdansk/kfunddev"),
-                                       "au.com.knowledgefund.core.db2",
-                                       new File("L:\\dev\\knowledgefund\\knowledgefund-core\\src\\main\\java\\au\\com\\knowledgefund\\core\\db2"));
+                                       "au.com.knowledgefund.core.db",
+                                       new File("L:\\Desktop\\gen\\GeneratedRowClasses\\zac"));
     }
 
     public static void generateJavaFilesIntoDirectory(DataSource dataSource, String packageName, File outputDirectory) {
@@ -260,7 +260,11 @@ public class JidbcRowClassGenerator {
                 if (c == '_') {
                     firstWordLetter = true;
                 } else if (firstWordLetter) {
-                    stringBuilder.append((char) (c + ('A' - 'a')));
+                    if ('a' <= c && c <= 'z') {
+                        stringBuilder.append((char) (c + ('A' - 'a')));
+                    } else {
+                        stringBuilder.append(c);
+                    }
                     firstWordLetter = false;
                 } else {
                     stringBuilder.append(c);

@@ -283,20 +283,20 @@ public class JidbcConnection {
 
 //============================== Data import/export methods ==============================
 
-    public void importTableDataFromJsonFile(Class rowClass, File inputJsonFile) {
-        JidbcImporter.importTableDataFromJsonFile(this, rowClass, inputJsonFile);
+    public int importTableDataFromJsonFile(Class rowClass, File inputJsonFile) {
+        return JidbcImporter.importTableDataFromJsonFile(this, rowClass, inputJsonFile);
     }
 
-    public void importTableDataFromJsonString(Class rowClass, String jsonString) {
-        JidbcImporter.importTableDataFromJsonString(this, rowClass, jsonString);
+    public int importTableDataFromJsonString(Class rowClass, String jsonString) {
+        return JidbcImporter.importTableDataFromJsonString(this, rowClass, jsonString);
     }
 
-    public void exportTableDataToJsonFile(String tableName, Class rowClass, File outputJsonFile) {
-        JidbcExporter.exportTableDataToJsonFile(this, rowClass, outputJsonFile);
+    public int exportTableDataToJsonFile(String tableName, Class rowClass, File outputJsonFile) {
+        return JidbcExporter.exportTableDataToJsonFile(this, rowClass, outputJsonFile);
     }
 
-    public void exportTableDataToJsonFile(String tableName, Class rowClass, File outputJsonFile, boolean overwriteExistingFile) {
-        JidbcExporter.exportTableDataToJsonFile(this, rowClass, outputJsonFile, overwriteExistingFile);
+    public int exportTableDataToJsonFile(String tableName, Class rowClass, File outputJsonFile, boolean overwriteExistingFile) {
+        return JidbcExporter.exportTableDataToJsonFile(this, rowClass, outputJsonFile, overwriteExistingFile);
     }
 
 //============================== Other methods ==============================

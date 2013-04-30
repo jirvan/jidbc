@@ -39,11 +39,11 @@ import static com.jirvan.util.Assertions.assertFileDoesNotExist;
 
 public class JidbcExporter {
 
-    public static void exportTableDataToJsonFile(JidbcConnection jidbc, Class rowClass, File outputJsonFile) {
-        exportTableDataToJsonFile(jidbc, rowClass, outputJsonFile, false);
+    public static int exportTableDataToJsonFile(JidbcConnection jidbc, Class rowClass, File outputJsonFile) {
+        return exportTableDataToJsonFile(jidbc, rowClass, outputJsonFile, false);
     }
 
-    public static void exportTableDataToJsonFile(JidbcConnection jidbc, Class rowClass, File outputJsonFile, boolean overwriteExistingFile) {
+    public static int exportTableDataToJsonFile(JidbcConnection jidbc, Class rowClass, File outputJsonFile, boolean overwriteExistingFile) {
         if (!overwriteExistingFile) assertFileDoesNotExist(outputJsonFile);
         try {
             final FileWriter fileWriter = new FileWriter(outputJsonFile);
@@ -59,6 +59,7 @@ public class JidbcExporter {
                     fileWriter.write(Json.toJsonString(row));
                 }
                 fileWriter.write(" ]");
+                return rowNumber;
             } finally {
                 fileWriter.close();
             }

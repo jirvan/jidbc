@@ -39,13 +39,13 @@ import static com.jirvan.util.Assertions.assertFileExists;
 
 public class JidbcImporter {
 
-    public static void importTableDataFromJsonFile(JidbcConnection jidbc, Class rowClass, File inputJsonFile) {
+    public static int importTableDataFromJsonFile(JidbcConnection jidbc, Class rowClass, File inputJsonFile) {
         assertFileExists(inputJsonFile);
         String jsonString = Io.getFileString(inputJsonFile);
-        importTableDataFromJsonString(jidbc, rowClass, jsonString);
+        return importTableDataFromJsonString(jidbc, rowClass, jsonString);
     }
 
-    public static void importTableDataFromJsonString(JidbcConnection jidbc, Class rowClass, String jsonString) {
+    public static int importTableDataFromJsonString(JidbcConnection jidbc, Class rowClass, String jsonString) {
 
         // Determine array class
         Class rowArrayClass = null;
@@ -57,9 +57,13 @@ public class JidbcImporter {
 
         // Get the rows and insert them
         Object[] objects = (Object[]) Json.fromJsonString(jsonString, rowArrayClass);    // Todo read from stream
+        int count = 0;
         for (Object row : objects) {
             jidbc.insert(row);
+            count++;
         }
+
+        return count;
 
     }
 

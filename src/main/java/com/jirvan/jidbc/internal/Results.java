@@ -28,9 +28,12 @@
 
 package com.jirvan.jidbc.internal;
 
+import com.jirvan.dates.*;
 import com.jirvan.lang.*;
 
+import java.math.*;
 import java.sql.*;
+import java.util.Date;
 import java.util.*;
 
 public class Results<T> implements Iterable<T> {
@@ -46,7 +49,35 @@ public class Results<T> implements Iterable<T> {
     public Results(Connection connection, List<Results> connectionOpenResultses, Class rowClass, String sql, Object... parameterValues) {
 
         String sqlToUse;
-        if (Map.class.isAssignableFrom(rowClass)) {
+        if (String.class.isAssignableFrom(rowClass)) {
+            rowDef = null;
+            rowExtractor = new StringRowExtractor();
+            sqlToUse = sql;
+        } else if (Integer.class.isAssignableFrom(rowClass)) {
+            rowDef = null;
+            rowExtractor = new IntegerRowExtractor();
+            sqlToUse = sql;
+        } else if (Long.class.isAssignableFrom(rowClass)) {
+            rowDef = null;
+            rowExtractor = new LongRowExtractor();
+            sqlToUse = sql;
+        } else if (BigDecimal.class.isAssignableFrom(rowClass)) {
+            rowDef = null;
+            rowExtractor = new BigDecimalRowExtractor();
+            sqlToUse = sql;
+        } else if (Boolean.class.isAssignableFrom(rowClass)) {
+            rowDef = null;
+            rowExtractor = new BooleanRowExtractor();
+            sqlToUse = sql;
+        } else if (Date.class.isAssignableFrom(rowClass)) {
+            rowDef = null;
+            rowExtractor = new DateRowExtractor();
+            sqlToUse = sql;
+        } else if (Day.class.isAssignableFrom(rowClass)) {
+            rowDef = null;
+            rowExtractor = new DayRowExtractor();
+            sqlToUse = sql;
+        } else if (Map.class.isAssignableFrom(rowClass)) {
             rowDef = null;
             rowExtractor = new MapRowExtractor();
             sqlToUse = sql;
@@ -58,10 +89,10 @@ public class Results<T> implements Iterable<T> {
             rowExtractor = new ObjectRowExtractor();
             if (sql.equalsIgnoreCase("all")) {
                 rowDef = TableDef.getTableDefForRowClass(rowClass);
-                sqlToUse = String.format("select * from %s", ((TableDef)rowDef).tableName);
+                sqlToUse = String.format("select * from %s", ((TableDef) rowDef).tableName);
             } else if (sql.matches("(?si)\\s*where\\s+.*")) {
                 rowDef = TableDef.getTableDefForRowClass(rowClass);
-                sqlToUse = String.format("select * from %s %s", ((TableDef)rowDef).tableName, sql);
+                sqlToUse = String.format("select * from %s %s", ((TableDef) rowDef).tableName, sql);
             } else {
                 rowDef = RowDef.getRowDefForRowClass(rowClass);
                 sqlToUse = sql;

@@ -32,6 +32,7 @@ package com.jirvan.jidbc;
 
 import com.jirvan.dates.*;
 import com.jirvan.jidbc.internal.*;
+import com.jirvan.jidbc.lang.*;
 import com.jirvan.lang.*;
 import com.jirvan.util.*;
 
@@ -243,11 +244,30 @@ public class JidbcConnection {
     }
 
 
-//============================== "Pass through methods to jdbc methods ==============================
+//============================== Pass through methods to jdbc methods ==============================
 
     public int executeUpdate(String sql, Object... parameters) {
         return UpdateStatementExecutor.executeUpdate(jdbcConnection, sql, parameters);
     }
+
+//============================== "Extensions to pass through methods to jdbc methods ==============================
+
+    /**
+     * This method really is just an extension to executeUpdate that ensures that exactly
+     * one row is updated.
+     */
+    public void updateOneRow(String sql, Object... parameters) {
+        int count = UpdateStatementExecutor.executeUpdate(jdbcConnection, sql, parameters);
+        if (count < 0) {
+            throw new NotFoundRuntimeException("Weird error - update returned a negative count of rows updated");
+        } else if (count == 0) {
+            throw new NotFoundRuntimeException("No rows were found to update");
+        } else if (count > 1) {
+            throw new MultipleRowsRuntimeException("More than one row was updated");
+        }
+    }
+
+//============================== Database metadata methods ==============================
 
     public String getDatabaseProductName() {
         try {

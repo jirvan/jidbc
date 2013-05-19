@@ -41,7 +41,11 @@ public class UpdateStatementExecutor {
             PreparedStatement statement = connection.prepareStatement(sql);
             try {
                 for (int i = 0; i < parameters.length; i++) {
-                    statement.setObject(i + 1, parameters[i]);
+                    if (parameters[i] instanceof java.util.Date) {
+                        statement.setObject(i + 1, parameters[i], Types.TIMESTAMP);
+                    } else {
+                        statement.setObject(i + 1, parameters[i]);
+                    }
                 }
                 return statement.executeUpdate();
             } finally {

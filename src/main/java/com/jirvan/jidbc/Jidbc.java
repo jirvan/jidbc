@@ -31,17 +31,15 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 package com.jirvan.jidbc;
 
 import com.jirvan.dates.*;
-import com.jirvan.jidbc.internal.*;
 
 import javax.sql.*;
-import java.io.*;
 import java.math.*;
 import java.util.*;
 
 public class Jidbc {
 
 
-    //============================== "CRUD" (create, retrieve, update, delete) methods ==============================
+//============================== "CRUD" (create, retrieve, update, delete) methods ==============================
 
     public static void insert(DataSource dataSource, Object row) {
         JidbcConnection jidbc = JidbcConnection.from(dataSource);
@@ -106,7 +104,7 @@ public class Jidbc {
     }
 
 
-   //============================== Single returned object row/value methods ==============================
+//============================== Single returned object row/value methods ==============================
 
     public static <T> T queryFor(DataSource dataSource, Class rowClass, String sql, Object... parameterValues) {
         JidbcConnection jidbc = JidbcConnection.from(dataSource);
@@ -238,7 +236,7 @@ public class Jidbc {
         }
     }
 
-    //============================== Multiple returned row/object methods ==============================
+//============================== Multiple returned row/object methods ==============================
 
 
     /**
@@ -258,7 +256,7 @@ public class Jidbc {
         JidbcConnection jidbc = JidbcConnection.from(dataSource);
         try {
 
-            List<T> row = jidbc.queryForList(rowClass,  sql, parameterValues);
+            List<T> row = jidbc.queryForList(rowClass, sql, parameterValues);
 
             jidbc.commitAndClose();
             return row;
@@ -267,7 +265,7 @@ public class Jidbc {
         }
     }
 
-    //============================== "Pass through methods to jdbc methods ==============================
+//============================== Pass through methods to jdbc methods ==============================
 
     public static int executeUpdate(DataSource dataSource, String sql, Object... parameters) {
         JidbcConnection jidbc = JidbcConnection.from(dataSource);
@@ -281,6 +279,26 @@ public class Jidbc {
             throw jidbc.rollbackCloseAndWrap(t);
         }
     }
+
+//============================== Extensions to pass through methods to jdbc methods ==============================
+
+    /**
+     * This method really is just an extension to executeUpdate that ensures that exactly
+     * one row is updated.
+     */
+    public static void updateOneRow(DataSource dataSource, String sql, Object... parameters) {
+        JidbcConnection jidbc = JidbcConnection.from(dataSource);
+        try {
+
+            jidbc.updateOneRow(sql, parameters);
+
+            jidbc.commitAndClose();
+        } catch (Throwable t) {
+            throw jidbc.rollbackCloseAndWrap(t);
+        }
+    }
+
+//============================== Database metadata methods ==============================
 
     public static String getDatabaseProductName(DataSource dataSource) {
         JidbcConnection jidbc = JidbcConnection.from(dataSource);

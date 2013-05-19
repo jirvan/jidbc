@@ -101,6 +101,10 @@ public class RowDef {
                                                           extractAndAddColumnDefFromField(field, rowDef);
                                                       }
 
+                                                      public void performFor_Enum(Class fieldClass) {
+                                                          extractAndAddColumnDefFromField(field, rowDef);
+                                                      }
+
                                                   });
 
         }
@@ -149,6 +153,10 @@ public class RowDef {
                                                                       }
 
                                                                       public void performFor_Day() {
+                                                                          extractAndAddColumnDefFromGetterSetterMethods(attributeName, getterMethod, setterMethod, rowDef);
+                                                                      }
+
+                                                                      public void performFor_Enum(Class fieldClass) {
                                                                           extractAndAddColumnDefFromGetterSetterMethods(attributeName, getterMethod, setterMethod, rowDef);
                                                                       }
 

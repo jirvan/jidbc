@@ -52,6 +52,8 @@ public class TestsBase {
 
         public static final String DEPARTMENT_NAME = "Human Resources";
 
+        public static final DepartmentType DEPARTMENT_TYPE = DepartmentType.NonCore;
+
         public static final Day CREATION_ANNIVERSARY = new Day(2002, 5, 4);
 
         public static final String THINGY_TYPE = "Strawberry";
@@ -65,6 +67,7 @@ public class TestsBase {
         public static Department newInstance() {
             Department department = new Department();
             department.departmentId = null;
+            department.departmentType = DEPARTMENT_TYPE;
             department.departmentAbbr = DEPARTMENT_ABBR;
             department.departmentName = DEPARTMENT_NAME;
             department.creationAnniversary = CREATION_ANNIVERSARY;
@@ -80,6 +83,8 @@ public class TestsBase {
     public static class DEPARTMENT2 {
 
         public static final Long DEPARTMENT_ID = 42l;
+
+        public static final DepartmentType DEPARTMENT_TYPE = DepartmentType.NonCore;
 
         public static final String DEPARTMENT_ABBR = "Pers.";
 
@@ -98,6 +103,7 @@ public class TestsBase {
         public static Department newInstance() {
             Department department = new Department();
             department.departmentId = DEPARTMENT_ID;
+            department.departmentType = DEPARTMENT_TYPE;
             department.departmentAbbr = DEPARTMENT_ABBR;
             department.departmentName = DEPARTMENT_NAME;
             department.creationAnniversary = CREATION_ANNIVERSARY;
@@ -113,6 +119,8 @@ public class TestsBase {
     public static class DEPARTMENT3 {
 
         public static final Long DEPARTMENT_ID = 423636l;
+
+        public static final DepartmentType DEPARTMENT_TYPE = DepartmentType.Core;
 
         public static final String DEPARTMENT_ABBR = "TR";
 
@@ -131,6 +139,7 @@ public class TestsBase {
         public static Department newInstance() {
             Department department = new Department();
             department.departmentId = DEPARTMENT_ID;
+            department.departmentType = DEPARTMENT_TYPE;
             department.departmentAbbr = DEPARTMENT_ABBR;
             department.departmentName = DEPARTMENT_NAME;
             department.creationAnniversary = CREATION_ANNIVERSARY;
@@ -159,6 +168,7 @@ public class TestsBase {
     protected void retrieveFromDatabaseAndAssertAttributeValuesAreEqualToDepartment1(long newDepartmentId) {
         Department department = Jidbc.queryFor(DATA_SOURCE, Department.class, "where department_id = ?", newDepartmentId);
         assertEquals("department.department_abbr", DEPARTMENT1.DEPARTMENT_ABBR, department.departmentAbbr);
+        assertEquals("department.department_type", DEPARTMENT1.DEPARTMENT_TYPE, department.departmentType);
         assertEquals("department.department_name", DEPARTMENT1.DEPARTMENT_NAME, department.departmentName);
         assertEquals("department.creation_anniversary", DEPARTMENT1.CREATION_ANNIVERSARY, department.creationAnniversary);
         assertEquals("department.thingy_type", DEPARTMENT1.THINGY_TYPE, department.thingyType);

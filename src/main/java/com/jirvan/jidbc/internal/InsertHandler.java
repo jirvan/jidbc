@@ -95,6 +95,10 @@ public class InsertHandler {
                                                            parameterValues.add(value == null ? null : new Timestamp(value.getDate().getTime()));
                                                        }
 
+                                                       public void performWith(Enum value) {
+                                                           parameterValues.add(value == null ? null : value.name());
+                                                       }
+
                                                    });
         }
         String sql = columnToReturn == null

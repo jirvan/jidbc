@@ -22,6 +22,7 @@ public class JidbcConnection_CRUDTests extends TestsBase {
 
             Department department = new Department();
             department.departmentId = jidbc.takeSequenceNextVal("common_id_sequence");
+            department.departmentType = DEPARTMENT1.DEPARTMENT_TYPE;
             department.departmentAbbr = DEPARTMENT1.DEPARTMENT_ABBR;
             department.departmentName = DEPARTMENT1.DEPARTMENT_NAME;
             department.creationAnniversary = DEPARTMENT1.CREATION_ANNIVERSARY;
@@ -81,6 +82,7 @@ public class JidbcConnection_CRUDTests extends TestsBase {
         try {
 
             Department department = new Department();
+            department.departmentType = DEPARTMENT1.DEPARTMENT_TYPE;
             department.departmentAbbr = DEPARTMENT1.DEPARTMENT_ABBR;
             department.departmentName = DEPARTMENT1.DEPARTMENT_NAME;
             department.creationAnniversary = DEPARTMENT1.CREATION_ANNIVERSARY;

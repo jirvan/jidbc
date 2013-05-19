@@ -56,6 +56,8 @@ public class AttributeValueHandler {
 
         public abstract void performFor_Day();
 
+        public abstract void performFor_Enum(Class enumClass);
+
     }
 
     public static abstract class ValueAction {
@@ -74,6 +76,8 @@ public class AttributeValueHandler {
 
         public abstract void performWith(Day value);
 
+        public abstract void performWith(Enum value);
+
     }
 
     public static void performForClass(Class fieldClass, ClassAction classAction) {
@@ -91,6 +95,8 @@ public class AttributeValueHandler {
             classAction.performFor_Date();
         } else if (fieldClass == Day.class) {
             classAction.performFor_Day();
+        } else if (fieldClass.isEnum()) {
+            classAction.performFor_Enum(fieldClass);
         } else {
             throw new UnsupportedDataTypeException(String.format("%s is an unsupported type",
                                                                  fieldClass.getName()));
@@ -117,6 +123,8 @@ public class AttributeValueHandler {
             actionSet.performWith((Date) value);
         } else if (fieldClass == Day.class) {
             actionSet.performWith((Day) value);
+        } else if (fieldClass.isEnum()) {
+            actionSet.performWith((Enum) value);
         } else {
             throw new UnsupportedDataTypeException(String.format("%s is an unsupported type",
                                                                  fieldClass.getName()));

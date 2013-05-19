@@ -85,7 +85,7 @@ public class ObjectRowExtractor<T> implements RowExtractor<T> {
                                                           }
 
                                                           public void performFor_Boolean() {
-                                                             try {
+                                                              try {
                                                                   Boolean value = resultSet.getBoolean(columnDef.columnName);
                                                                   if (resultSet.wasNull()) {
                                                                       columnDef.setValue(row, null);
@@ -171,6 +171,19 @@ public class ObjectRowExtractor<T> implements RowExtractor<T> {
                                                                       columnDef.setValue(row, null);
                                                                   } else {
                                                                       columnDef.setValue(row, Day.from(new java.util.Date(value.getTime())));
+                                                                  }
+                                                              } catch (SQLException e) {
+                                                                  throw new SQLRuntimeException(e);
+                                                              }
+                                                          }
+
+                                                          public void performFor_Enum(Class fieldClass) {
+                                                              try {
+                                                                  String value = resultSet.getString(columnDef.columnName);
+                                                                  if (resultSet.wasNull()) {
+                                                                      columnDef.setValue(row, null);
+                                                                  } else {
+                                                                      columnDef.setValue(row, Enum.valueOf(fieldClass, value));
                                                                   }
                                                               } catch (SQLException e) {
                                                                   throw new SQLRuntimeException(e);

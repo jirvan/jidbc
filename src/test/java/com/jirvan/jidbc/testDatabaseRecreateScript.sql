@@ -10,6 +10,7 @@ create sequence common_id_sequence;
 -- Create tables
 create table departments (
   department_id         bigint         not null,
+  department_type       varchar(20)    not null,
   department_abbr       varchar(100)   not null,
   department_name       varchar(100)   not null unique,
   creation_anniversary  date           not null,
@@ -20,6 +21,10 @@ create table departments (
 constraint departments_pk primary key (department_id),
 constraint departments_department_abbr_bk unique (department_abbr),
 constraint departments_thingy_uk unique (thingy_type, thingy_number),
+constraint departments_department_type_chk
+   check (
+     department_type in ('Core','NonCore')
+   ),
 constraint departments_thingy_type_chk
    check (
      thingy_type in ('Strawberry','Chocolate')

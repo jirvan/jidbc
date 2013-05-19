@@ -18,6 +18,7 @@ public class Jidbc_CRUDTests extends TestsBase {
         long newDepartmentId = 424242l;
         Department department = new Department();
         department.departmentId = newDepartmentId;
+        department.departmentType = DEPARTMENT1.DEPARTMENT_TYPE;
         department.departmentAbbr = DEPARTMENT1.DEPARTMENT_ABBR;
         department.departmentName = DEPARTMENT1.DEPARTMENT_NAME;
         department.creationAnniversary = DEPARTMENT1.CREATION_ANNIVERSARY;
@@ -62,6 +63,7 @@ public class Jidbc_CRUDTests extends TestsBase {
 
         // Create a new object
         Department department = new Department();
+        department.departmentType = DEPARTMENT1.DEPARTMENT_TYPE;
         department.departmentAbbr = DEPARTMENT1.DEPARTMENT_ABBR;
         department.departmentName = DEPARTMENT1.DEPARTMENT_NAME;
         department.creationAnniversary = DEPARTMENT1.CREATION_ANNIVERSARY;

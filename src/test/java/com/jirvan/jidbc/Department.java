@@ -40,6 +40,8 @@ public class Department {
     @Id(generatorSequence = "common_id_sequence")
     public Long departmentId;
 
+    public DepartmentType departmentType;
+
     public String departmentAbbr;
 
     public String departmentName;

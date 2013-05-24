@@ -92,7 +92,7 @@ public class JidbcConnection {
         }
     }
 
-    private void rollbackAndClose() {
+    public void rollbackAndClose() {
         try {
             boolean autoCommit = jdbcConnection.getAutoCommit();
             closeAnyOpenQueryIterables();

@@ -84,11 +84,11 @@ public class JidbcConnection {
     public RuntimeException rollbackCloseAndWrap(Throwable t) {
         rollbackAndClose();
         if (t instanceof RuntimeException) {
-            throw (RuntimeException) t;
+            return (RuntimeException) t;
         } else if (t instanceof SQLException) {
-            throw new SQLRuntimeException((SQLException) t);
+            return new SQLRuntimeException((SQLException) t);
         } else {
-            throw new RuntimeException(t);
+            return new RuntimeException(t);
         }
     }
 

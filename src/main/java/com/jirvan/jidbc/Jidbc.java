@@ -158,6 +158,19 @@ public class Jidbc {
         }
     }
 
+    public static Integer queryFor_Integer(DataSource dataSource, String sql, Object... parameterValues) {
+        JidbcConnection jidbc = JidbcConnection.from(dataSource);
+        try {
+
+            Integer value = jidbc.queryFor_Integer(sql, parameterValues);
+
+            jidbc.commitAndClose();
+            return value;
+        } catch (Throwable t) {
+            throw jidbc.rollbackCloseAndWrap(t);
+        }
+    }
+
     public static Long queryFor_Long(DataSource dataSource, String sql, Object... parameterValues) {
         JidbcConnection jidbc = JidbcConnection.from(dataSource);
         try {

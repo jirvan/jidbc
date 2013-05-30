@@ -172,6 +172,10 @@ public class JidbcConnection {
         return QueryForHandler.queryFor_String(jdbcConnection, false, sql, parameterValues);
     }
 
+    public Integer queryFor_Integer(String sql, Object... parameterValues) {
+        return QueryForHandler.queryFor_Integer(jdbcConnection, true, sql, parameterValues);
+    }
+
     public Long queryFor_Long(String sql, Object... parameterValues) {
         return QueryForHandler.queryFor_Long(jdbcConnection, true, sql, parameterValues);
     }

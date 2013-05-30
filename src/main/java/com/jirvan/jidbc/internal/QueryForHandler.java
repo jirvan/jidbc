@@ -104,6 +104,49 @@ public class QueryForHandler {
         }
     }
 
+    public static Integer queryFor_Integer(Connection connection, boolean exceptionIfNotFound, String sql, Object... parameterValues) {
+        try {
+            PreparedStatement statement = connection.prepareStatement(sql);
+            try {
+
+                // Set parameter values and execute query
+                for (int i = 0; i < parameterValues.length; i++) {
+                    statement.setObject(i + 1, parameterValues[i]);
+                }
+                ResultSet resultSet = statement.executeQuery();
+                Integer result;
+                try {
+
+                    // Get result and check for anything other than exactly one row
+                    if (resultSet.next()) {
+                        int value = resultSet.getInt(1);
+                        result = resultSet.wasNull() ? null : value;
+                    } else {
+                        if (exceptionIfNotFound) {
+                            throw new NotFoundRuntimeException();
+                        } else {
+                            return null;
+                        }
+                    }
+                    if (resultSet.next()) {
+                        throw new MultipleRowsRuntimeException();
+                    }
+
+                } finally {
+                    resultSet.close();
+                }
+
+                // Return the result
+                return result;
+
+            } finally {
+                statement.close();
+            }
+        } catch (SQLException e) {
+            throw new SQLRuntimeException(e);
+        }
+    }
+
     public static Long queryFor_Long(Connection connection, boolean exceptionIfNotFound, String sql, Object... parameterValues) {
         try {
             PreparedStatement statement = connection.prepareStatement(sql);

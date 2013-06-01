@@ -50,7 +50,11 @@ public class JidbcRowClassGenerator {
     }
 
     public static void generateJavaFilesIntoDirectory(DataSource dataSource, String packageName, File outputDirectory) {
-        generateJavaFilesIntoDirectory(dataSource, packageName, null, "Row", false, outputDirectory);
+        generateJavaFilesIntoDirectory(dataSource, packageName, null, "Row", false, outputDirectory, false);
+    }
+
+    public static void generateJavaFilesIntoDirectory(DataSource dataSource, String packageName, File outputDirectory, boolean replaceExistingFiles) {
+        generateJavaFilesIntoDirectory(dataSource, packageName, null, "Row", false, outputDirectory, replaceExistingFiles);
     }
 
     public static void generateJavaFilesIntoDirectory(DataSource dataSource,
@@ -59,6 +63,22 @@ public class JidbcRowClassGenerator {
                                                       String classNameSuffix,
                                                       boolean includeCloneMethod,
                                                       File outputDirectory) {
+        generateJavaFilesIntoDirectory(dataSource,
+                                       packageName,
+                                       classNamePrefix,
+                                       classNameSuffix,
+                                       includeCloneMethod,
+                                       outputDirectory,
+                                       false);
+    }
+
+    public static void generateJavaFilesIntoDirectory(DataSource dataSource,
+                                                      String packageName,
+                                                      String classNamePrefix,
+                                                      String classNameSuffix,
+                                                      boolean includeCloneMethod,
+                                                      File outputDirectory,
+                                                      boolean replaceExistingFiles) {
         try {
             Io.ensureDirectoryExists(outputDirectory);
             Connection connection = dataSource.getConnection();
@@ -78,7 +98,9 @@ public class JidbcRowClassGenerator {
                         List<ColumnDetails> columnDetailses = getColumnDetailses(connection, tableSchema, tableName, pkColumnNames, imports);
                         try {
                             File outputJavaFile = new File(outputDirectory, classSimpleName + ".java");
-                            assertFileDoesNotExist(outputJavaFile);
+                            if (!replaceExistingFiles) {
+                                assertFileDoesNotExist(outputJavaFile);
+                            }
                             PrintStream printStream = new PrintStream(outputJavaFile);
                             try {
                                 if (classNamePrefix != null || (classNameSuffix != null && !classNameSuffix.equals("Row"))) {

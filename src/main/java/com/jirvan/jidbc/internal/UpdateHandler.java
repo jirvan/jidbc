@@ -39,6 +39,8 @@ import java.sql.*;
 import java.util.*;
 import java.util.Date;
 
+import static com.jirvan.jidbc.internal.JidbcInternalUtils.setObject;
+
 public class UpdateHandler extends AbstractPkWhereClauseHandler {
 
     public static void update(Connection connection, Object row) {
@@ -67,10 +69,10 @@ public class UpdateHandler extends AbstractPkWhereClauseHandler {
             try {
                 int paramIndex = 0;
                 for (int i = 0; i < columnSetParameterValues.size(); i++) {
-                    statement.setObject(++paramIndex, columnSetParameterValues.get(i));
+                    setObject(statement, ++paramIndex, columnSetParameterValues.get(i));
                 }
                 for (int i = 0; i < whereClause.parameterValues.size(); i++) {
-                    statement.setObject(++paramIndex, whereClause.parameterValues.get(i));
+                    setObject(statement, ++paramIndex, whereClause.parameterValues.get(i));
                 }
                 int count = statement.executeUpdate();
                 if (count == 0) {

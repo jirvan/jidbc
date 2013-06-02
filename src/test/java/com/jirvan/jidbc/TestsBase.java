@@ -44,6 +44,7 @@ public class TestsBase {
 
     protected final static DataSource DATA_SOURCE = Jdbc.getPostgresDataSource("zac/x@gdansk/zacdev");
     private static final String TEST_DATABASE_RECREATE_SCRIPT = Io.getResourceFileString(JidbcConnection_CRUDTests.class, "testDatabaseRecreateScript.sql");
+    private static final String TEST_DATABASE_DROP_SCRIPT = Io.getResourceFileString(JidbcConnection_CRUDTests.class, "testDatabaseDropScript.sql");
 
 
     public static class DEPARTMENT1 {
@@ -153,7 +154,7 @@ public class TestsBase {
     }
 
     @BeforeMethod
-    protected void beforeClass() throws Exception {
+    protected void beforeMethod() throws Exception {
         for (String statement : TEST_DATABASE_RECREATE_SCRIPT.replaceAll("(?m)^\\s+--.*$", "")
                                                              .replaceAll("^\\s*\\n+", "")
                                                              .replaceAll("(?m);\\s*\\n\\s*", ";\n")
@@ -163,6 +164,16 @@ public class TestsBase {
 //            TableDef.deregisterRowClasses();
 //            TableDef.registerRowClass(DepartmentTwo.class, "departmentId").setGeneratorSequence("common_id_sequence");
 
+    }
+
+    @AfterMethod
+    protected void afterMethod() throws Exception {
+        for (String statement : TEST_DATABASE_DROP_SCRIPT.replaceAll("(?m)^\\s+--.*$", "")
+                                                         .replaceAll("^\\s*\\n+", "")
+                                                         .replaceAll("(?m);\\s*\\n\\s*", ";\n")
+                                                         .split("(?m); *\\n")) {
+            Jidbc.executeUpdate(DATA_SOURCE, statement);
+        }
     }
 
     protected void retrieveFromDatabaseAndAssertAttributeValuesAreEqualToDepartment1(long newDepartmentId) {

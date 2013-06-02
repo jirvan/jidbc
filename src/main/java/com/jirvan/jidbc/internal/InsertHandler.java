@@ -37,6 +37,8 @@ import java.math.*;
 import java.sql.*;
 import java.util.*;
 
+import static com.jirvan.jidbc.internal.JidbcInternalUtils.*;
+
 public class InsertHandler {
 
     public static Long insert(Connection connection, Object row, String columnToReturn) {
@@ -117,7 +119,7 @@ public class InsertHandler {
             PreparedStatement statement = connection.prepareStatement(sql);
             try {
                 for (int i = 0; i < parameterValues.size(); i++) {
-                    statement.setObject(i + 1, parameterValues.elementAt(i));
+                    setObject(statement, i + 1, parameterValues.elementAt(i));
                 }
 
                 if (columnToReturn == null) {

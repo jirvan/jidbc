@@ -38,6 +38,8 @@ import java.math.*;
 import java.sql.*;
 import java.util.*;
 
+import static com.jirvan.jidbc.internal.JidbcInternalUtils.*;
+
 public class QueryForHandler {
 
     public static <T> T queryFor(Connection connection, boolean exceptionIfNotFound, Class rowClass, String sql, Object[] parameterValues, boolean isAGet) {
@@ -76,7 +78,7 @@ public class QueryForHandler {
 
                 // Set parameter values
                 for (int i = 0; i < parameterValues.length; i++) {
-                    statement.setObject(i + 1, parameterValues[i]);
+                    setObject(statement, i + 1, parameterValues[i]);
                 }
 
                 // Get result and check for anything other than exactly one row
@@ -111,7 +113,7 @@ public class QueryForHandler {
 
                 // Set parameter values and execute query
                 for (int i = 0; i < parameterValues.length; i++) {
-                    statement.setObject(i + 1, parameterValues[i]);
+                    setObject(statement, i + 1, parameterValues[i]);
                 }
                 ResultSet resultSet = statement.executeQuery();
                 Integer result;
@@ -154,7 +156,7 @@ public class QueryForHandler {
 
                 // Set parameter values and execute query
                 for (int i = 0; i < parameterValues.length; i++) {
-                    statement.setObject(i + 1, parameterValues[i]);
+                    setObject(statement, i + 1, parameterValues[i]);
                 }
                 ResultSet resultSet = statement.executeQuery();
                 Long result;
@@ -197,7 +199,7 @@ public class QueryForHandler {
 
                 // Set parameter values and execute query
                 for (int i = 0; i < parameterValues.length; i++) {
-                    statement.setObject(i + 1, parameterValues[i]);
+                    setObject(statement, i + 1, parameterValues[i]);
                 }
                 ResultSet resultSet = statement.executeQuery();
                 BigDecimal result;
@@ -240,7 +242,7 @@ public class QueryForHandler {
 
                 // Set parameter values and execute query
                 for (int i = 0; i < parameterValues.length; i++) {
-                    statement.setObject(i + 1, parameterValues[i]);
+                    setObject(statement, i + 1, parameterValues[i]);
                 }
                 ResultSet resultSet = statement.executeQuery();
                 String result;
@@ -283,7 +285,7 @@ public class QueryForHandler {
 
                 // Set parameter values and execute query
                 for (int i = 0; i < parameterValues.length; i++) {
-                    statement.setObject(i + 1, parameterValues[i]);
+                    setObject(statement, i + 1, parameterValues[i]);
                 }
                 ResultSet resultSet = statement.executeQuery();
                 Day result;

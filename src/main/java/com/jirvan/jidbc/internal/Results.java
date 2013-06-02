@@ -36,6 +36,8 @@ import java.sql.*;
 import java.util.Date;
 import java.util.*;
 
+import static com.jirvan.jidbc.internal.JidbcInternalUtils.setObject;
+
 public class Results<T> implements Iterable<T> {
 
     private RowDef rowDef;
@@ -106,7 +108,7 @@ public class Results<T> implements Iterable<T> {
 
             statement = connection.prepareStatement(sqlToUse);
             for (int i = 0; i < parameterValues.length; i++) {
-                statement.setObject(i + 1, parameterValues[i]);
+                setObject(statement, i + 1, parameterValues[i]);
             }
             resultSet = statement.executeQuery();
             fetchNext();

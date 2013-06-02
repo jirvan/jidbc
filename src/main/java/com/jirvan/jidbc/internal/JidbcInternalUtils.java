@@ -30,47 +30,26 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 package com.jirvan.jidbc.internal;
 
-import com.jirvan.jidbc.lang.*;
-import com.jirvan.lang.*;
+import com.jirvan.dates.*;
 
 import java.sql.*;
 
-import static com.jirvan.jidbc.internal.JidbcInternalUtils.*;
+public class JidbcInternalUtils {
 
-public class DeleteHandler extends AbstractPkWhereClauseHandler {
-
-    public static void delete(Connection connection, Object row) {
-
-        try {
-            TableDef tableDef = TableDef.getTableDefForRowClass(row.getClass());
-
-            WhereClause whereClause = new WhereClause(tableDef, row);
-
-            String sql = String.format("delete from %s\n%s",
-                                       tableDef.tableName,
-                                       whereClause.sql);
-
-            // Delete the object
-            PreparedStatement statement = connection.prepareStatement(sql);
-            try {
-                int paramIndex = 0;
-                for (int i = 0; i < whereClause.parameterValues.size(); i++) {
-                    setObject(statement, ++paramIndex, whereClause.parameterValues.get(i));
-                }
-                int count = statement.executeUpdate();
-                if (count == 0) {
-                    throw new NotFoundRuntimeException("Delete failed - row not found");
-                }
-                if (count > 1) {
-                    throw new MultipleRowsRuntimeException("Delete failed - more than one row deleted");
-                }
-            } finally {
-                statement.close();
-            }
-
-        } catch (SQLException e) {
-            throw new SQLRuntimeException(e);
+    public static void setObject(PreparedStatement statement, int parameterIndex, Object object) throws SQLException {
+        if (object instanceof java.util.Date) {
+            statement.setObject(parameterIndex, object, Types.TIMESTAMP);
+        } else if (object instanceof Day) {
+            statement.setObject(parameterIndex, ((Day) object).getDate(), Types.TIMESTAMP);
+        } else {
+            statement.setObject(parameterIndex, object);
         }
     }
+
+//    public static Object dateIfInstanceOfDay(Object parameterValue) {
+//        return parameterValue instanceof Day
+//               ? ((Day) parameterValue).getDate()
+//               : parameterValue;
+//    }
 
 }

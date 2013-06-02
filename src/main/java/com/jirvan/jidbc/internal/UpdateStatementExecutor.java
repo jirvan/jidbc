@@ -30,6 +30,7 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 package com.jirvan.jidbc.internal;
 
+import com.jirvan.dates.*;
 import com.jirvan.lang.*;
 
 import java.sql.*;
@@ -43,6 +44,8 @@ public class UpdateStatementExecutor {
                 for (int i = 0; i < parameters.length; i++) {
                     if (parameters[i] instanceof java.util.Date) {
                         statement.setObject(i + 1, parameters[i], Types.TIMESTAMP);
+                    } else if (parameters[i] instanceof Day) {
+                        statement.setObject(i + 1, ((Day)parameters[i]).getDate(), Types.TIMESTAMP);
                     } else {
                         statement.setObject(i + 1, parameters[i]);
                     }

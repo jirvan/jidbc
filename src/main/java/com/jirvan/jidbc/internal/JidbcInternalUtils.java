@@ -46,10 +46,4 @@ public class JidbcInternalUtils {
         }
     }
 
-//    public static Object dateIfInstanceOfDay(Object parameterValue) {
-//        return parameterValue instanceof Day
-//               ? ((Day) parameterValue).getDate()
-//               : parameterValue;
-//    }
-
 }

@@ -53,6 +53,7 @@ public class JidbcConnection_CRUDTests extends TestsBase {
 
             GetterSetterDepartment department = new GetterSetterDepartment();
             department.setDepartmentId(4242l);
+            department.setDepartmentType(DEPARTMENT1.DEPARTMENT_TYPE);
             department.setDepartmentAbbr(DEPARTMENT1.DEPARTMENT_ABBR);
             department.setDepartmentName(DEPARTMENT1.DEPARTMENT_NAME);
             department.setCreationAnniversary(DEPARTMENT1.CREATION_ANNIVERSARY);
@@ -116,12 +117,41 @@ public class JidbcConnection_CRUDTests extends TestsBase {
 
             Department department = jidbc.get(Department.class, newDepartment.departmentId);
             assertEquals("department.department_abbr", DEPARTMENT1.DEPARTMENT_ABBR, department.departmentAbbr);
+            assertEquals("department.department_type", DEPARTMENT1.DEPARTMENT_TYPE, department.departmentType);
             assertEquals("department.department_name", DEPARTMENT1.DEPARTMENT_NAME, department.departmentName);
             assertEquals("department.creation_anniversary", DEPARTMENT1.CREATION_ANNIVERSARY, department.creationAnniversary);
             assertEquals("department.thingy_type", DEPARTMENT1.THINGY_TYPE, department.thingyType);
             assertEquals("department.thingy_number", DEPARTMENT1.THINGY_NUMBER, department.thingyNumber);
             assertEquals("department.another_thingy", DEPARTMENT1.ANOTHER_THINGY, department.anotherThingy);
             assertEquals("department.inactivated_datetime", DEPARTMENT1.INACTIVATED_DATETIME, department.inactivatedDatetime);
+
+            jidbc.commitAndClose();
+        } catch (Throwable t) {
+            throw jidbc.rollbackCloseAndWrap(t);
+        }
+
+    }
+
+    @Test
+    public void get_gettersAndSetters() {
+
+        // Open a separate database connection and insert a test row
+        GetterSetterDepartment newDepartment = DEPARTMENT1.newGetterSetterInstance();
+        Jidbc.insert(DATA_SOURCE, newDepartment);
+
+        // Open a different  database connection and check the inserted row
+        JidbcConnection jidbc = JidbcConnection.from(DATA_SOURCE);
+        try {
+
+            GetterSetterDepartment department = jidbc.get(GetterSetterDepartment.class, newDepartment.getDepartmentId());
+            assertEquals("department.department_abbr", DEPARTMENT1.DEPARTMENT_ABBR, department.getDepartmentAbbr());
+            assertEquals("department.department_type", DEPARTMENT1.DEPARTMENT_TYPE, department.getDepartmentType());
+            assertEquals("department.department_name", DEPARTMENT1.DEPARTMENT_NAME, department.getDepartmentName());
+            assertEquals("department.creation_anniversary", DEPARTMENT1.CREATION_ANNIVERSARY, department.getCreationAnniversary());
+            assertEquals("department.thingy_type", DEPARTMENT1.THINGY_TYPE, department.getThingyType());
+            assertEquals("department.thingy_number", DEPARTMENT1.THINGY_NUMBER, department.getThingyNumber());
+            assertEquals("department.another_thingy", DEPARTMENT1.ANOTHER_THINGY, department.getAnotherThingy());
+            assertEquals("department.inactivated_datetime", DEPARTMENT1.INACTIVATED_DATETIME, department.getInactivatedDatetime());
 
             jidbc.commitAndClose();
         } catch (Throwable t) {

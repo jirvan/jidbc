@@ -79,6 +79,20 @@ public class TestsBase {
             return department;
         }
 
+        public static GetterSetterDepartment newGetterSetterInstance() {
+            GetterSetterDepartment department = new GetterSetterDepartment();
+            department.setDepartmentId(null);
+            department.setDepartmentType(DEPARTMENT_TYPE);
+            department.setDepartmentAbbr(DEPARTMENT_ABBR);
+            department.setDepartmentName(DEPARTMENT_NAME);
+            department.setCreationAnniversary(CREATION_ANNIVERSARY);
+            department.setThingyType(THINGY_TYPE);
+            department.setThingyNumber(THINGY_NUMBER);
+            department.setAnotherThingy(ANOTHER_THINGY);
+            department.setInactivatedDatetime(INACTIVATED_DATETIME);
+            return department;
+        }
+
     }
 
     public static class DEPARTMENT2 {

@@ -42,6 +42,7 @@ public class Jidbc_CRUDTests extends TestsBase {
         long newDepartmentId = 424242l;
         GetterSetterDepartment department = new GetterSetterDepartment();
         department.setDepartmentId(newDepartmentId);
+        department.setDepartmentType(DEPARTMENT1.DEPARTMENT_TYPE);
         department.setDepartmentAbbr(DEPARTMENT1.DEPARTMENT_ABBR);
         department.setDepartmentName(DEPARTMENT1.DEPARTMENT_NAME);
         department.setCreationAnniversary(DEPARTMENT1.CREATION_ANNIVERSARY);
@@ -100,6 +101,26 @@ public class Jidbc_CRUDTests extends TestsBase {
 
     }
 
+
+    @Test
+    public void get_gettersAndSetters() {
+
+        // Open a separate database connection and insert a test row
+        GetterSetterDepartment newDepartment = DEPARTMENT1.newGetterSetterInstance();
+        Jidbc.insert(DATA_SOURCE, newDepartment);
+
+        // Open a different  database connection and check the inserted row
+        GetterSetterDepartment department = Jidbc.get(DATA_SOURCE, GetterSetterDepartment.class, newDepartment.getDepartmentId());
+        assertEquals("department.department_abbr", DEPARTMENT1.DEPARTMENT_ABBR, department.getDepartmentAbbr());
+        assertEquals("department.department_type", DEPARTMENT1.DEPARTMENT_TYPE, department.getDepartmentType());
+        assertEquals("department.department_name", DEPARTMENT1.DEPARTMENT_NAME, department.getDepartmentName());
+        assertEquals("department.creation_anniversary", DEPARTMENT1.CREATION_ANNIVERSARY, department.getCreationAnniversary());
+        assertEquals("department.thingy_type", DEPARTMENT1.THINGY_TYPE, department.getThingyType());
+        assertEquals("department.thingy_number", DEPARTMENT1.THINGY_NUMBER, department.getThingyNumber());
+        assertEquals("department.another_thingy", DEPARTMENT1.ANOTHER_THINGY, department.getAnotherThingy());
+        assertEquals("department.inactivated_datetime", DEPARTMENT1.INACTIVATED_DATETIME, department.getInactivatedDatetime());
+
+    }
 
     @Test
     public void getIfExists() {

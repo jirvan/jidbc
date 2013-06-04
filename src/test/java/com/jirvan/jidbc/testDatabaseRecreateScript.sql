@@ -33,6 +33,7 @@ constraint departments_thingy_type_chk
 
 create table getter_setter_departments (
   department_id         bigint         not null,
+  department_type       varchar(20)    not null,
   department_abbr       varchar(100)   not null,
   department_name       varchar(100)   not null unique,
   creation_anniversary  date           not null,
@@ -43,6 +44,10 @@ create table getter_setter_departments (
 constraint gsdepartments_pk primary key (department_id),
 constraint gsdepartments_department_abbr_bk unique (department_abbr),
 constraint gsdepartments_thingy_uk unique (thingy_type, thingy_number),
+constraint gsdepartments_department_type_chk
+   check (
+     department_type in ('Core','NonCore')
+   ),
 constraint gsdepartments_thingy_type_chk
    check (
      thingy_type in ('Strawberry','Chocolate')

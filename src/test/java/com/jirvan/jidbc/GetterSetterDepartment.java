@@ -39,6 +39,8 @@ public class GetterSetterDepartment {
 
     private Long departmentId;
 
+    public DepartmentType departmentType;
+
     private String departmentAbbr;
 
     private String departmentName;
@@ -53,6 +55,8 @@ public class GetterSetterDepartment {
 
     private Date inactivatedDatetime;
 
+    private String somethingToIgnore;
+
     @Id(generatorSequence = "common_id_sequence")
     public Long getDepartmentId() {
         return departmentId;
@@ -60,6 +64,14 @@ public class GetterSetterDepartment {
 
     public void setDepartmentId(Long departmentId) {
         this.departmentId = departmentId;
+    }
+
+    public DepartmentType getDepartmentType() {
+        return departmentType;
+    }
+
+    public void setDepartmentType(DepartmentType departmentType) {
+        this.departmentType = departmentType;
     }
 
     public String getDepartmentAbbr() {
@@ -117,4 +129,13 @@ public class GetterSetterDepartment {
     public void setInactivatedDatetime(Date inactivatedDatetime) {
         this.inactivatedDatetime = inactivatedDatetime;
     }
+
+    public String getSomethingToIgnore() {
+        return somethingToIgnore;
+    }
+
+//    public void setSomethingToIgnore(String somethingToIgnore) {
+//        this.somethingToIgnore = somethingToIgnore;
+//    }
+
 }

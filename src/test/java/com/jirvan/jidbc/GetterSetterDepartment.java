@@ -57,6 +57,10 @@ public class GetterSetterDepartment {
 
     private String somethingToIgnore;
 
+    private ThingyToBeIgnored somethingElseToIgnore;
+
+    private Collection anotherThingToIgnore;
+
     @Id(generatorSequence = "common_id_sequence")
     public Long getDepartmentId() {
         return departmentId;
@@ -130,12 +134,34 @@ public class GetterSetterDepartment {
         this.inactivatedDatetime = inactivatedDatetime;
     }
 
+    /**
+     * This should be ignored as there is no setter method
+     */
     public String getSomethingToIgnore() {
         return somethingToIgnore;
     }
 
-//    public void setSomethingToIgnore(String somethingToIgnore) {
-//        this.somethingToIgnore = somethingToIgnore;
-//    }
+    /**
+     * This should be ignored as it is annotated with @JidbcIgnore
+     */
+    @JidbcIgnore
+    public ThingyToBeIgnored getSomethingElseToIgnore() {
+        return somethingElseToIgnore;
+    }
+
+    public void setSomethingElseToIgnore(ThingyToBeIgnored somethingElseToIgnore) {
+        this.somethingElseToIgnore = somethingElseToIgnore;
+    }
+
+    /**
+     * This should be ignored as it is a Collection
+     */
+    public Collection getAnotherThingToIgnore() {
+        return anotherThingToIgnore;
+    }
+
+    public void setAnotherThingToIgnore(Collection anotherThingToIgnore) {
+        this.anotherThingToIgnore = anotherThingToIgnore;
+    }
 
 }

@@ -30,6 +30,9 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 package com.jirvan.jidbc.internal;
 
+import com.jirvan.jidbc.*;
+
+import java.lang.annotation.*;
 import java.lang.reflect.*;
 import java.util.*;
 import java.util.regex.*;
@@ -67,46 +70,50 @@ public class RowDef {
 
     }
 
-    protected static void addBasicColumnDefsToRowDef(Class rowClass, final RowDef rowDef) {// Extract public field based column defs
+    protected static void addBasicColumnDefsToRowDef(Class rowClass, final RowDef rowDef) {
+
+        // Extract public field based column defs
         for (final Field field : rowClass.getFields()) {
+            Annotation annotation = field.getAnnotation(JidbcIgnore.class);
+            if (!(annotation instanceof JidbcIgnore) && !Collection.class.isAssignableFrom(field.getType())) {
 
-            AttributeValueHandler.performForClass(field.getType(),
-                                                  new AttributeValueHandler.ClassAction() {
+                AttributeValueHandler.performForClass(field.getType(),
+                                                      new AttributeValueHandler.ClassAction() {
 
-                                                      public void performFor_String() {
-                                                          extractAndAddColumnDefFromField(field, rowDef);
-                                                      }
+                                                          public void performFor_String() {
+                                                              extractAndAddColumnDefFromField(field, rowDef);
+                                                          }
 
-                                                      public void performFor_Integer() {
-                                                          extractAndAddColumnDefFromField(field, rowDef);
-                                                      }
+                                                          public void performFor_Integer() {
+                                                              extractAndAddColumnDefFromField(field, rowDef);
+                                                          }
 
-                                                      public void performFor_Long() {
-                                                          extractAndAddColumnDefFromField(field, rowDef);
-                                                      }
+                                                          public void performFor_Long() {
+                                                              extractAndAddColumnDefFromField(field, rowDef);
+                                                          }
 
-                                                      public void performFor_BigDecimal() {
-                                                          extractAndAddColumnDefFromField(field, rowDef);
-                                                      }
+                                                          public void performFor_BigDecimal() {
+                                                              extractAndAddColumnDefFromField(field, rowDef);
+                                                          }
 
-                                                      public void performFor_Boolean() {
-                                                          extractAndAddColumnDefFromField(field, rowDef);
-                                                      }
+                                                          public void performFor_Boolean() {
+                                                              extractAndAddColumnDefFromField(field, rowDef);
+                                                          }
 
-                                                      public void performFor_Date() {
-                                                          extractAndAddColumnDefFromField(field, rowDef);
-                                                      }
+                                                          public void performFor_Date() {
+                                                              extractAndAddColumnDefFromField(field, rowDef);
+                                                          }
 
-                                                      public void performFor_Day() {
-                                                          extractAndAddColumnDefFromField(field, rowDef);
-                                                      }
+                                                          public void performFor_Day() {
+                                                              extractAndAddColumnDefFromField(field, rowDef);
+                                                          }
 
-                                                      public void performFor_Enum(Class fieldClass) {
-                                                          extractAndAddColumnDefFromField(field, rowDef);
-                                                      }
+                                                          public void performFor_Enum(Class fieldClass) {
+                                                              extractAndAddColumnDefFromField(field, rowDef);
+                                                          }
 
-                                                  });
-
+                                                      });
+            }
         }
 
         // Extract get/set method based column defs
@@ -114,55 +121,59 @@ public class RowDef {
         for (final Method method : rowClass.getMethods()) {
             if (method.getParameterTypes().length == 0) {
 
-                Matcher matcher = GET_METHOD_PATTERN.matcher(method.getName());
-                if (matcher.matches()) {
-                    try {
-                        final Method getterMethod = method;
-                        final String afterGetString = matcher.group(1);
-                        final String attributeName = afterGetString.substring(0, 1).toLowerCase() + afterGetString.substring(1);
-                        ColumnDef columnDef = rowDef.columnDefForAttribute(attributeName);
-                        if (columnDef != null) {
-                            columnDef.getterMethod = getterMethod;
-                        } else {
-                            final Method setterMethod = rowClass.getMethod("set" + afterGetString, method.getReturnType());
-                            AttributeValueHandler.performForClass(getterMethod.getReturnType(),
-                                                                  new AttributeValueHandler.ClassAction() {
+                Annotation annotation = method.getAnnotation(JidbcIgnore.class);
+                if (!(annotation instanceof JidbcIgnore) && !Collection.class.isAssignableFrom(method.getReturnType())) {
 
-                                                                      public void performFor_String() {
-                                                                          extractAndAddColumnDefFromGetterSetterMethods(attributeName, getterMethod, setterMethod, rowDef);
-                                                                      }
+                    Matcher matcher = GET_METHOD_PATTERN.matcher(method.getName());
+                    if (matcher.matches()) {
+                        try {
+                            final Method getterMethod = method;
+                            final String afterGetString = matcher.group(1);
+                            final String attributeName = afterGetString.substring(0, 1).toLowerCase() + afterGetString.substring(1);
+                            ColumnDef columnDef = rowDef.columnDefForAttribute(attributeName);
+                            if (columnDef != null) {
+                                columnDef.getterMethod = getterMethod;
+                            } else {
+                                final Method setterMethod = rowClass.getMethod("set" + afterGetString, method.getReturnType());
+                                AttributeValueHandler.performForClass(getterMethod.getReturnType(),
+                                                                      new AttributeValueHandler.ClassAction() {
 
-                                                                      public void performFor_Integer() {
-                                                                          extractAndAddColumnDefFromGetterSetterMethods(attributeName, getterMethod, setterMethod, rowDef);
-                                                                      }
+                                                                          public void performFor_String() {
+                                                                              extractAndAddColumnDefFromGetterSetterMethods(attributeName, getterMethod, setterMethod, rowDef);
+                                                                          }
 
-                                                                      public void performFor_Long() {
-                                                                          extractAndAddColumnDefFromGetterSetterMethods(attributeName, getterMethod, setterMethod, rowDef);
-                                                                      }
+                                                                          public void performFor_Integer() {
+                                                                              extractAndAddColumnDefFromGetterSetterMethods(attributeName, getterMethod, setterMethod, rowDef);
+                                                                          }
 
-                                                                      public void performFor_BigDecimal() {
-                                                                          extractAndAddColumnDefFromGetterSetterMethods(attributeName, getterMethod, setterMethod, rowDef);
-                                                                      }
+                                                                          public void performFor_Long() {
+                                                                              extractAndAddColumnDefFromGetterSetterMethods(attributeName, getterMethod, setterMethod, rowDef);
+                                                                          }
 
-                                                                      public void performFor_Boolean() {
-                                                                          extractAndAddColumnDefFromGetterSetterMethods(attributeName, getterMethod, setterMethod, rowDef);
-                                                                      }
+                                                                          public void performFor_BigDecimal() {
+                                                                              extractAndAddColumnDefFromGetterSetterMethods(attributeName, getterMethod, setterMethod, rowDef);
+                                                                          }
 
-                                                                      public void performFor_Date() {
-                                                                          extractAndAddColumnDefFromGetterSetterMethods(attributeName, getterMethod, setterMethod, rowDef);
-                                                                      }
+                                                                          public void performFor_Boolean() {
+                                                                              extractAndAddColumnDefFromGetterSetterMethods(attributeName, getterMethod, setterMethod, rowDef);
+                                                                          }
 
-                                                                      public void performFor_Day() {
-                                                                          extractAndAddColumnDefFromGetterSetterMethods(attributeName, getterMethod, setterMethod, rowDef);
-                                                                      }
+                                                                          public void performFor_Date() {
+                                                                              extractAndAddColumnDefFromGetterSetterMethods(attributeName, getterMethod, setterMethod, rowDef);
+                                                                          }
 
-                                                                      public void performFor_Enum(Class fieldClass) {
-                                                                          extractAndAddColumnDefFromGetterSetterMethods(attributeName, getterMethod, setterMethod, rowDef);
-                                                                      }
+                                                                          public void performFor_Day() {
+                                                                              extractAndAddColumnDefFromGetterSetterMethods(attributeName, getterMethod, setterMethod, rowDef);
+                                                                          }
 
-                                                                  });
+                                                                          public void performFor_Enum(Class fieldClass) {
+                                                                              extractAndAddColumnDefFromGetterSetterMethods(attributeName, getterMethod, setterMethod, rowDef);
+                                                                          }
+
+                                                                      });
+                            }
+                        } catch (NoSuchMethodException e) {
                         }
-                    } catch (NoSuchMethodException e) {
                     }
                 }
 

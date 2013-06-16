@@ -168,6 +168,36 @@ public class Jidbc_CRUDTests extends TestsBase {
     }
 
     @Test
+    public void save_update() {
+
+        // Open a separate database connection and insert test rows
+        Jidbc.insert(DATA_SOURCE, DEPARTMENT3.newInstance());
+        Jidbc.insert(DATA_SOURCE, DEPARTMENT2.newInstance());
+
+        // Fetch the row and update it
+        Department departmentToUpdate = Jidbc.get(DATA_SOURCE, Department.class, DEPARTMENT3.DEPARTMENT_ID);
+        departmentToUpdate.departmentAbbr = "Zac";
+        departmentToUpdate.departmentName = "Zac's Department";
+        departmentToUpdate.inactivatedDatetime = new GregorianCalendar(2009, 8, 14).getTime();
+        Jidbc.save(DATA_SOURCE, departmentToUpdate);
+
+
+        // Check the updated row and that at least one other row has not been updated
+        Department updatedDepartment = Jidbc.get(DATA_SOURCE, Department.class, DEPARTMENT3.DEPARTMENT_ID);
+        assertEquals("department.department_id", DEPARTMENT3.DEPARTMENT_ID, updatedDepartment.departmentId);
+        assertEquals("department.department_abbr", "Zac", updatedDepartment.departmentAbbr);
+        assertEquals("department.department_name", "Zac's Department", updatedDepartment.departmentName);
+        assertEquals("department.inactivated_datetime", new GregorianCalendar(2009, 8, 14).getTime(), updatedDepartment.inactivatedDatetime);
+
+        Department anotherDepartment = Jidbc.get(DATA_SOURCE, Department.class, DEPARTMENT2.DEPARTMENT_ID);
+        assertEquals("department.department_id", DEPARTMENT2.DEPARTMENT_ID, anotherDepartment.departmentId);
+        assertEquals("department.department_abbr", DEPARTMENT2.DEPARTMENT_ABBR, anotherDepartment.departmentAbbr);
+        assertEquals("department.department_name", DEPARTMENT2.DEPARTMENT_NAME, anotherDepartment.departmentName);
+        assertEquals("department.inactivated_datetime", DEPARTMENT2.INACTIVATED_DATETIME, anotherDepartment.inactivatedDatetime);
+
+    }
+
+    @Test
     public void delete() {
 
         // Create and insert a test row

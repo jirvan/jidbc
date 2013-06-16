@@ -238,6 +238,144 @@ public class JidbcConnection_CRUDTests extends TestsBase {
     }
 
     @Test
+    public void save_update() {
+
+        // Open a separate database connection and insert test rows
+        Jidbc.insert(DATA_SOURCE, DEPARTMENT3.newInstance());
+        Jidbc.insert(DATA_SOURCE, DEPARTMENT2.newInstance());
+
+        // Re-connect to the database and fetch the row then change and save it
+        JidbcConnection jidbc = JidbcConnection.from(DATA_SOURCE);
+        try {
+
+            Department department = jidbc.get(Department.class, DEPARTMENT3.DEPARTMENT_ID);
+            department.departmentAbbr = "Zac";
+            department.departmentName = "Zac's Department";
+            department.inactivatedDatetime = new GregorianCalendar(2009, 8, 14).getTime();
+            jidbc.save(department);
+
+            jidbc.commitAndClose();
+        } catch (Throwable t) {
+            throw jidbc.rollbackCloseAndWrap(t);
+        }
+
+
+        // Re-connect to the database and check the updated row and that at least one other row has not been updated
+        JidbcConnection jidbc2 = JidbcConnection.from(DATA_SOURCE);
+        try {
+
+            Department department = jidbc2.get(Department.class, DEPARTMENT3.DEPARTMENT_ID);
+            assertEquals("department.department_id", DEPARTMENT3.DEPARTMENT_ID, department.departmentId);
+            assertEquals("department.department_abbr", "Zac", department.departmentAbbr);
+            assertEquals("department.department_name", "Zac's Department", department.departmentName);
+            assertEquals("department.inactivated_datetime", new GregorianCalendar(2009, 8, 14).getTime(), department.inactivatedDatetime);
+
+            Department department2 = jidbc2.get(Department.class, DEPARTMENT2.DEPARTMENT_ID);
+            assertEquals("department.department_id", DEPARTMENT2.DEPARTMENT_ID, department2.departmentId);
+            assertEquals("department.department_abbr", DEPARTMENT2.DEPARTMENT_ABBR, department2.departmentAbbr);
+            assertEquals("department.department_name", DEPARTMENT2.DEPARTMENT_NAME, department2.departmentName);
+            assertEquals("department.inactivated_datetime", DEPARTMENT2.INACTIVATED_DATETIME, department2.inactivatedDatetime);
+
+            jidbc2.commitAndClose();
+        } catch (Throwable t) {
+            throw jidbc2.rollbackCloseAndWrap(t);
+        }
+
+    }
+
+    @Test
+    public void save_insertWithExplicitId() {
+
+
+        // Open a new database connection and do the insert
+        long newDepartmentId;
+        JidbcConnection jidbc = JidbcConnection.from(DATA_SOURCE);
+        try {
+
+            Department department = new Department();
+            department.departmentId = jidbc.takeSequenceNextVal("common_id_sequence");
+            department.departmentType = DEPARTMENT1.DEPARTMENT_TYPE;
+            department.departmentAbbr = DEPARTMENT1.DEPARTMENT_ABBR;
+            department.departmentName = DEPARTMENT1.DEPARTMENT_NAME;
+            department.creationAnniversary = DEPARTMENT1.CREATION_ANNIVERSARY;
+            department.thingyType = DEPARTMENT1.THINGY_TYPE;
+            department.thingyNumber = DEPARTMENT1.THINGY_NUMBER;
+            department.anotherThingy = DEPARTMENT1.ANOTHER_THINGY;
+            department.inactivatedDatetime = DEPARTMENT1.INACTIVATED_DATETIME;
+            jidbc.save(department);
+            newDepartmentId = department.departmentId;
+
+            jidbc.commitAndClose();
+        } catch (Throwable t) {
+            throw jidbc.rollbackCloseAndWrap(t);
+        }
+
+        // Re-open the database connection and check the inserted row
+        retrieveFromDatabaseAndAssertAttributeValuesAreEqualToDepartment1(newDepartmentId);
+
+    }
+
+    @Test
+    public void save_insertWithExplicitId_gettersAndSetters() {
+
+
+        // Open a new database connection and do the insert
+        JidbcConnection jidbc = JidbcConnection.from(DATA_SOURCE);
+        try {
+
+            GetterSetterDepartment department = new GetterSetterDepartment();
+            department.setDepartmentId(4242l);
+            department.setDepartmentType(DEPARTMENT1.DEPARTMENT_TYPE);
+            department.setDepartmentAbbr(DEPARTMENT1.DEPARTMENT_ABBR);
+            department.setDepartmentName(DEPARTMENT1.DEPARTMENT_NAME);
+            department.setCreationAnniversary(DEPARTMENT1.CREATION_ANNIVERSARY);
+            department.setThingyType(DEPARTMENT1.THINGY_TYPE);
+            department.setThingyNumber(DEPARTMENT1.THINGY_NUMBER);
+            department.setAnotherThingy(DEPARTMENT1.ANOTHER_THINGY);
+            department.setInactivatedDatetime(DEPARTMENT1.INACTIVATED_DATETIME);
+            jidbc.save(department);
+
+            jidbc.commitAndClose();
+        } catch (Throwable t) {
+            throw jidbc.rollbackCloseAndWrap(t);
+        }
+
+        // Re-open the database connection and check the inserted row
+        retrieveFromDatabaseAndAssertAttributeValuesAreEqualToGetterSetterDepartment1(4242l);
+
+    }
+    @Test
+    public void save_insertWithAutoGeneratedId() {
+
+
+        // Open a new database connection and do the insert
+        long newDepartmentId;
+        JidbcConnection jidbc = JidbcConnection.from(DATA_SOURCE);
+        try {
+
+            Department department = new Department();
+            department.departmentType = DEPARTMENT1.DEPARTMENT_TYPE;
+            department.departmentAbbr = DEPARTMENT1.DEPARTMENT_ABBR;
+            department.departmentName = DEPARTMENT1.DEPARTMENT_NAME;
+            department.creationAnniversary = DEPARTMENT1.CREATION_ANNIVERSARY;
+            department.thingyType = DEPARTMENT1.THINGY_TYPE;
+            department.thingyNumber = DEPARTMENT1.THINGY_NUMBER;
+            department.anotherThingy = DEPARTMENT1.ANOTHER_THINGY;
+            department.inactivatedDatetime = DEPARTMENT1.INACTIVATED_DATETIME;
+            jidbc.save(department);
+            newDepartmentId = department.departmentId;
+
+            jidbc.commitAndClose();
+        } catch (Throwable t) {
+            throw jidbc.rollbackCloseAndWrap(t);
+        }
+
+        // Re-open the database connection and check the inserted row
+        retrieveFromDatabaseAndAssertAttributeValuesAreEqualToDepartment1(newDepartmentId);
+
+    }
+
+    @Test
     public void delete() {
 
         // Open a separate database connection and insert a test row

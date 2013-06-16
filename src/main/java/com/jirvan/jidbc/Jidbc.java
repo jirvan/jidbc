@@ -91,6 +91,18 @@ public class Jidbc {
         }
     }
 
+    public static void save(DataSource dataSource, Object row) {
+        JidbcConnection jidbc = JidbcConnection.from(dataSource);
+        try {
+
+            jidbc.save(row);
+
+            jidbc.commitAndClose();
+        } catch (Throwable t) {
+            throw jidbc.rollbackCloseAndWrap(t);
+        }
+    }
+
     public static void delete(DataSource dataSource, Object row) {
         JidbcConnection jidbc = JidbcConnection.from(dataSource);
         try {

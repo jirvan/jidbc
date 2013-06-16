@@ -149,6 +149,10 @@ public class JidbcConnection {
         UpdateHandler.update(jdbcConnection, row);
     }
 
+    public void save(Object row) {
+        SaveHandler.save(jdbcConnection, row);
+    }
+
     public void delete(Object row) {
         DeleteHandler.delete(jdbcConnection, row);
     }

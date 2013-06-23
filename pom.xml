@@ -7,7 +7,7 @@
     <modelVersion>4.0.0</modelVersion>
     <groupId>com.jirvan</groupId>
     <artifactId>jidbc</artifactId>
-    <version>1.0.9</version>
+    <version>1.0.10-SNAPSHOT</version>
     <dependencies>
         <dependency>
             <groupId>com.jirvan</groupId>
@@ -58,8 +58,4 @@
             <!--</plugin>-->
         <!--</plugins>-->
     </build>
-
-  <scm>
-    <tag>v1.0.9</tag>
-  </scm>
 </project>

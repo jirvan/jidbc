@@ -31,9 +31,11 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 package com.jirvan.jidbc;
 
 import com.jirvan.dates.*;
+import com.jirvan.lang.*;
 
 import javax.sql.*;
 import java.math.*;
+import java.sql.*;
 import java.util.*;
 
 public class Jidbc {
@@ -335,6 +337,14 @@ public class Jidbc {
             return value;
         } catch (Throwable t) {
             throw jidbc.rollbackCloseAndWrap(t);
+        }
+    }
+
+    public static String getDatabaseProductName(Connection connection) {
+        try {
+            return connection.getMetaData().getDatabaseProductName();
+        } catch (SQLException e) {
+            throw new SQLRuntimeException(e);
         }
     }
 

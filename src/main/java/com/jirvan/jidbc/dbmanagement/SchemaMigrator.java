@@ -31,6 +31,7 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 package com.jirvan.jidbc.dbmanagement;
 
 import com.jirvan.jidbc.*;
+import com.jirvan.util.*;
 
 import javax.sql.*;
 
@@ -49,7 +50,7 @@ public abstract class SchemaMigrator {
 
     protected abstract void performMigration(JidbcConnection jidbcConnection);
 
-    void migrate() {
+    public void migrate() {
         String currentSchemaVersion = SchemaManager.getSchemaVersion(dataSource);
         if (fromVersion == null) {
             if (currentSchemaVersion == null) {
@@ -114,7 +115,7 @@ public abstract class SchemaMigrator {
             jidbc.executeUpdate("create table schema_variables (\n" +
                                 "   single_row_enforcer       numeric(2) default 42    not null,\n" +
                                 "   schema_version            varchar(300)             not null,\n" +
-                                "constraint schema_variables_pk primary key (single_row_lock_column),\n" +
+                                "constraint schema_variables_pk primary key (single_row_enforcer),\n" +
                                 "constraint no_more_than_one_row_chk\n" +
                                 "   check (\n" +
                                 "      single_row_enforcer = 42\n" +
@@ -126,6 +127,16 @@ public abstract class SchemaMigrator {
             jidbc.commitAndClose();
         } catch (Throwable t) {
             throw jidbc.rollbackCloseAndWrap(t);
+        }
+    }
+
+    protected void executeScript(JidbcConnection jidbc, String scriptRelativePath) {
+        String script = Io.getResourceFileString(this.getClass(), scriptRelativePath);
+        for (String sql : script.replaceAll("(?m)^\\s+--.*$", "")
+                                .replaceAll("^\\s*\\n+", "")
+                                .replaceAll("(?m);\\s*\\n\\s*", ";\n")
+                                .split("(?m); *\\n")) {
+            jidbc.executeUpdate(sql);
         }
     }
 

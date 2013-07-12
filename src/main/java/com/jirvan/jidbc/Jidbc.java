@@ -411,5 +411,17 @@ public class Jidbc {
 //        return SequenceHandler.takeSequenceNextVal(jdbcConnection, sequenceName);
 //    }
 
+    public static String placeholders(Object[] parameters) {
+        return placeholders(parameters.length);
+    }
+
+    public static String placeholders(int numberOfPlaceholders) {
+        StringBuilder stringBuilder = new StringBuilder();
+        for (int i = 0; i < numberOfPlaceholders; i++) {
+            if (i != 0) stringBuilder.append(',');
+            stringBuilder.append('?');
+        }
+        return stringBuilder.toString();
+    }
 
 }

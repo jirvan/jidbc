@@ -2,7 +2,7 @@
     <parent>
         <groupId>com.jirvan</groupId>
         <artifactId>ji-maven-project</artifactId>
-        <version>1.0.8</version>
+        <version>1.0.10</version>
     </parent>
     <modelVersion>4.0.0</modelVersion>
     <groupId>com.jirvan</groupId>
@@ -12,7 +12,7 @@
         <dependency>
             <groupId>com.jirvan</groupId>
             <artifactId>ji</artifactId>
-            <version>1.0.25-SNAPSHOT</version>
+            <version>1.0.26</version>
         </dependency>
         <dependency>
             <groupId>postgresql</groupId>
@@ -45,17 +45,17 @@
                 </excludes>
             </testResource>
         </testResources>
-        <!--<plugins>-->
-            <!--<plugin>-->
-                <!--<groupId>org.apache.maven.plugins</groupId>-->
-                <!--<artifactId>maven-surefire-plugin</artifactId>-->
-                <!--<version>2.13</version>-->
-                <!--<configuration>-->
-                    <!--<suiteXmlFiles>-->
-                        <!--<suiteXmlFile>src/test/java/au/com/knowledgefund/core/testng.xml</suiteXmlFile>-->
-                    <!--</suiteXmlFiles>-->
-                <!--</configuration>-->
-            <!--</plugin>-->
-        <!--</plugins>-->
     </build>
+    <distributionManagement>
+        <repository>
+            <id>com.jirvan.repo</id>
+            <name>Jirvan Repository</name>
+            <url>https://jirvan.com:8081/nexus/content/repositories/releases</url>
+        </repository>
+        <snapshotRepository>
+            <id>com.jirvan.snapshotRepo</id>
+            <name>Jirvan Snapshot Repository</name>
+            <url>https://jirvan.com:8081/nexus/content/repositories/snapshots</url>
+        </snapshotRepository>
+    </distributionManagement>
 </project>

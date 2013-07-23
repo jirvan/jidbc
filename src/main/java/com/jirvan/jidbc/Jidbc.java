@@ -424,4 +424,24 @@ public class Jidbc {
         return stringBuilder.toString();
     }
 
+    public static void executeStatement(DataSource dataSource, String sql) {
+        try {
+
+            Connection connection = dataSource.getConnection();
+            try {
+                PreparedStatement statement = connection.prepareStatement(sql);
+                try {
+                    statement.execute();
+                } finally {
+                    statement.close();
+                }
+            } finally {
+                connection.close();
+            }
+
+        } catch (SQLException e) {
+            throw new SQLRuntimeException(e);
+        }
+    }
+
 }

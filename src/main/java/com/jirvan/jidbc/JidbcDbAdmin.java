@@ -35,6 +35,15 @@ import java.util.*;
 
 public class JidbcDbAdmin {
 
+    public static String getCurrentUser(DataSource dataSource) {
+        String databaseProductName = Jidbc.getDatabaseProductName(dataSource);
+        if ("PostgreSQL".equals(databaseProductName)) {
+            return getCurrentUser_postgres(dataSource);
+        } else {
+            throw new RuntimeException(String.format("%s is not supported (PostgreSQL is the only database currently supported by getCurrentUser)", databaseProductName));
+        }
+    }
+
     public static String[] getCurrentUsersTables(DataSource dataSource) {
         String databaseProductName = Jidbc.getDatabaseProductName(dataSource);
         if ("PostgreSQL".equals(databaseProductName)) {
@@ -170,6 +179,10 @@ public class JidbcDbAdmin {
         public List<String> tables;
         public List<String> views;
         public List<String> sequences;
+    }
+
+    private static String getCurrentUser_postgres(DataSource dataSource) {
+        return Jidbc.queryFor_String(dataSource, "select current_user");
     }
 
     public static String[] getCurrentUsersRelation_postgres(DataSource dataSource, String relkind) {

@@ -31,13 +31,41 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 package com.jirvan.jidbc;
 
 import javax.sql.*;
+import java.util.*;
 
 public class JidbcDbAdmin {
 
-    public static void dropAllCurrentUsersTablesViewsAndSequences(DataSource dataSource) {
+    public static String[] getCurrentUsersTables(DataSource dataSource) {
         String databaseProductName = Jidbc.getDatabaseProductName(dataSource);
         if ("PostgreSQL".equals(databaseProductName)) {
-            dropAllCurrentUsersTablesViewsAndSequences_postgres(dataSource);
+            return getCurrentUsersRelation_postgres(dataSource, "r");
+        } else {
+            throw new RuntimeException(String.format("%s is not supported (PostgreSQL is the only database currently supported by getCurrentUsersTables)", databaseProductName));
+        }
+    }
+
+    public static String[] getCurrentUsersViews(DataSource dataSource) {
+        String databaseProductName = Jidbc.getDatabaseProductName(dataSource);
+        if ("PostgreSQL".equals(databaseProductName)) {
+            return getCurrentUsersRelation_postgres(dataSource, "v");
+        } else {
+            throw new RuntimeException(String.format("%s is not supported (PostgreSQL is the only database currently supported by getCurrentUsersViews)", databaseProductName));
+        }
+    }
+
+    public static String[] getCurrentUsersSequences(DataSource dataSource) {
+        String databaseProductName = Jidbc.getDatabaseProductName(dataSource);
+        if ("PostgreSQL".equals(databaseProductName)) {
+            return getCurrentUsersRelation_postgres(dataSource, "S");
+        } else {
+            throw new RuntimeException(String.format("%s is not supported (PostgreSQL is the only database currently supported by getCurrentUsersSequences)", databaseProductName));
+        }
+    }
+
+    public static DBObjects dropAllCurrentUsersTablesViewsAndSequences(DataSource dataSource) {
+        String databaseProductName = Jidbc.getDatabaseProductName(dataSource);
+        if ("PostgreSQL".equals(databaseProductName)) {
+            return dropAllCurrentUsersTablesViewsAndSequences_postgres(dataSource);
         } else {
             throw new RuntimeException(String.format("%s is not supported (PostgreSQL is the only database currently supported by dropAllCurrentUsersTablesViewsAndSequences)", databaseProductName));
         }
@@ -97,42 +125,60 @@ public class JidbcDbAdmin {
         }
     }
 
-    private static void dropAllCurrentUsersTablesViewsAndSequences_postgres(DataSource dataSource) {
+    private static DBObjects dropAllCurrentUsersTablesViewsAndSequences_postgres(DataSource dataSource) {
         JidbcConnection jidbc = JidbcConnection.from(dataSource);
         try {
 
-            // Drop tables
-            for (String table : jidbc.<String>queryForList(String.class, "select relname\n" +
-                                                                         "from pg_class\n" +
-                                                                         "     join pg_user on pg_user.usesysid = pg_class.relowner\n" +
-                                                                         "where pg_user.usename = current_user\n" +
-                                                                         "  and pg_class.relkind = 'r'")) {
+            // Get the things to dop
+            DBObjects thingsToDrop = new DBObjects();
+            thingsToDrop.tables = jidbc.queryForList(String.class, "select relname\n" +
+                                                                   "from pg_class\n" +
+                                                                   "     join pg_user on pg_user.usesysid = pg_class.relowner\n" +
+                                                                   "where pg_user.usename = current_user\n" +
+                                                                   "  and pg_class.relkind = 'r'");
+            thingsToDrop.views = jidbc.queryForList(String.class, "select relname\n" +
+                                                                  "from pg_class\n" +
+                                                                  "     join pg_user on pg_user.usesysid = pg_class.relowner\n" +
+                                                                  "where pg_user.usename = current_user\n" +
+                                                                  "  and pg_class.relkind = 'v'");
+            thingsToDrop.sequences = jidbc.<String>queryForList(String.class, "select relname\n" +
+                                                                              "from pg_class\n" +
+                                                                              "     join pg_user on pg_user.usesysid = pg_class.relowner\n" +
+                                                                              "where pg_user.usename = current_user\n" +
+                                                                              "  and pg_class.relkind = 'S'");
+
+            // Drop everything
+            for (String table : thingsToDrop.tables) {
                 jidbc.executeUpdate(String.format("drop table %s cascade", table));
             }
-
-            // Drop views
-            for (String view : jidbc.<String>queryForList(String.class, "select relname\n" +
-                                                                        "from pg_class\n" +
-                                                                        "     join pg_user on pg_user.usesysid = pg_class.relowner\n" +
-                                                                        "where pg_user.usename = current_user\n" +
-                                                                        "  and pg_class.relkind = 'v'")) {
+            for (String view : thingsToDrop.views) {
                 jidbc.executeUpdate(String.format("drop view %s cascade", view));
             }
-
-            // Drop sequences
-            for (String sequence : jidbc.<String>queryForList(String.class, "select relname\n" +
-                                                                            "from pg_class\n" +
-                                                                            "     join pg_user on pg_user.usesysid = pg_class.relowner\n" +
-                                                                            "where pg_user.usename = current_user\n" +
-                                                                            "  and pg_class.relkind = 'S'")) {
+            for (String sequence : thingsToDrop.sequences) {
                 jidbc.executeUpdate(String.format("drop sequence %s cascade", sequence));
             }
 
             jidbc.commitAndClose();
+            return thingsToDrop;
         } catch (Throwable t) {
             throw jidbc.rollbackCloseAndWrap(t);
         }
 
+    }
+
+    public static class DBObjects {
+        public List<String> tables;
+        public List<String> views;
+        public List<String> sequences;
+    }
+
+    public static String[] getCurrentUsersRelation_postgres(DataSource dataSource, String relkind) {
+        return Jidbc.<String>queryForList(dataSource, String.class, "select relname\n" +
+                                                                    "from pg_class\n" +
+                                                                    "     join pg_user on pg_user.usesysid = pg_class.relowner\n" +
+                                                                    "where pg_user.usename = current_user\n" +
+                                                                    "  and pg_class.relkind = ?", relkind)
+                    .toArray(new String[0]);
     }
 
 }

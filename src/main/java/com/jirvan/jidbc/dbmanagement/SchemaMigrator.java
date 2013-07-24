@@ -70,7 +70,22 @@ public abstract class SchemaMigrator {
     }
 
     private void performBootstrapMigration() {
-        SchemaManager.checkNoTablesExist(dataSource);
+
+        // Check user has no existing tables etc
+        String[] existingTables = JidbcDbAdmin.getCurrentUsersTables(dataSource);
+        if (existingTables.length > 0) {
+            throw new RuntimeException(String.format("User %s already has some tables (must be none for a \"bootstrap\" migration).  The tables are: %s.", Strings.join(existingTables, ',')));
+        }
+        String[] existingViews = JidbcDbAdmin.getCurrentUsersViews(dataSource);
+        if (existingViews.length > 0) {
+            throw new RuntimeException(String.format("User %s already has some views (must be none for a \"bootstrap\" migration).  The views are: %s.", Strings.join(existingViews, ',')));
+        }
+        String[] existingSequences = JidbcDbAdmin.getCurrentUsersViews(dataSource);
+        if (existingSequences.length > 0) {
+            throw new RuntimeException(String.format("User %s already has some sequences (must be none for a \"bootstrap\" migration).  The sequences are: %s.", Strings.join(existingSequences, ',')));
+        }
+
+        // Perform the migration
         String interimVersion = "bootstrapping to " + toVersion;
         createSchemaVariablesTable(dataSource, interimVersion);
         JidbcConnection jidbc = JidbcConnection.from(dataSource);
@@ -87,6 +102,7 @@ public abstract class SchemaMigrator {
             throw new RuntimeException(String.format("Unexpected error on finalization, expected schema version to be \"%s\" but it was \"%s\"", interimVersion, currentSchemaVersion));
         }
         Jidbc.executeUpdate(dataSource, "update schema_variables set schema_version = ?", toVersion);
+
     }
 
     private void performNormalMigration() {

@@ -129,6 +129,10 @@ public class UpdateHandler extends AbstractPkWhereClauseHandler {
                                                        parameterValues.add(value == null ? null : new Timestamp(value.getDate().getTime()));
                                                    }
 
+                                                   public void performWith(Month value) {
+                                                       parameterValues.add(value == null ? null : new Timestamp(value.getDate().getTime()));
+                                                   }
+
                                                    public void performWith(Enum value) {
                                                        parameterValues.add(value == null ? null : value.name());
                                                    }

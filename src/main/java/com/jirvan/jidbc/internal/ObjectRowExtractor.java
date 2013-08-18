@@ -177,6 +177,19 @@ public class ObjectRowExtractor<T> implements RowExtractor<T> {
                                                               }
                                                           }
 
+                                                          public void performFor_Month() {
+                                                              try {
+                                                                  Timestamp value = resultSet.getTimestamp(columnDef.columnName);
+                                                                  if (resultSet.wasNull()) {
+                                                                      columnDef.setValue(row, null);
+                                                                  } else {
+                                                                      columnDef.setValue(row, Month.from(new java.util.Date(value.getTime())));
+                                                                  }
+                                                              } catch (SQLException e) {
+                                                                  throw new SQLRuntimeException(e);
+                                                              }
+                                                          }
+
                                                           public void performFor_Enum(Class fieldClass) {
                                                               try {
                                                                   String value = resultSet.getString(columnDef.columnName);

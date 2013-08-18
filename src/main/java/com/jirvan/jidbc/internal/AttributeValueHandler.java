@@ -56,6 +56,8 @@ public class AttributeValueHandler {
 
         public abstract void performFor_Day();
 
+        public abstract void performFor_Month();
+
         public abstract void performFor_Enum(Class enumClass);
 
     }
@@ -76,6 +78,8 @@ public class AttributeValueHandler {
 
         public abstract void performWith(Day value);
 
+        public abstract void performWith(Month value);
+
         public abstract void performWith(Enum value);
 
     }
@@ -95,6 +99,8 @@ public class AttributeValueHandler {
             classAction.performFor_Date();
         } else if (fieldClass == Day.class) {
             classAction.performFor_Day();
+        } else if (fieldClass == Month.class) {
+            classAction.performFor_Month();
         } else if (fieldClass.isEnum()) {
             classAction.performFor_Enum(fieldClass);
         } else {
@@ -123,6 +129,8 @@ public class AttributeValueHandler {
             actionSet.performWith((Date) value);
         } else if (fieldClass == Day.class) {
             actionSet.performWith((Day) value);
+        } else if (fieldClass == Month.class) {
+            actionSet.performWith((Month) value);
         } else if (fieldClass.isEnum()) {
             actionSet.performWith((Enum) value);
         } else {

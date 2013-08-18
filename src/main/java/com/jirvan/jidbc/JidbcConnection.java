@@ -42,6 +42,7 @@ import java.math.*;
 import java.sql.*;
 import java.util.*;
 
+import static com.jirvan.util.Assertions.*;
 
 public class JidbcConnection {
 
@@ -134,6 +135,8 @@ public class JidbcConnection {
     }
 
     public <T> T get(Class rowClass, Object pkValue) {
+        assertNotNull(rowClass, "Supplied row class is null");
+        assertNotNull(pkValue, "Supplied primary key value is null");
         try {
             return QueryForHandler.queryFor(jdbcConnection, true, rowClass, null, new Object[]{pkValue}, true);
         } catch (NotFoundRuntimeException e) {
@@ -142,6 +145,8 @@ public class JidbcConnection {
     }
 
     public <T> T getIfExists(Class rowClass, Object pkValue) {
+        assertNotNull(rowClass, "Supplied row class is null");
+        assertNotNull(pkValue, "Supplied primary key value is null");
         return QueryForHandler.queryFor(jdbcConnection, false, rowClass, null, new Object[]{pkValue}, true);
     }
 

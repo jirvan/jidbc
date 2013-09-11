@@ -48,6 +48,8 @@ public class Department {
 
     public Day creationAnniversary;
 
+    public Month someMonth;
+
     public String thingyType;
 
     public Integer thingyNumber;

@@ -22,6 +22,7 @@ public class Jidbc_CRUDTests extends TestsBase {
         department.departmentAbbr = DEPARTMENT1.DEPARTMENT_ABBR;
         department.departmentName = DEPARTMENT1.DEPARTMENT_NAME;
         department.creationAnniversary = DEPARTMENT1.CREATION_ANNIVERSARY;
+        department.someMonth = DEPARTMENT1.SOME_MONTH;
         department.thingyType = DEPARTMENT1.THINGY_TYPE;
         department.thingyNumber = DEPARTMENT1.THINGY_NUMBER;
         department.anotherThingy = DEPARTMENT1.ANOTHER_THINGY;
@@ -46,6 +47,7 @@ public class Jidbc_CRUDTests extends TestsBase {
         department.setDepartmentAbbr(DEPARTMENT1.DEPARTMENT_ABBR);
         department.setDepartmentName(DEPARTMENT1.DEPARTMENT_NAME);
         department.setCreationAnniversary(DEPARTMENT1.CREATION_ANNIVERSARY);
+        department.setSomeMonth(DEPARTMENT1.SOME_MONTH);
         department.setThingyType(DEPARTMENT1.THINGY_TYPE);
         department.setThingyNumber(DEPARTMENT1.THINGY_NUMBER);
         department.setAnotherThingy(DEPARTMENT1.ANOTHER_THINGY);
@@ -68,6 +70,7 @@ public class Jidbc_CRUDTests extends TestsBase {
         department.departmentAbbr = DEPARTMENT1.DEPARTMENT_ABBR;
         department.departmentName = DEPARTMENT1.DEPARTMENT_NAME;
         department.creationAnniversary = DEPARTMENT1.CREATION_ANNIVERSARY;
+        department.someMonth = DEPARTMENT1.SOME_MONTH;
         department.thingyType = DEPARTMENT1.THINGY_TYPE;
         department.thingyNumber = DEPARTMENT1.THINGY_NUMBER;
         department.anotherThingy = DEPARTMENT1.ANOTHER_THINGY;

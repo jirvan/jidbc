@@ -57,6 +57,8 @@ public class TestsBase {
 
         public static final Day CREATION_ANNIVERSARY = new Day(2002, 5, 4);
 
+        public static final Month SOME_MONTH = new Month(2017, 5);
+
         public static final String THINGY_TYPE = "Strawberry";
 
         public static final Integer THINGY_NUMBER = 42;
@@ -72,6 +74,7 @@ public class TestsBase {
             department.departmentAbbr = DEPARTMENT_ABBR;
             department.departmentName = DEPARTMENT_NAME;
             department.creationAnniversary = CREATION_ANNIVERSARY;
+            department.someMonth = SOME_MONTH;
             department.thingyType = THINGY_TYPE;
             department.thingyNumber = THINGY_NUMBER;
             department.anotherThingy = ANOTHER_THINGY;
@@ -86,6 +89,7 @@ public class TestsBase {
             department.setDepartmentAbbr(DEPARTMENT_ABBR);
             department.setDepartmentName(DEPARTMENT_NAME);
             department.setCreationAnniversary(CREATION_ANNIVERSARY);
+            department.setSomeMonth(SOME_MONTH);
             department.setThingyType(THINGY_TYPE);
             department.setThingyNumber(THINGY_NUMBER);
             department.setAnotherThingy(ANOTHER_THINGY);
@@ -107,6 +111,8 @@ public class TestsBase {
 
         public static final Day CREATION_ANNIVERSARY = new Day(2002, 5, 7);
 
+        public static final Month SOME_MONTH = new Month(2014, 5);
+
         public static final String THINGY_TYPE = "Chocolate";
 
         public static final Integer THINGY_NUMBER = 58;
@@ -122,6 +128,7 @@ public class TestsBase {
             department.departmentAbbr = DEPARTMENT_ABBR;
             department.departmentName = DEPARTMENT_NAME;
             department.creationAnniversary = CREATION_ANNIVERSARY;
+            department.someMonth = SOME_MONTH;
             department.thingyType = THINGY_TYPE;
             department.thingyNumber = THINGY_NUMBER;
             department.anotherThingy = ANOTHER_THINGY;
@@ -143,6 +150,8 @@ public class TestsBase {
 
         public static final Day CREATION_ANNIVERSARY = new Day(2002, 5, 2);
 
+        public static final Month SOME_MONTH = new Month(1980, 5);
+
         public static final String THINGY_TYPE = "Strawberry";
 
         public static final Integer THINGY_NUMBER = 412;
@@ -158,6 +167,7 @@ public class TestsBase {
             department.departmentAbbr = DEPARTMENT_ABBR;
             department.departmentName = DEPARTMENT_NAME;
             department.creationAnniversary = CREATION_ANNIVERSARY;
+            department.someMonth = SOME_MONTH;
             department.thingyType = THINGY_TYPE;
             department.thingyNumber = THINGY_NUMBER;
             department.anotherThingy = ANOTHER_THINGY;

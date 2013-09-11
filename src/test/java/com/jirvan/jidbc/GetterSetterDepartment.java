@@ -47,6 +47,8 @@ public class GetterSetterDepartment {
 
     private Day creationAnniversary;
 
+    private Month someMonth;
+
     private String thingyType;
 
     private Integer thingyNumber;
@@ -100,6 +102,14 @@ public class GetterSetterDepartment {
 
     public void setCreationAnniversary(Day creationAnniversary) {
         this.creationAnniversary = creationAnniversary;
+    }
+
+    public Month getSomeMonth() {
+        return someMonth;
+    }
+
+    public void setSomeMonth(Month someMonth) {
+        this.someMonth = someMonth;
     }
 
     public String getThingyType() {

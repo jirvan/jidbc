@@ -177,13 +177,13 @@ public class ObjectRowExtractor<T> implements RowExtractor<T> {
                                                               }
                                                           }
 
-                                                          public void performFor_Month() {
+                                                          public void performFor_MonthZZZ() {
                                                               try {
-                                                                  Timestamp value = resultSet.getTimestamp(columnDef.columnName);
+                                                                  String value = resultSet.getString(columnDef.columnName);
                                                                   if (resultSet.wasNull()) {
                                                                       columnDef.setValue(row, null);
                                                                   } else {
-                                                                      columnDef.setValue(row, Month.from(new java.util.Date(value.getTime())));
+                                                                      columnDef.setValue(row, Month.fromString(value));
                                                                   }
                                                               } catch (SQLException e) {
                                                                   throw new SQLRuntimeException(e);

@@ -97,8 +97,8 @@ public class InsertHandler {
                                                            parameterValues.add(value == null ? null : new Timestamp(value.getDate().getTime()));
                                                        }
 
-                                                       public void performWith(Month value) {
-                                                           parameterValues.add(value == null ? null : new Timestamp(value.getDate().getTime()));
+                                                       public void performWithZZZ(Month value) {
+                                                           parameterValues.add(value == null ? null : value.toString());
                                                        }
 
                                                        public void performWith(Enum value) {

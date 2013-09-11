@@ -22,7 +22,8 @@ public class Jidbc_SingleReturnedObjectTests extends TestsBase {
         assertEquals("department.department_abbr", DEPARTMENT1.DEPARTMENT_ABBR, department.departmentAbbr);
         assertEquals("department.department_name", DEPARTMENT1.DEPARTMENT_NAME, department.departmentName);
         assertEquals("department.creation_anniversary", DEPARTMENT1.CREATION_ANNIVERSARY, department.creationAnniversary);
-        assertEquals("department.thingy_type", DEPARTMENT1.THINGY_TYPE, department.thingyType);
+             assertEquals("department.some_month", DEPARTMENT1.SOME_MONTH, department.someMonth);
+       assertEquals("department.thingy_type", DEPARTMENT1.THINGY_TYPE, department.thingyType);
         assertEquals("department.thingy_number", DEPARTMENT1.THINGY_NUMBER, department.thingyNumber);
         assertEquals("department.another_thingy", DEPARTMENT1.ANOTHER_THINGY, department.anotherThingy);
         assertEquals("department.inactivated_datetime", DEPARTMENT1.INACTIVATED_DATETIME, department.inactivatedDatetime);
@@ -50,6 +51,7 @@ public class Jidbc_SingleReturnedObjectTests extends TestsBase {
         assertEquals("department.department_abbr", DEPARTMENT1.DEPARTMENT_ABBR, department.departmentAbbr);
         assertEquals("department.department_name", DEPARTMENT1.DEPARTMENT_NAME, department.departmentName);
         assertEquals("department.creation_anniversary", DEPARTMENT1.CREATION_ANNIVERSARY, department.creationAnniversary);
+            assertEquals("department.some_month", DEPARTMENT1.SOME_MONTH, department.someMonth);
         assertEquals("department.thingy_type", DEPARTMENT1.THINGY_TYPE, department.thingyType);
         assertEquals("department.thingy_number", DEPARTMENT1.THINGY_NUMBER, department.thingyNumber);
         assertEquals("department.another_thingy", DEPARTMENT1.ANOTHER_THINGY, department.anotherThingy);

@@ -108,7 +108,7 @@ public class RowDef {
                                                               extractAndAddColumnDefFromField(field, rowDef);
                                                           }
 
-                                                          public void performFor_Month() {
+                                                          public void performFor_MonthZZZ() {
                                                               extractAndAddColumnDefFromField(field, rowDef);
                                                           }
 
@@ -170,7 +170,7 @@ public class RowDef {
                                                                               extractAndAddColumnDefFromGetterSetterMethods(attributeName, getterMethod, setterMethod, rowDef);
                                                                           }
 
-                                                                          public void performFor_Month() {
+                                                                          public void performFor_MonthZZZ() {
                                                                               extractAndAddColumnDefFromGetterSetterMethods(attributeName, getterMethod, setterMethod, rowDef);
                                                                           }
 

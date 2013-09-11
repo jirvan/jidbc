@@ -57,7 +57,7 @@ public class InsertHandler {
         StringBuilder columNamesStringBuilder = new StringBuilder();
         StringBuilder paramPlaceHoldersStringBuilder = new StringBuilder();
         final Vector<Object> parameterValues = new Vector<Object>();
-        for (ColumnDef columnDef : tableDef.columnDefs) {
+        for (final ColumnDef columnDef : tableDef.columnDefs) {
             Object value = columnDef.getValue(row);
             if (columNamesStringBuilder.length() != 0) {
                 columNamesStringBuilder.append(",");
@@ -94,10 +94,14 @@ public class InsertHandler {
                                                        }
 
                                                        public void performWith(Day value) {
-                                                           parameterValues.add(value == null ? null : new Timestamp(value.getDate().getTime()));
+                                                           if (columnDef.storeAsTimestamp) {
+                                                               parameterValues.add(value == null ? null : new Timestamp(value.getDate().getTime()));
+                                                           } else {
+                                                               parameterValues.add(value == null ? null : value.toString());
+                                                           }
                                                        }
 
-                                                       public void performWithZZZ(Month value) {
+                                                       public void performWith(Month value) {
                                                            parameterValues.add(value == null ? null : value.toString());
                                                        }
 

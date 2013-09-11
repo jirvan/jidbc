@@ -192,12 +192,12 @@ public class TestsBase {
 
     @AfterMethod
     protected void afterMethod() throws Exception {
-        for (String statement : TEST_DATABASE_DROP_SCRIPT.replaceAll("(?m)^\\s+--.*$", "")
-                                                         .replaceAll("^\\s*\\n+", "")
-                                                         .replaceAll("(?m);\\s*\\n\\s*", ";\n")
-                                                         .split("(?m); *\\n")) {
-            Jidbc.executeUpdate(DATA_SOURCE, statement);
-        }
+//        for (String statement : TEST_DATABASE_DROP_SCRIPT.replaceAll("(?m)^\\s+--.*$", "")
+//                                                         .replaceAll("^\\s*\\n+", "")
+//                                                         .replaceAll("(?m);\\s*\\n\\s*", ";\n")
+//                                                         .split("(?m); *\\n")) {
+//            Jidbc.executeUpdate(DATA_SOURCE, statement);
+//        }
     }
 
     protected void retrieveFromDatabaseAndAssertAttributeValuesAreEqualToDepartment1(long newDepartmentId) {

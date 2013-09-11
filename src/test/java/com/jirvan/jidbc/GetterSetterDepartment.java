@@ -96,6 +96,7 @@ public class GetterSetterDepartment {
         this.departmentName = departmentName;
     }
 
+    //@StoreAsTimestamp
     public Day getCreationAnniversary() {
         return creationAnniversary;
     }

@@ -108,7 +108,7 @@ public class RowDef {
                                                               extractAndAddColumnDefFromField(field, rowDef);
                                                           }
 
-                                                          public void performFor_MonthZZZ() {
+                                                          public void performFor_Month() {
                                                               extractAndAddColumnDefFromField(field, rowDef);
                                                           }
 
@@ -170,7 +170,7 @@ public class RowDef {
                                                                               extractAndAddColumnDefFromGetterSetterMethods(attributeName, getterMethod, setterMethod, rowDef);
                                                                           }
 
-                                                                          public void performFor_MonthZZZ() {
+                                                                          public void performFor_Month() {
                                                                               extractAndAddColumnDefFromGetterSetterMethods(attributeName, getterMethod, setterMethod, rowDef);
                                                                           }
 
@@ -203,6 +203,7 @@ public class RowDef {
         ColumnDef columnDef = new ColumnDef();
         columnDef.attributeName = field.getName();
         columnDef.attributeType = field.getType();
+        columnDef.storeAsTimestamp = field.getAnnotation(StoreAsTimestamp.class) != null;
         columnDef.field = field;
         columnDef.columnName = guessDatabaseNameFromJavaName(field.getName());
         rowDef.columnDefs.add(columnDef);
@@ -212,6 +213,7 @@ public class RowDef {
         ColumnDef columnDef = new ColumnDef();
         columnDef.attributeName = attributeName;
         columnDef.attributeType = getterMethod.getReturnType();
+        columnDef.storeAsTimestamp = getterMethod.getAnnotation(StoreAsTimestamp.class) != null;
         columnDef.getterMethod = getterMethod;
         columnDef.setterMethod = setterMethod;
         columnDef.columnName = guessDatabaseNameFromJavaName(attributeName);

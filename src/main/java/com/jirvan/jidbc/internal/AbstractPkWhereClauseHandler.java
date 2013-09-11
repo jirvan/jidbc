@@ -57,7 +57,7 @@ public class AbstractPkWhereClauseHandler {
         }
     }
 
-    private static void processPkColumn(Object row, StringBuilder columnEqualityClausesStringBuilder, final List<Object> parameterValues, ColumnDef columnDef) {
+    private static void processPkColumn(Object row, StringBuilder columnEqualityClausesStringBuilder, final List<Object> parameterValues, final ColumnDef columnDef) {
         Object value = columnDef.getValue(row);
         if (columnEqualityClausesStringBuilder.length() != 0) {
             columnEqualityClausesStringBuilder.append("\n  and ");
@@ -93,10 +93,14 @@ public class AbstractPkWhereClauseHandler {
                                                    }
 
                                                    public void performWith(Day value) {
-                                                       parameterValues.add(value == null ? null : new Timestamp(value.getDate().getTime()));
+                                                       if (columnDef.storeAsTimestamp) {
+                                                           parameterValues.add(value == null ? null : new Timestamp(value.getDate().getTime()));
+                                                       } else {
+                                                           parameterValues.add(value == null ? null : value.toString());
+                                                       }
                                                    }
 
-                                                   public void performWithZZZ(Month value) {
+                                                   public void performWith(Month value) {
                                                        parameterValues.add(value == null ? null : value.toString());
                                                    }
 

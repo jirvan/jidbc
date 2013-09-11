@@ -39,7 +39,7 @@ import java.sql.*;
 import java.util.*;
 import java.util.Date;
 
-import static com.jirvan.jidbc.internal.JidbcInternalUtils.setObject;
+import static com.jirvan.jidbc.internal.JidbcInternalUtils.*;
 
 public class UpdateHandler extends AbstractPkWhereClauseHandler {
 
@@ -90,7 +90,7 @@ public class UpdateHandler extends AbstractPkWhereClauseHandler {
         }
     }
 
-    private static void processNonPkColumn(Object row, StringBuilder columnSetClausesStringBuilder, final List<Object> parameterValues, ColumnDef columnDef) {
+    private static void processNonPkColumn(Object row, StringBuilder columnSetClausesStringBuilder, final List<Object> parameterValues, final ColumnDef columnDef) {
         Object value = columnDef.getValue(row);
         if (columnSetClausesStringBuilder.length() != 0) {
             columnSetClausesStringBuilder.append(",\n   ");
@@ -126,10 +126,14 @@ public class UpdateHandler extends AbstractPkWhereClauseHandler {
                                                    }
 
                                                    public void performWith(Day value) {
-                                                       parameterValues.add(value == null ? null : new Timestamp(value.getDate().getTime()));
+                                                       if (columnDef.storeAsTimestamp) {
+                                                           parameterValues.add(value == null ? null : new Timestamp(value.getDate().getTime()));
+                                                       } else {
+                                                           parameterValues.add(value == null ? null : value.toString());
+                                                       }
                                                    }
 
-                                                   public void performWithZZZ(Month value) {
+                                                   public void performWith(Month value) {
                                                        parameterValues.add(value == null ? null : value.toString());
                                                    }
 

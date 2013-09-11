@@ -166,18 +166,27 @@ public class ObjectRowExtractor<T> implements RowExtractor<T> {
 
                                                           public void performFor_Day() {
                                                               try {
-                                                                  Timestamp value = resultSet.getTimestamp(columnDef.columnName);
-                                                                  if (resultSet.wasNull()) {
-                                                                      columnDef.setValue(row, null);
+                                                                  if (columnDef.storeAsTimestamp) {
+                                                                      Timestamp value = resultSet.getTimestamp(columnDef.columnName);
+                                                                      if (resultSet.wasNull()) {
+                                                                          columnDef.setValue(row, null);
+                                                                      } else {
+                                                                          columnDef.setValue(row, Day.from(new java.util.Date(value.getTime())));
+                                                                      }
                                                                   } else {
-                                                                      columnDef.setValue(row, Day.from(new java.util.Date(value.getTime())));
+                                                                      String value = resultSet.getString(columnDef.columnName);
+                                                                      if (resultSet.wasNull()) {
+                                                                          columnDef.setValue(row, null);
+                                                                      } else {
+                                                                          columnDef.setValue(row, Day.fromString(value));
+                                                                      }
                                                                   }
                                                               } catch (SQLException e) {
                                                                   throw new SQLRuntimeException(e);
                                                               }
                                                           }
 
-                                                          public void performFor_MonthZZZ() {
+                                                          public void performFor_Month() {
                                                               try {
                                                                   String value = resultSet.getString(columnDef.columnName);
                                                                   if (resultSet.wasNull()) {

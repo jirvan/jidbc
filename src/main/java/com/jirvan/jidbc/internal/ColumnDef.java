@@ -37,6 +37,7 @@ public class ColumnDef {
     public String attributeName;
     public Field field;
     public Class<?> attributeType;
+    public boolean storeAsTimestamp;
     public Method getterMethod;
     public Method setterMethod;
     public String columnName;

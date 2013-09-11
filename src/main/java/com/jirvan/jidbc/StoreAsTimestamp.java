@@ -1,6 +1,6 @@
 /*
 
-Copyright (c) 2013, Jirvan Pty Ltd
+Copyright (c) 20123, Jirvan Pty Ltd
 All rights reserved.
 
 Redistribution and use in source and binary forms, with or without modification,
@@ -30,44 +30,10 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 package com.jirvan.jidbc;
 
-import com.jirvan.dates.*;
+import java.lang.annotation.*;
 
-import java.math.*;
-import java.util.*;
+@Retention(RetentionPolicy.RUNTIME)
+@Target({ElementType.FIELD, ElementType.METHOD})
 
-public class Department {
-
-    @Id(generatorSequence = "common_id_sequence")
-    public Long departmentId;
-
-    public DepartmentType departmentType;
-
-    public String departmentAbbr;
-
-    public String departmentName;
-
-    //@StoreAsTimestamp
-    public Day creationAnniversary;
-
-    public Month someMonth;
-
-    public String thingyType;
-
-    public Integer thingyNumber;
-
-    public BigDecimal anotherThingy;
-
-    public Date inactivatedDatetime;
-
-    /**
-     * This should be ignored as it is annotated with @JidbcIgnore
-     */
-    @JidbcIgnore
-    public ThingyToBeIgnored shouldBeIgnored;
-
-    /**
-     * This should be ignored as it is a Collection
-     */
-    public Collection shouldAlsoBeIgnored;
-
+public @interface StoreAsTimestamp {
 }

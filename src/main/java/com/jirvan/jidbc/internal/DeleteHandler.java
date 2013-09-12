@@ -30,6 +30,7 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 package com.jirvan.jidbc.internal;
 
+import com.jirvan.jidbc.*;
 import com.jirvan.jidbc.lang.*;
 import com.jirvan.lang.*;
 
@@ -41,14 +42,15 @@ public class DeleteHandler extends AbstractPkWhereClauseHandler {
 
     public static void delete(Connection connection, Object row) {
 
+        TableDef tableDef = TableDef.getTableDefForRowClass(row.getClass());
+
+        WhereClause whereClause = new WhereClause(tableDef, row);
+
+        String sql = String.format("delete from %s\n%s",
+                                   tableDef.tableName,
+                                   whereClause.sql);
+
         try {
-            TableDef tableDef = TableDef.getTableDefForRowClass(row.getClass());
-
-            WhereClause whereClause = new WhereClause(tableDef, row);
-
-            String sql = String.format("delete from %s\n%s",
-                                       tableDef.tableName,
-                                       whereClause.sql);
 
             // Delete the object
             PreparedStatement statement = connection.prepareStatement(sql);
@@ -69,6 +71,7 @@ public class DeleteHandler extends AbstractPkWhereClauseHandler {
             }
 
         } catch (SQLException e) {
+            Jidbc.logSqlException(e, sql, whereClause.parameterValues.toArray());
             throw new SQLRuntimeException(e);
         }
     }

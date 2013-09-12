@@ -30,6 +30,7 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 package com.jirvan.jidbc.internal;
 
+import com.jirvan.jidbc.*;
 import com.jirvan.lang.*;
 
 import java.sql.*;
@@ -37,8 +38,9 @@ import java.sql.*;
 public class SequenceHandler {
 
     public static Long takeSequenceNextVal(Connection connection, String sequenceName) {
+        String sql = String.format("select nextval('%s')", sequenceName);
         try {
-            PreparedStatement statement = connection.prepareStatement(String.format("select nextval('%s')", sequenceName));
+            PreparedStatement statement = connection.prepareStatement(sql);
             try {
                 ResultSet resultSet = statement.executeQuery();
                 try {
@@ -54,6 +56,7 @@ public class SequenceHandler {
                 statement.close();
             }
         } catch (SQLException e) {
+            Jidbc.logSqlException(e, sql, null);
             throw new SQLRuntimeException(e);
         }
     }

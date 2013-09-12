@@ -12,7 +12,13 @@
         <dependency>
             <groupId>com.jirvan</groupId>
             <artifactId>ji</artifactId>
-            <version>1.0.35</version>
+            <version>1.0.36</version>
+        </dependency>
+        <dependency>
+            <groupId>org.slf4j</groupId>
+            <artifactId>slf4j-log4j12</artifactId>
+            <version>1.7.5</version>
+            <optional>true</optional>
         </dependency>
         <dependency>
             <groupId>postgresql</groupId>

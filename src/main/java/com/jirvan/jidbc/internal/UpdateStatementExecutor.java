@@ -31,6 +31,7 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 package com.jirvan.jidbc.internal;
 
 import com.jirvan.dates.*;
+import com.jirvan.jidbc.*;
 import com.jirvan.lang.*;
 
 import java.sql.*;
@@ -45,7 +46,7 @@ public class UpdateStatementExecutor {
                     if (parameters[i] instanceof java.util.Date) {
                         statement.setObject(i + 1, parameters[i], Types.TIMESTAMP);
                     } else if (parameters[i] instanceof Day) {
-                        statement.setObject(i + 1, ((Day)parameters[i]).getDate(), Types.TIMESTAMP);
+                        statement.setObject(i + 1, ((Day) parameters[i]).getDate(), Types.TIMESTAMP);
                     } else {
                         statement.setObject(i + 1, parameters[i]);
                     }
@@ -55,6 +56,7 @@ public class UpdateStatementExecutor {
                 statement.close();
             }
         } catch (SQLException e) {
+            Jidbc.logSqlException(e, sql, parameters);
             throw new SQLRuntimeException(e);
         }
     }

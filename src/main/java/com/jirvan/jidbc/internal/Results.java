@@ -29,6 +29,7 @@
 package com.jirvan.jidbc.internal;
 
 import com.jirvan.dates.*;
+import com.jirvan.jidbc.*;
 import com.jirvan.lang.*;
 
 import java.math.*;
@@ -114,6 +115,7 @@ public class Results<T> implements Iterable<T> {
             fetchNext();
 
         } catch (SQLException e) {
+            Jidbc.logSqlException(e, sqlToUse, parameterValues);
             throw new SQLRuntimeException(e);
         }
     }

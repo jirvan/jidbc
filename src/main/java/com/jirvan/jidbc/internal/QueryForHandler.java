@@ -31,6 +31,7 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 package com.jirvan.jidbc.internal;
 
 import com.jirvan.dates.*;
+import com.jirvan.jidbc.*;
 import com.jirvan.jidbc.lang.*;
 import com.jirvan.lang.*;
 
@@ -102,6 +103,7 @@ public class QueryForHandler {
                 statement.close();
             }
         } catch (SQLException e) {
+            Jidbc.logSqlException(e, sqlToUse, parameterValues);
             throw new SQLRuntimeException(e);
         }
     }
@@ -145,6 +147,7 @@ public class QueryForHandler {
                 statement.close();
             }
         } catch (SQLException e) {
+            Jidbc.logSqlException(e, sql, parameterValues);
             throw new SQLRuntimeException(e);
         }
     }
@@ -188,6 +191,7 @@ public class QueryForHandler {
                 statement.close();
             }
         } catch (SQLException e) {
+            Jidbc.logSqlException(e, sql, parameterValues);
             throw new SQLRuntimeException(e);
         }
     }
@@ -231,6 +235,7 @@ public class QueryForHandler {
                 statement.close();
             }
         } catch (SQLException e) {
+            Jidbc.logSqlException(e, sql, parameterValues);
             throw new SQLRuntimeException(e);
         }
     }
@@ -274,6 +279,7 @@ public class QueryForHandler {
                 statement.close();
             }
         } catch (SQLException e) {
+            Jidbc.logSqlException(e, sql, parameterValues);
             throw new SQLRuntimeException(e);
         }
     }
@@ -317,6 +323,7 @@ public class QueryForHandler {
                 statement.close();
             }
         } catch (SQLException e) {
+            Jidbc.logSqlException(e, sql, parameterValues);
             throw new SQLRuntimeException(e);
         }
     }

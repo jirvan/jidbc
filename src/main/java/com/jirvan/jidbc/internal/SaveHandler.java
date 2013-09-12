@@ -30,11 +30,12 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 package com.jirvan.jidbc.internal;
 
+import com.jirvan.jidbc.*;
 import com.jirvan.lang.*;
 
 import java.sql.*;
 
-import static com.jirvan.jidbc.internal.JidbcInternalUtils.setObject;
+import static com.jirvan.jidbc.internal.JidbcInternalUtils.*;
 
 public class SaveHandler extends AbstractPkWhereClauseHandler {
 
@@ -47,16 +48,19 @@ public class SaveHandler extends AbstractPkWhereClauseHandler {
     }
 
     private static boolean rowExists(Connection connection, Object row) {
+
+        // Get the table def and where clause to use
+        TableDef tableDef = TableDef.getTableDefForRowClass(row.getClass());
+        WhereClause whereClause = new WhereClause(tableDef, row);
+
+        String sql = String.format("select 1 from %s\n%s",
+                                   tableDef.tableName,
+                                   whereClause.sql);
+
         try {
 
-            // Get the table def and where clause to use
-            TableDef tableDef = TableDef.getTableDefForRowClass(row.getClass());
-            WhereClause whereClause = new WhereClause(tableDef, row);
-
             // Determine if the row already exists
-            PreparedStatement statement = connection.prepareStatement(String.format("select 1 from %s\n%s",
-                                                                                    tableDef.tableName,
-                                                                                    whereClause.sql));
+            PreparedStatement statement = connection.prepareStatement(sql);
             try {
                 int paramIndex = 0;
                 for (int i = 0; i < whereClause.parameterValues.size(); i++) {
@@ -73,6 +77,7 @@ public class SaveHandler extends AbstractPkWhereClauseHandler {
             }
 
         } catch (SQLException e) {
+            Jidbc.logSqlException(e, sql, whereClause.parameterValues.toArray());
             throw new SQLRuntimeException(e);
         }
     }

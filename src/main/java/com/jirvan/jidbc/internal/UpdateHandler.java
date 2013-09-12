@@ -31,6 +31,7 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 package com.jirvan.jidbc.internal;
 
 import com.jirvan.dates.*;
+import com.jirvan.jidbc.*;
 import com.jirvan.jidbc.lang.*;
 import com.jirvan.lang.*;
 
@@ -44,35 +45,35 @@ import static com.jirvan.jidbc.internal.JidbcInternalUtils.*;
 public class UpdateHandler extends AbstractPkWhereClauseHandler {
 
     public static void update(Connection connection, Object row) {
+
+        TableDef tableDef = TableDef.getTableDefForRowClass(row.getClass());
+
+        // Build update sql and parameters
+        StringBuilder columnSetClausesStringBuilder = new StringBuilder();
+        final List<Object> columnSetParameterValues = new ArrayList<Object>();
+        for (ColumnDef columnDef : tableDef.nonPkColumnDefs) {
+            processNonPkColumn(row, columnSetClausesStringBuilder, columnSetParameterValues, columnDef);
+        }
+
+
+        WhereClause whereClause = new WhereClause(tableDef, row);
+
+
+        String sql = String.format("update %s set\n   %s\n%s",
+                                   tableDef.tableName,
+                                   columnSetClausesStringBuilder.toString(),
+                                   whereClause.sql);
+        List<Object> parameters = new ArrayList<>(columnSetParameterValues);
+        parameters.addAll(whereClause.parameterValues);
+
         try {
-
-            TableDef tableDef = TableDef.getTableDefForRowClass(row.getClass());
-
-            // Build update sql and parameters
-            StringBuilder columnSetClausesStringBuilder = new StringBuilder();
-            final List<Object> columnSetParameterValues = new ArrayList<Object>();
-            for (ColumnDef columnDef : tableDef.nonPkColumnDefs) {
-                processNonPkColumn(row, columnSetClausesStringBuilder, columnSetParameterValues, columnDef);
-            }
-
-
-            WhereClause whereClause = new WhereClause(tableDef, row);
-
-
-            String sql = String.format("update %s set\n   %s\n%s",
-                                       tableDef.tableName,
-                                       columnSetClausesStringBuilder.toString(),
-                                       whereClause.sql);
 
             // Update the object
             PreparedStatement statement = connection.prepareStatement(sql);
             try {
                 int paramIndex = 0;
-                for (int i = 0; i < columnSetParameterValues.size(); i++) {
-                    setObject(statement, ++paramIndex, columnSetParameterValues.get(i));
-                }
-                for (int i = 0; i < whereClause.parameterValues.size(); i++) {
-                    setObject(statement, ++paramIndex, whereClause.parameterValues.get(i));
+                for (int i = 0; i < parameters.size(); i++) {
+                    setObject(statement, ++paramIndex, parameters.get(i));
                 }
                 int count = statement.executeUpdate();
                 if (count == 0) {
@@ -86,6 +87,7 @@ public class UpdateHandler extends AbstractPkWhereClauseHandler {
             }
 
         } catch (SQLException e) {
+            Jidbc.logSqlException(e, sql, parameters.toArray());
             throw new SQLRuntimeException(e);
         }
     }

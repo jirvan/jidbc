@@ -32,6 +32,7 @@ package com.jirvan.jidbc;
 
 import com.jirvan.dates.*;
 import com.jirvan.lang.*;
+import org.slf4j.*;
 
 import javax.sql.*;
 import java.math.*;
@@ -39,6 +40,35 @@ import java.sql.*;
 import java.util.*;
 
 public class Jidbc {
+
+    public final static Logger sqlExceptionLogger = LoggerFactory.getLogger("JidbcSqlExceptionLogger");
+
+    public static void logSqlException(SQLException sqlException, String sql, Object[] parameterValues) {
+        Jidbc.sqlExceptionLogger.error(formatSqlAndParameterValues(sql, parameterValues), sqlException);
+
+    }
+
+    private static String formatSqlAndParameterValues(String sql, Object[] parameterValues) {
+        if (sql == null) {
+            return "";
+        }
+        StringBuffer buf = new StringBuffer();
+        buf.append("SQL: ");
+        buf.append(sql.replaceAll("\\n", "\n     "));
+        buf.append("\n");
+        if (parameterValues != null && parameterValues.length > 0) {
+            buf.append("Parameter values: ");
+            for (int i = 0; i < parameterValues.length; i++) {
+                if (i != 0) buf.append(",\n                  ");
+                buf.append(parameterValues[i] == null
+                           ? "<null>"
+                           : parameterValues[i].toString());
+
+            }
+            buf.append("\n");
+        }
+        return buf.toString();
+    }
 
 
 //============================== "CRUD" (create, retrieve, update, delete) methods ==============================
@@ -440,6 +470,7 @@ public class Jidbc {
             }
 
         } catch (SQLException e) {
+            Jidbc.logSqlException(e, sql, null);
             throw new SQLRuntimeException(e);
         }
     }

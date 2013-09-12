@@ -41,7 +41,7 @@ import java.util.*;
 
 public class Jidbc {
 
-    public final static Logger sqlExceptionLogger = LoggerFactory.getLogger("JidbcSqlExceptionLogger");
+    public final static Logger sqlExceptionLogger = LoggerFactory.getLogger("JidbcSqlAndParameterValuesExceptionLogger");
 
     public static void logSqlException(SQLException sqlException, String sql, Object[] parameterValues) {
         Jidbc.sqlExceptionLogger.error(formatSqlAndParameterValues(sql, parameterValues), sqlException);

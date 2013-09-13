@@ -33,6 +33,7 @@ package com.jirvan.jidbc;
 import com.jirvan.dates.*;
 import com.jirvan.lang.*;
 import org.slf4j.*;
+import org.slf4j.helpers.*;
 
 import javax.sql.*;
 import java.math.*;
@@ -41,10 +42,15 @@ import java.util.*;
 
 public class Jidbc {
 
-    public final static Logger sqlExceptionLogger = LoggerFactory.getLogger("JidbcSqlAndParameterValuesExceptionLogger");
+    //    public final static Logger sqlExceptionLogger = LoggerFactory.getLogger("JidbcSqlAndParameterValuesExceptionLogger");
+    private static Logger sqlAndParameterValuesExceptionLogger = NOPLogger.NOP_LOGGER;
+
+    public static void setSqlAndParameterValuesExceptionLogger(Logger logger) {
+        sqlAndParameterValuesExceptionLogger = logger;
+    }
 
     public static void logSqlException(SQLException sqlException, String sql, Object[] parameterValues) {
-        Jidbc.sqlExceptionLogger.error(formatSqlAndParameterValues(sql, parameterValues), sqlException);
+        Jidbc.sqlAndParameterValuesExceptionLogger.error(formatSqlAndParameterValues(sql, parameterValues), sqlException);
 
     }
 

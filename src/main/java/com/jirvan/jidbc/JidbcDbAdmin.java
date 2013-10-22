@@ -30,6 +30,8 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 package com.jirvan.jidbc;
 
+import com.jirvan.util.*;
+
 import javax.sql.*;
 import java.util.*;
 
@@ -68,6 +70,29 @@ public class JidbcDbAdmin {
             return getCurrentUsersRelation_postgres(dataSource, "S");
         } else {
             throw new RuntimeException(String.format("%s is not supported (PostgreSQL is the only database currently supported by getCurrentUsersSequences)", databaseProductName));
+        }
+    }
+
+    public static void verifyNoTablesViewsOrSequencesExistOwnedByCurrentUser(DataSource dataSource) {
+
+        // Check user has no existing tables etc
+        String[] existingTables = JidbcDbAdmin.getCurrentUsersTables(dataSource);
+        if (existingTables.length > 0) {
+            throw new RuntimeException(String.format("User %s already has some tables (must be none for a \"bootstrap\" migration).  The tables are: %s.",
+                                                     JidbcDbAdmin.getCurrentUser(dataSource),
+                                                     Strings.join(existingTables, ',')));
+        }
+        String[] existingViews = JidbcDbAdmin.getCurrentUsersViews(dataSource);
+        if (existingViews.length > 0) {
+            throw new RuntimeException(String.format("User %s already has some views (must be none for a \"bootstrap\" migration).  The views are: %s.",
+                                                     JidbcDbAdmin.getCurrentUser(dataSource),
+                                                     Strings.join(existingViews, ',')));
+        }
+        String[] existingSequences = JidbcDbAdmin.getCurrentUsersViews(dataSource);
+        if (existingSequences.length > 0) {
+            throw new RuntimeException(String.format("User %s already has some sequences (must be none for a \"bootstrap\" migration).  The sequences are: %s.",
+                                                     JidbcDbAdmin.getCurrentUser(dataSource),
+                                                     Strings.join(existingSequences, ',')));
         }
     }
 

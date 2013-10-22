@@ -78,19 +78,19 @@ public class JidbcDbAdmin {
         // Check user has no existing tables etc
         String[] existingTables = JidbcDbAdmin.getCurrentUsersTables(dataSource);
         if (existingTables.length > 0) {
-            throw new RuntimeException(String.format("User %s already has some tables (must be none for a \"bootstrap\" migration).  The tables are: %s.",
+            throw new RuntimeException(String.format("User %s currently has some tables.  The tables are: %s.",
                                                      JidbcDbAdmin.getCurrentUser(dataSource),
                                                      Strings.join(existingTables, ',')));
         }
         String[] existingViews = JidbcDbAdmin.getCurrentUsersViews(dataSource);
         if (existingViews.length > 0) {
-            throw new RuntimeException(String.format("User %s already has some views (must be none for a \"bootstrap\" migration).  The views are: %s.",
+            throw new RuntimeException(String.format("User %s currently has some views.  The views are: %s.",
                                                      JidbcDbAdmin.getCurrentUser(dataSource),
                                                      Strings.join(existingViews, ',')));
         }
         String[] existingSequences = JidbcDbAdmin.getCurrentUsersViews(dataSource);
         if (existingSequences.length > 0) {
-            throw new RuntimeException(String.format("User %s already has some sequences (must be none for a \"bootstrap\" migration).  The sequences are: %s.",
+            throw new RuntimeException(String.format("User %s currently has some sequences.  The sequences are: %s.",
                                                      JidbcDbAdmin.getCurrentUser(dataSource),
                                                      Strings.join(existingSequences, ',')));
         }

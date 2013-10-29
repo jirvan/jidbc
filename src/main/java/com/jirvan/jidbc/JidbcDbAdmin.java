@@ -41,8 +41,10 @@ public class JidbcDbAdmin {
         String databaseProductName = Jidbc.getDatabaseProductName(dataSource);
         if ("PostgreSQL".equals(databaseProductName)) {
             return getCurrentUser_postgres(dataSource);
+        } else if ("Microsoft SQL Server".equals(databaseProductName)) {
+            return getCurrentUser_sqlserver(dataSource);
         } else {
-            throw new RuntimeException(String.format("%s is not supported (PostgreSQL is the only database currently supported by getCurrentUser)", databaseProductName));
+            throw new RuntimeException(String.format("%s is not supported (PostgreSQL and SQLServer are the only databases currently supported by getCurrentUser)", databaseProductName));
         }
     }
 
@@ -50,8 +52,14 @@ public class JidbcDbAdmin {
         String databaseProductName = Jidbc.getDatabaseProductName(dataSource);
         if ("PostgreSQL".equals(databaseProductName)) {
             return getCurrentUsersRelation_postgres(dataSource, "r");
+        } else if ("Microsoft SQL Server".equals(databaseProductName)) {
+            if (Jidbc.getDatabaseMajorVersion(dataSource) == 10) {
+                return getCurrentUsersTables_sqlserver(dataSource);
+            } else {
+                throw new RuntimeException(String.format("This version of %s is not supported (PostgreSQL and SQLServer 2008 are the only databases currently supported by getCurrentUsersTables)", databaseProductName));
+            }
         } else {
-            throw new RuntimeException(String.format("%s is not supported (PostgreSQL is the only database currently supported by getCurrentUsersTables)", databaseProductName));
+            throw new RuntimeException(String.format("%s is not supported (PostgreSQL and SQLServer 2008 are the only databases currently supported by getCurrentUsersTables)", databaseProductName));
         }
     }
 
@@ -59,8 +67,14 @@ public class JidbcDbAdmin {
         String databaseProductName = Jidbc.getDatabaseProductName(dataSource);
         if ("PostgreSQL".equals(databaseProductName)) {
             return getCurrentUsersRelation_postgres(dataSource, "v");
+        } else if ("Microsoft SQL Server".equals(databaseProductName)) {
+            if (Jidbc.getDatabaseMajorVersion(dataSource) == 10) {
+                return getCurrentUsersViews_sqlserver(dataSource);
+            } else {
+                throw new RuntimeException(String.format("This version of %s is not supported (PostgreSQL and SQLServer 2008 are the only databases currently supported by getCurrentUsersViews)", databaseProductName));
+            }
         } else {
-            throw new RuntimeException(String.format("%s is not supported (PostgreSQL is the only database currently supported by getCurrentUsersViews)", databaseProductName));
+            throw new RuntimeException(String.format("%s is not supported (PostgreSQL and SQLServer 2008 are the only databases currently supported by getCurrentUsersViews)", databaseProductName));
         }
     }
 
@@ -68,8 +82,14 @@ public class JidbcDbAdmin {
         String databaseProductName = Jidbc.getDatabaseProductName(dataSource);
         if ("PostgreSQL".equals(databaseProductName)) {
             return getCurrentUsersRelation_postgres(dataSource, "S");
+        } else if ("Microsoft SQL Server".equals(databaseProductName)) {
+            if (Jidbc.getDatabaseMajorVersion(dataSource) == 10) {
+                return new String[0]; // SQLServer 2008 does not support sequences
+            } else {
+                throw new RuntimeException(String.format("This version of %s is not supported (PostgreSQL and SQLServer 2008 are the only databases currently supported by getCurrentUsersSequences)", databaseProductName));
+            }
         } else {
-            throw new RuntimeException(String.format("%s is not supported (PostgreSQL is the only database currently supported by getCurrentUsersSequences)", databaseProductName));
+            throw new RuntimeException(String.format("%s is not supported (PostgreSQL and SQLServer 2008 are the only databases currently supported by getCurrentUsersSequences)", databaseProductName));
         }
     }
 
@@ -88,7 +108,7 @@ public class JidbcDbAdmin {
                                                      JidbcDbAdmin.getCurrentUser(dataSource),
                                                      Strings.join(existingViews, ',')));
         }
-        String[] existingSequences = JidbcDbAdmin.getCurrentUsersViews(dataSource);
+        String[] existingSequences = JidbcDbAdmin.getCurrentUsersSequences(dataSource);
         if (existingSequences.length > 0) {
             throw new RuntimeException(String.format("User %s currently has some sequences.  The sequences are: %s.",
                                                      JidbcDbAdmin.getCurrentUser(dataSource),
@@ -208,6 +228,24 @@ public class JidbcDbAdmin {
 
     private static String getCurrentUser_postgres(DataSource dataSource) {
         return Jidbc.queryFor_String(dataSource, "select current_user");
+    }
+
+    private static String getCurrentUser_sqlserver(DataSource dataSource) {
+        return Jidbc.queryFor_String(dataSource, "select system_user");
+    }
+
+    public static String[] getCurrentUsersTables_sqlserver(DataSource dataSource) {
+        return Jidbc.<String>queryForList(dataSource, String.class, "select table_name\n" +
+                                                                    "from information_schema.tables\n" +
+                                                                    "where table_type = 'BASE TABLE'")
+                    .toArray(new String[0]);
+    }
+
+    public static String[] getCurrentUsersViews_sqlserver(DataSource dataSource) {
+        return Jidbc.<String>queryForList(dataSource, String.class, "select table_name\n" +
+                                                                    "from information_schema.tables\n" +
+                                                                    "where table_type = 'VIEW'")
+                    .toArray(new String[0]);
     }
 
     public static String[] getCurrentUsersRelation_postgres(DataSource dataSource, String relkind) {

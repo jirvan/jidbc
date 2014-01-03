@@ -38,7 +38,7 @@ import java.io.*;
 import java.sql.*;
 import java.util.*;
 
-import static com.jirvan.util.Assertions.assertFileDoesNotExist;
+import static com.jirvan.util.Assertions.*;
 
 public class JidbcRowClassGenerator {
 
@@ -244,12 +244,19 @@ public class JidbcRowClassGenerator {
                 this.javaClassSimpleName = "String";
             } else if (sqlType == Types.BIGINT) {
                 this.javaClassSimpleName = "Long";
-            } else if (sqlType == Types.NUMERIC) {
+            } else if (sqlType == Types.NUMERIC
+                       || sqlType == Types.FLOAT
+                       || sqlType == Types.REAL
+                       || sqlType == Types.DECIMAL
+                       || sqlType == Types.DOUBLE) {
                 this.javaClassSimpleName = "BigDecimal";
                 imports.add("import java.math.*;");
-            } else if (sqlType == Types.BIT) {
+            } else if (sqlType == Types.BIT
+                       || sqlType == Types.BOOLEAN) {
                 this.javaClassSimpleName = "Boolean";
-            } else if (sqlType == Types.INTEGER) {
+            } else if (sqlType == Types.INTEGER
+                       || sqlType == Types.TINYINT
+                       || sqlType == Types.SMALLINT) {
                 this.javaClassSimpleName = "Integer";
             } else if (sqlType == Types.DATE || sqlType == Types.TIMESTAMP) {
                 if (fieldName.endsWith("Date")) {

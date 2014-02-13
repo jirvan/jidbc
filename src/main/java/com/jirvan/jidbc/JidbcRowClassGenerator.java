@@ -254,6 +254,8 @@ public class JidbcRowClassGenerator {
             } else if (sqlType == Types.BIT
                        || sqlType == Types.BOOLEAN) {
                 this.javaClassSimpleName = "Boolean";
+            } else if (sqlType == Types.BLOB) {
+                this.javaClassSimpleName = "Object";
             } else if (sqlType == Types.INTEGER
                        || sqlType == Types.TINYINT
                        || sqlType == Types.SMALLINT) {

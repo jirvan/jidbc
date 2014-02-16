@@ -39,14 +39,12 @@ public class JidbcInfo_noDependencies {
     protected static final ArtifactInfo jidbcInfo = new ArtifactInfo(getResourcePropertyValue(JidbcInfo_noDependencies.class, "jidbc.build.properties", "project.name"),
                                                                      getResourcePropertyValue(JidbcInfo_noDependencies.class, "jidbc.build.properties", "project.version"));
 
-    public static final String USAGE = "\nUsage:\n\n   java -jar <jar file> [-j|-d]";
+    public static final String USAGE = "\nUsage:\n\n   java -jar <jar file> [-j]";
 
     public static void main(String[] args) {
         if (args.length == 0) {
             System.out.printf("\n%s\n", getDetails());
         } else if (args.length == 1 && "-j".equals(args[0])) {
-            System.out.printf("\n%s\n", getDetailsJson());
-        } else if (args.length == 1 && "-d".equals(args[0])) {
             System.out.printf("\n%s\n", getDetailsJson());
         } else {
             System.err.println(USAGE);

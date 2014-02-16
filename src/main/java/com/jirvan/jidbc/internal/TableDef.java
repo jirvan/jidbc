@@ -151,7 +151,7 @@ public class TableDef extends RowDef {
                 }
             }
             columnDef.isInPk = true;
-        } else if (idFields != null && idFields.length > 0 && Strings.in(columnDef.field.getName(), idFields)) {
+        } else if (idFields != null && idFields.length > 0 && Strings.isIn(columnDef.field.getName(), idFields)) {
             columnDef.isInPk = true;
         }
     }
@@ -177,7 +177,7 @@ public class TableDef extends RowDef {
                 }
             }
             columnDef.isInPk = true;
-        } else if (idAttributes != null && idAttributes.length > 0 && Strings.in(columnDef.attributeName, idAttributes)) {
+        } else if (idAttributes != null && idAttributes.length > 0 && Strings.isIn(columnDef.attributeName, idAttributes)) {
             columnDef.isInPk = true;
         }
     }

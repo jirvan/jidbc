@@ -8,11 +8,12 @@
     <groupId>com.jirvan</groupId>
     <artifactId>jidbc</artifactId>
     <version>1.0.36-SNAPSHOT</version>
+
     <dependencies>
         <dependency>
             <groupId>com.jirvan</groupId>
             <artifactId>ji</artifactId>
-            <version>1.0.51</version>
+            <version>1.0.52</version>
         </dependency>
         <dependency>
             <groupId>org.slf4j</groupId>
@@ -41,8 +42,9 @@
                 <excludes>
                     <exclude>**/*.java</exclude>
                 </excludes>
+                <filtering>true</filtering>
             </resource>
-        </resources>
+       </resources>
         <testResources>
             <testResource>
                 <directory>src/test/java</directory>
@@ -51,7 +53,22 @@
                 </excludes>
             </testResource>
         </testResources>
+        <plugins>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-jar-plugin</artifactId>
+                <version>2.4</version>
+                <configuration>
+                    <archive>
+                        <manifest>
+                            <mainClass>com.jirvan.jidbc.JidbcInfo_noDependencies</mainClass>
+                        </manifest>
+                    </archive>
+                </configuration>
+            </plugin>
+        </plugins>
     </build>
+
     <repositories>
         <repository>
             <id>com.jirvan.repo</id>

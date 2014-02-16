@@ -30,30 +30,15 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 package com.jirvan.jidbc;
 
+import com.jirvan.*;
 import com.jirvan.util.*;
 
-public class JidbcInfo {
+public class JidbcInfo extends JidbcInfo_noDependencies {
 
-    public static final String name = Io.getResourcePropertyValue(JidbcInfo.class, "jidbc.build.properties", "project.name");
-    public static final String version = Io.getResourcePropertyValue(JidbcInfo.class, "jidbc.build.properties", "project.version");
-
-    public static String getName() {
-        return name;
-    }
-
-    public static String getVersion() {
-        return version;
-    }
-
-    public static String getDetails() {
-        return String.format("%s: %s", name, version);
-    }
-
-    public static String getDetailsJson() {
-        return String.format("{\n" +
-                             "    \"name\": \"%s\",\n" +
-                             "    \"version\": \"%s\"\n" +
-                             "}", name, version);
+    public static ArtifactAndDependenciesInfo getInfoAndDependencies() {
+        return new ArtifactAndDependenciesInfo(jidbcInfo.getName(),
+                                               jidbcInfo.getVersion(),
+                                               Lists.create(JiInfo.getInfo()));
     }
 
 }

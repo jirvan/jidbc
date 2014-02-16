@@ -213,7 +213,7 @@ public class JidbcRowClassGenerator {
                     String columnName = resultSet.getString("COLUMN_NAME");
                     columnDetailses.add(new ColumnDetails(columnName,
                                                           resultSet.getInt("DATA_TYPE"),
-                                                          Strings.in(columnName, pkColumnNames),
+                                                          Strings.isIn(columnName, pkColumnNames),
                                                           imports));
                 }
 

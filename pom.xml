@@ -7,7 +7,7 @@
     <modelVersion>4.0.0</modelVersion>
     <groupId>com.jirvan</groupId>
     <artifactId>jidbc</artifactId>
-    <version>1.0.38</version>
+    <version>1.0.39-SNAPSHOT</version>
 
     <dependencies>
         <dependency>
@@ -89,8 +89,4 @@
             <url>https://jirvan.com:8081/nexus/content/repositories/snapshots</url>
         </snapshotRepository>
     </distributionManagement>
-
-  <scm>
-    <tag>v1.0.38</tag>
-  </scm>
 </project>

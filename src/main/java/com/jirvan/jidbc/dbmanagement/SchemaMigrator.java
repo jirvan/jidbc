@@ -62,7 +62,7 @@ public abstract class SchemaMigrator {
             if (currentSchemaVersion == null) {
                 throw new RuntimeException(String.format("Cannot upgrade from schema version \"%s\", schema is not currently at ANY version", fromVersion));
             } else if (!currentSchemaVersion.equals(fromVersion)) {
-                throw new RuntimeException(String.format("Cannot upgrade from schema version \"%s\", schema is already at version %s", toVersion, currentSchemaVersion));
+                throw new RuntimeException(String.format("Cannot upgrade from schema version \"%s\", schema is currently at version \"%s\"", fromVersion, currentSchemaVersion));
             } else {
                 performNormalMigration();
             }

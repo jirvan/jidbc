@@ -38,12 +38,25 @@ import javax.sql.*;
 public abstract class SchemaMigrator {
 
     private DataSource dataSource;
+    private boolean migrateInASingleTransaction;
     private String fromVersion;
     private String toVersion;
 
-
-    protected SchemaMigrator(DataSource dataSource, String fromVersion, String toVersion) {
+    /**
+     * @param dataSource                  the data source
+     * @param migrateInASingleTransaction Indicates whether or not to do the migration as a single transaction.  This
+     *                                    is really only here to support databases like Oracle that only allow DML
+     *                                    statements to be part of a transaction.  In Oracle DDL statements (table creations,
+     *                                    alterations etc) force an implicit commit.  Setting this to false really just means that the
+     *                                    schema version will be set to an "in between" value (e.g. "1.0" migrating to "1.1") so that
+     *                                    if the migration fails part way and is partially committed due to implicit commits,
+     *                                    this will be indicated by the "in between" value of the schema version.
+     * @param fromVersion                 from versiion
+     * @param toVersion                   to version
+     */
+    protected SchemaMigrator(DataSource dataSource, boolean migrateInASingleTransaction, String fromVersion, String toVersion) {
         this.dataSource = dataSource;
+        this.migrateInASingleTransaction = migrateInASingleTransaction;
         this.fromVersion = fromVersion;
         this.toVersion = toVersion;
     }
@@ -75,63 +88,83 @@ public abstract class SchemaMigrator {
 
         // Perform the migration
         String interimVersion = "bootstrapping to " + toVersion;
-        createSchemaVariablesTable(dataSource, interimVersion);
+        if (!migrateInASingleTransaction) {
+            createSchemaVariablesTable(dataSource, interimVersion);
+        }
         JidbcConnection jidbc = JidbcConnection.from(dataSource);
         try {
 
+            createSchemaVariablesTable(jidbc, interimVersion);
+
             performMigration(jidbc);
+
+            if (migrateInASingleTransaction) {
+                jidbc.executeUpdate("update schema_variables set schema_version = ?", toVersion);
+            }
 
             jidbc.commitAndClose();
         } catch (Throwable t) {
             throw jidbc.rollbackCloseAndWrap(t);
         }
-        String currentSchemaVersion = SchemaManager.getSchemaVersion(dataSource);
-        if (!interimVersion.equals(currentSchemaVersion)) {
-            throw new RuntimeException(String.format("Unexpected error on finalization, expected schema version to be \"%s\" but it was \"%s\"", interimVersion, currentSchemaVersion));
+        if (!migrateInASingleTransaction) {
+            String currentSchemaVersion = SchemaManager.getSchemaVersion(dataSource);
+            if (!interimVersion.equals(currentSchemaVersion)) {
+                throw new RuntimeException(String.format("Unexpected error on finalization, expected schema version to be \"%s\" but it was \"%s\"", interimVersion, currentSchemaVersion));
+            }
+            Jidbc.executeUpdate(dataSource, "update schema_variables set schema_version = ?", toVersion);
         }
-        Jidbc.executeUpdate(dataSource, "update schema_variables set schema_version = ?", toVersion);
 
     }
 
     private void performNormalMigration() {
         String interimVersion = String.format("\"%s\" migrating to \"%s\"", fromVersion, toVersion);
-        Jidbc.executeUpdate(dataSource, "update schema_variables set schema_version = ?", interimVersion);
+        if (!migrateInASingleTransaction) {
+            Jidbc.executeUpdate(dataSource, "update schema_variables set schema_version = ?", interimVersion);
+        }
         JidbcConnection jidbc = JidbcConnection.from(dataSource);
         try {
 
             performMigration(jidbc);
 
+            if (migrateInASingleTransaction) {
+                Jidbc.executeUpdate(dataSource, "update schema_variables set schema_version = ?", toVersion);
+            }
+
             jidbc.commitAndClose();
         } catch (Throwable t) {
             throw jidbc.rollbackCloseAndWrap(t);
         }
-        String currentSchemaVersion = SchemaManager.getSchemaVersion(dataSource);
-        if (!interimVersion.equals(currentSchemaVersion)) {
-            throw new RuntimeException(String.format("Unexpected error on finalization, expected schema version to be \"%s\" but it was \"%s\"", interimVersion, currentSchemaVersion));
+        if (!migrateInASingleTransaction) {
+            String currentSchemaVersion = SchemaManager.getSchemaVersion(dataSource);
+            if (!interimVersion.equals(currentSchemaVersion)) {
+                throw new RuntimeException(String.format("Unexpected error on finalization, expected schema version to be \"%s\" but it was \"%s\"", interimVersion, currentSchemaVersion));
+            }
+            Jidbc.executeUpdate(dataSource, "update schema_variables set schema_version = ?", toVersion);
         }
-        Jidbc.executeUpdate(dataSource, "update schema_variables set schema_version = ?", toVersion);
     }
 
     private void createSchemaVariablesTable(DataSource dataSource, String initialVersion) {
         JidbcConnection jidbc = JidbcConnection.from(dataSource);
         try {
-
-            jidbc.executeUpdate("create table schema_variables (\n" +
-                                "   single_row_enforcer       numeric(2) default 42    not null,\n" +
-                                "   schema_version            varchar(300)             not null,\n" +
-                                "constraint schema_variables_pk primary key (single_row_enforcer),\n" +
-                                "constraint no_more_than_one_row_chk\n" +
-                                "   check (\n" +
-                                "      single_row_enforcer = 42\n" +
-                                "   )\n" +
-                                ")");
-
-            jidbc.executeUpdate("insert into schema_variables (schema_version) values (?)", initialVersion);
-
+            createSchemaVariablesTable(jidbc, initialVersion);
             jidbc.commitAndClose();
         } catch (Throwable t) {
             throw jidbc.rollbackCloseAndWrap(t);
         }
+    }
+
+    private void createSchemaVariablesTable(JidbcConnection jidbc, String initialVersion) {
+        jidbc.executeUpdate("create table schema_variables (\n" +
+                            "   single_row_enforcer       numeric(2) default 42    not null,\n" +
+                            "   schema_version            varchar(300)             not null,\n" +
+                            "constraint schema_variables_pk primary key (single_row_enforcer),\n" +
+                            "constraint no_more_than_one_row_chk\n" +
+                            "   check (\n" +
+                            "      single_row_enforcer = 42\n" +
+                            "   )\n" +
+                            ")");
+
+        jidbc.executeUpdate("insert into schema_variables (schema_version) values (?)", initialVersion);
     }
 
     protected void executeScript(JidbcConnection jidbc, String scriptRelativePath) {

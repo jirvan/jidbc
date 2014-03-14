@@ -1,6 +1,6 @@
 /*
 
-Copyright (c) 2013, Jirvan Pty Ltd
+Copyright (c) 2013, 2014, Jirvan Pty Ltd
 All rights reserved.
 
 Redistribution and use in source and binary forms, with or without modification,
@@ -31,18 +31,30 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 package com.jirvan.jidbc.internal;
 
 import com.jirvan.dates.*;
+import com.jirvan.lang.*;
 
 import java.sql.*;
 
 public class JidbcInternalUtils {
 
     public static void setObject(PreparedStatement statement, int parameterIndex, Object object) throws SQLException {
-        if (object instanceof java.util.Date) {
-            statement.setObject(parameterIndex, object, Types.TIMESTAMP);
-        } else if (object instanceof Day) {
-            statement.setObject(parameterIndex, ((Day) object).getDate(), Types.TIMESTAMP);
-        } else {
-            statement.setObject(parameterIndex, object);
+        try {
+            if (object instanceof java.util.Date) {
+                statement.setObject(parameterIndex, object, Types.TIMESTAMP);
+            } else if (object instanceof Day) {
+                statement.setObject(parameterIndex, ((Day) object).getDate(), Types.TIMESTAMP);
+            } else {
+                statement.setObject(parameterIndex, object);
+            }
+        } catch (Throwable t) {
+            ParameterMetaData parameterMetaData = statement.getParameterMetaData();
+            if ( parameterMetaData.getParameterCount() == 0) {
+                throw new SQLRuntimeException("There are no parameter markers (? characters) in the sql but a parameter value has been given");
+            } else if ( parameterIndex >  parameterMetaData.getParameterCount()) {
+                throw new SQLRuntimeException("More parameter values has been given than there are parameter markers (? characters) in the sql");
+            } else {
+                throw t;
+            }
         }
     }
 

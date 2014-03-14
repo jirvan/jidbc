@@ -49,9 +49,9 @@ public class JidbcInternalUtils {
         } catch (Throwable t) {
             ParameterMetaData parameterMetaData = statement.getParameterMetaData();
             if ( parameterMetaData.getParameterCount() == 0) {
-                throw new SQLRuntimeException("There are no parameter markers (? characters) in the sql but a parameter value has been given");
+                throw new SQLRuntimeException("There are no parameter markers (? characters) in the sql but a parameter value has been given.");
             } else if ( parameterIndex >  parameterMetaData.getParameterCount()) {
-                throw new SQLRuntimeException("More parameter values has been given than there are parameter markers (? characters) in the sql");
+                throw new SQLRuntimeException("More parameter values have been given than there are parameter markers (? characters) in the sql.");
             } else {
                 throw t;
             }

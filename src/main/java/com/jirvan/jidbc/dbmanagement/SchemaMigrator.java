@@ -61,6 +61,14 @@ public abstract class SchemaMigrator {
         this.toVersion = toVersion;
     }
 
+    public String getFromVersion() {
+        return fromVersion;
+    }
+
+    public String getToVersion() {
+        return toVersion;
+    }
+
     protected abstract void performMigration(JidbcConnection jidbcConnection);
 
     public void migrate() {

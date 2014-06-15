@@ -13,7 +13,7 @@
         <dependency>
             <groupId>com.jirvan</groupId>
             <artifactId>ji</artifactId>
-            <version>1.0.66</version>
+            <version>1.0.67</version>
         </dependency>
         <dependency>
             <groupId>org.slf4j</groupId>

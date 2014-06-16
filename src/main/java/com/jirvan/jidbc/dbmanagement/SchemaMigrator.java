@@ -185,4 +185,29 @@ public abstract class SchemaMigrator {
         }
     }
 
+    protected void assignPrivilegeToRoles(JidbcConnection jidbc, String privilegeName, String firstRole, String... theRestOfTheRoles) {
+
+        String[] roles = Utl.merge(firstRole, theRestOfTheRoles);
+
+        Object[] parameters = Utl.merge(Object.class, jidbc.queryFor_Long("select privilege_id from application_privileges where name = ?", privilegeName),
+                                        roles);
+
+        jidbc.executeUpdate(String.format("insert into role_privileges (role_id, privilege_id)\n" +
+                                          "select role_id, ?\n" +
+                                          "from roles\n" +
+                                          "where name in (%s)", Jdbc.parameterPlaceHolderString(roles)),
+                            parameters);
+    }
+
+    protected void insertApplicationPrivilege(JidbcConnection jidbc, String name, String description) {
+        jidbc.executeUpdate("insert into application_privileges (privilege_id, name, description) values (?,?,?)",
+                            jidbc.takeSequenceNextVal("common_id_sequence"),
+                            name, description);
+    }
+
+    protected void insertRole(JidbcConnection jidbc, String name, String description) {
+        jidbc.executeUpdate("insert into roles (role_id, name, description) values (?,?,?)",
+                            jidbc.takeSequenceNextVal("common_id_sequence"), name, description);
+    }
+
 }

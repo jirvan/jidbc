@@ -1,6 +1,6 @@
 /*
 
-Copyright (c) 2013, Jirvan Pty Ltd
+Copyright (c) 2013,2014 Jirvan Pty Ltd
 All rights reserved.
 
 Redistribution and use in source and binary forms, with or without modification,
@@ -31,6 +31,7 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 package com.jirvan.jidbc;
 
 import com.jirvan.dates.*;
+import com.jirvan.jidbc.internal.*;
 import com.jirvan.lang.*;
 import org.slf4j.*;
 import org.slf4j.helpers.*;
@@ -441,11 +442,21 @@ public class Jidbc {
 //        JidbcExporter.exportTableDataToJsonFile(this, rowClass, outputJsonFile, overwriteExistingFile);
 //    }
 //
-////============================== Other methods ==============================
-//
-//    public Long takeSequenceNextVal(String sequenceName) {
-//        return SequenceHandler.takeSequenceNextVal(jdbcConnection, sequenceName);
-//    }
+
+//============================== Other methods ==============================
+
+    public static Long takeSequenceNextVal(DataSource dataSource, String sequenceName) {
+        JidbcConnection jidbc = JidbcConnection.from(dataSource);
+        try {
+
+            Long value = jidbc.takeSequenceNextVal(sequenceName);
+
+            jidbc.commitAndClose();
+            return value;
+        } catch (Throwable t) {
+            throw jidbc.rollbackCloseAndWrap(t);
+        }
+    }
 
     public static String placeholders(Object[] parameters) {
         return placeholders(parameters.length);

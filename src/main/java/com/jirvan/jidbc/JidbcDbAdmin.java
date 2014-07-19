@@ -30,6 +30,7 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 package com.jirvan.jidbc;
 
+import com.jirvan.lang.*;
 import com.jirvan.util.*;
 
 import javax.sql.*;
@@ -98,19 +99,19 @@ public class JidbcDbAdmin {
         // Check user has no existing tables etc
         String[] existingTables = JidbcDbAdmin.getCurrentUsersTables(dataSource);
         if (existingTables.length > 0) {
-            throw new RuntimeException(String.format("User %s currently has some tables.  The tables are: %s.",
+            throw new MessageException(String.format("User %s currently has some tables.  The tables are: %s.",
                                                      JidbcDbAdmin.getCurrentUser(dataSource),
                                                      Strings.join(existingTables, ',')));
         }
         String[] existingViews = JidbcDbAdmin.getCurrentUsersViews(dataSource);
         if (existingViews.length > 0) {
-            throw new RuntimeException(String.format("User %s currently has some views.  The views are: %s.",
+            throw new MessageException(String.format("User %s currently has some views.  The views are: %s.",
                                                      JidbcDbAdmin.getCurrentUser(dataSource),
                                                      Strings.join(existingViews, ',')));
         }
         String[] existingSequences = JidbcDbAdmin.getCurrentUsersSequences(dataSource);
         if (existingSequences.length > 0) {
-            throw new RuntimeException(String.format("User %s currently has some sequences.  The sequences are: %s.",
+            throw new MessageException(String.format("User %s currently has some sequences.  The sequences are: %s.",
                                                      JidbcDbAdmin.getCurrentUser(dataSource),
                                                      Strings.join(existingSequences, ',')));
         }

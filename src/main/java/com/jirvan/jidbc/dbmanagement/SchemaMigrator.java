@@ -211,7 +211,7 @@ public abstract class SchemaMigrator {
                             jidbc.takeSequenceNextVal("common_id_sequence"), name, description);
     }
 
-    private void processProblemsIfAny(String[] problems) {
+    protected void processProblemsIfAny(String[] problems) {
         if (problems.length > 0) {
             for (String problem : problems) {
                 System.err.printf("\n   %s\n", WordUtils.wrap(problem, 77, "\n   ", false));

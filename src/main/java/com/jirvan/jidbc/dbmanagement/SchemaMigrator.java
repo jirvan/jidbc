@@ -32,6 +32,7 @@ package com.jirvan.jidbc.dbmanagement;
 
 import com.jirvan.jidbc.*;
 import com.jirvan.util.*;
+import org.apache.commons.lang.*;
 
 import javax.sql.*;
 
@@ -208,6 +209,16 @@ public abstract class SchemaMigrator {
     protected void insertRole(JidbcConnection jidbc, String name, String description) {
         jidbc.executeUpdate("insert into roles (role_id, name, description) values (?,?,?)",
                             jidbc.takeSequenceNextVal("common_id_sequence"), name, description);
+    }
+
+    private void processProblemsIfAny(String[] problems) {
+        if (problems.length > 0) {
+            for (String problem : problems) {
+                System.err.printf("\n   %s\n", WordUtils.wrap(problem, 77, "\n   ", false));
+            }
+            System.err.printf("\n");
+            throw new RuntimeException("Problems found at end of migration");
+        }
     }
 
 }

@@ -16,6 +16,11 @@
             <version>1.0.75</version>
         </dependency>
         <dependency>
+            <groupId>commons-lang</groupId>
+            <artifactId>commons-lang</artifactId>
+            <version>2.6</version>
+        </dependency>
+        <dependency>
             <groupId>org.slf4j</groupId>
             <artifactId>slf4j-log4j12</artifactId>
             <version>1.7.5</version>
@@ -44,7 +49,7 @@
                 </excludes>
                 <filtering>true</filtering>
             </resource>
-       </resources>
+        </resources>
         <testResources>
             <testResource>
                 <directory>src/test/java</directory>

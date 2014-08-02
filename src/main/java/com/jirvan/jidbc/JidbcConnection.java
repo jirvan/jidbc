@@ -30,17 +30,31 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 package com.jirvan.jidbc;
 
-import com.jirvan.dates.*;
-import com.jirvan.jidbc.internal.*;
-import com.jirvan.jidbc.lang.*;
-import com.jirvan.lang.*;
-import com.jirvan.util.*;
+import com.jirvan.dates.Day;
+import com.jirvan.jidbc.internal.DeleteHandler;
+import com.jirvan.jidbc.internal.InsertHandler;
+import com.jirvan.jidbc.internal.JidbcExporter;
+import com.jirvan.jidbc.internal.JidbcImporter;
+import com.jirvan.jidbc.internal.QueryForHandler;
+import com.jirvan.jidbc.internal.Results;
+import com.jirvan.jidbc.internal.SaveHandler;
+import com.jirvan.jidbc.internal.SequenceHandler;
+import com.jirvan.jidbc.internal.UpdateHandler;
+import com.jirvan.jidbc.internal.UpdateStatementExecutor;
+import com.jirvan.jidbc.lang.MultipleRowsRuntimeException;
+import com.jirvan.lang.NotFoundRuntimeException;
+import com.jirvan.lang.SQLRuntimeException;
+import com.jirvan.util.DatabaseType;
+import com.jirvan.util.Jdbc;
+import com.jirvan.util.JdbcConnectionConfig;
 
-import javax.sql.*;
-import java.io.*;
-import java.math.*;
-import java.sql.*;
-import java.util.*;
+import javax.sql.DataSource;
+import java.io.File;
+import java.math.BigDecimal;
+import java.sql.Connection;
+import java.sql.SQLException;
+import java.util.ArrayList;
+import java.util.List;
 
 import static com.jirvan.util.Assertions.*;
 
@@ -229,7 +243,7 @@ public class JidbcConnection {
      *                        the row class)
      * @param parameterValues Any parameter values associated with the sql
      * @return A Results iterable that can be used to process the results
-     *         of the query.
+     * of the query.
      */
     public <T> Results<? extends T> query(Class rowClass, String sql, Object... parameterValues) {
         return new Results<T>(jdbcConnection, openResultses, rowClass, sql, parameterValues);
@@ -246,7 +260,7 @@ public class JidbcConnection {
      *                        the row class)
      * @param parameterValues Any parameter values associated with the sql
      * @return A List containing the results
-     *         of the query.
+     * of the query.
      */
     public <T> List<T> queryForList(Class rowClass, String sql, Object... parameterValues) {
         List<T> list = new ArrayList<T>();
@@ -281,6 +295,24 @@ public class JidbcConnection {
     }
 
 //============================== Database metadata methods ==============================
+
+    public DatabaseType getDatabaseType() {
+        try {
+            return DatabaseType.valueOf(getDatabaseProductName());
+        } catch (IllegalArgumentException e) {
+            throw new IllegalArgumentException(String.format("Jidbc: unsupported database type \"%s\"", getDatabaseProductName()), e);
+        }
+    }
+
+    public DatabaseType getDatabaseType(DatabaseType... supportedDatabaseTypes) {
+        try {
+            DatabaseType databaseType = DatabaseType.valueOf(getDatabaseProductName());
+            if
+            return databaseType;
+        } catch (IllegalArgumentException e) {
+            throw new IllegalArgumentException(String.format("Jidbc: unsupported database type \"%s\"", getDatabaseProductName()), e);
+        }
+    }
 
     public String getDatabaseProductName() {
         try {

@@ -387,10 +387,22 @@ public class Jidbc {
         }
     }
 
-    public DatabaseType getDatabaseType(DataSource dataSource, DatabaseType... supportedDatabaseTypes) {
+    public DatabaseType getDatabaseType(DataSource dataSource) {
         JidbcConnection jidbc = JidbcConnection.from(dataSource);
         try {
             DatabaseType databaseType = jidbc.getDatabaseType();
+            jidbc.rollbackAndClose();
+            return databaseType;
+        } catch (Throwable t) {
+            throw jidbc.rollbackCloseAndWrap(t);
+        }
+
+    }
+
+    public DatabaseType getDatabaseTypeIfSupported(DataSource dataSource, DatabaseType... supportedDatabaseTypes) {
+        JidbcConnection jidbc = JidbcConnection.from(dataSource);
+        try {
+            DatabaseType databaseType = jidbc.getDatabaseTypeIfSupported(supportedDatabaseTypes);
             jidbc.rollbackAndClose();
             return databaseType;
         } catch (Throwable t) {

@@ -297,14 +297,10 @@ public class JidbcConnection {
 //============================== Database metadata methods ==============================
 
     public DatabaseType getDatabaseType() {
-        try {
-            return DatabaseType.valueOf(getDatabaseProductName());
-        } catch (IllegalArgumentException e) {
-            throw new IllegalArgumentException(String.format("Jidbc: unsupported database type \"%s\"", getDatabaseProductName()), e);
-        }
+        return DatabaseType.get(getDatabaseProductName());
     }
 
-    public DatabaseType getDatabaseType(DatabaseType... supportedDatabaseTypes) {
+    public DatabaseType getDatabaseTypeIfSupported(DatabaseType... supportedDatabaseTypes) {
         return DatabaseType.getIfSupported(getDatabaseProductName(), supportedDatabaseTypes);
     }
 

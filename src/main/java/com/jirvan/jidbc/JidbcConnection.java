@@ -305,13 +305,7 @@ public class JidbcConnection {
     }
 
     public DatabaseType getDatabaseType(DatabaseType... supportedDatabaseTypes) {
-        try {
-            DatabaseType databaseType = DatabaseType.valueOf(getDatabaseProductName());
-            if
-            return databaseType;
-        } catch (IllegalArgumentException e) {
-            throw new IllegalArgumentException(String.format("Jidbc: unsupported database type \"%s\"", getDatabaseProductName()), e);
-        }
+        return DatabaseType.getIfSupported(getDatabaseProductName(), supportedDatabaseTypes);
     }
 
     public String getDatabaseProductName() {

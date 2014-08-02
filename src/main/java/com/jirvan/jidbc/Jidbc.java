@@ -30,16 +30,18 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 package com.jirvan.jidbc;
 
-import com.jirvan.dates.*;
-import com.jirvan.jidbc.internal.*;
-import com.jirvan.lang.*;
-import org.slf4j.*;
-import org.slf4j.helpers.*;
+import com.jirvan.dates.Day;
+import com.jirvan.lang.SQLRuntimeException;
+import com.jirvan.util.DatabaseType;
+import org.slf4j.Logger;
+import org.slf4j.helpers.NOPLogger;
 
-import javax.sql.*;
-import java.math.*;
-import java.sql.*;
-import java.util.*;
+import javax.sql.DataSource;
+import java.math.BigDecimal;
+import java.sql.Connection;
+import java.sql.PreparedStatement;
+import java.sql.SQLException;
+import java.util.List;
 
 public class Jidbc {
 
@@ -314,7 +316,7 @@ public class Jidbc {
      *                        the row class)
      * @param parameterValues Any parameter values associated with the sql
      * @return A List containing the results
-     *         of the query.
+     * of the query.
      */
     public static <T> List<T> queryForList(DataSource dataSource, Class rowClass, String sql, Object... parameterValues) {
         JidbcConnection jidbc = JidbcConnection.from(dataSource);
@@ -383,6 +385,18 @@ public class Jidbc {
         } catch (SQLException e) {
             throw new SQLRuntimeException(e);
         }
+    }
+
+    public DatabaseType getDatabaseType(DataSource dataSource, DatabaseType... supportedDatabaseTypes) {
+        JidbcConnection jidbc = JidbcConnection.from(dataSource);
+        try {
+            DatabaseType databaseType = jidbc.getDatabaseType();
+            jidbc.rollbackAndClose();
+            return databaseType;
+        } catch (Throwable t) {
+            throw jidbc.rollbackCloseAndWrap(t);
+        }
+
     }
 
     public static String getDatabaseProductVersion(DataSource dataSource) {

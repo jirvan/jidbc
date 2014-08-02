@@ -387,7 +387,7 @@ public class Jidbc {
         }
     }
 
-    public DatabaseType getDatabaseType(DataSource dataSource) {
+    public static DatabaseType getDatabaseType(DataSource dataSource) {
         JidbcConnection jidbc = JidbcConnection.from(dataSource);
         try {
             DatabaseType databaseType = jidbc.getDatabaseType();
@@ -399,7 +399,7 @@ public class Jidbc {
 
     }
 
-    public DatabaseType getDatabaseTypeIfSupported(DataSource dataSource, DatabaseType... supportedDatabaseTypes) {
+    public static DatabaseType getDatabaseTypeIfSupported(DataSource dataSource, DatabaseType... supportedDatabaseTypes) {
         JidbcConnection jidbc = JidbcConnection.from(dataSource);
         try {
             DatabaseType databaseType = jidbc.getDatabaseTypeIfSupported(supportedDatabaseTypes);

@@ -42,7 +42,8 @@ public class RowDef {
     protected static Map<String, RowDef> rowDefMap = new HashMap<String, RowDef>();
 
     Class rowClass;
-    List<ColumnDef> columnDefs = new ArrayList<ColumnDef>();
+    List<ColumnDef> columnDefs = new ArrayList<>();
+    List<ColumnDef> applicableColumnDefs; // only used by ObjectRowExtractor for curtailed result sets
 
     protected RowDef(Class rowClass) {
         this.rowClass = rowClass;

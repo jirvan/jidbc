@@ -244,9 +244,37 @@ public class JidbcConnection {
      * @param parameterValues Any parameter values associated with the sql
      * @return A Results iterable that can be used to process the results
      * of the query.
+     * @see #queryIgnoringMissingResultSetColumns(Class, String, Object...) query
      */
     public <T> Results<? extends T> query(Class rowClass, String sql, Object... parameterValues) {
-        return new Results<T>(jdbcConnection, openResultses, rowClass, sql, parameterValues);
+        return new Results<T>(jdbcConnection, openResultses, rowClass, sql, false, parameterValues);
+    }
+
+    /**
+     * This method executes a query against the database and returns a Results iterable that
+     * can be used to process the results of the query.  Note that using this in "for each"
+     * loops is OK as the JidbcConnection itself "remembers" all open Results iterables and
+     * closes them when it is released if they not been closed in the normal course of events.
+     * Normally the completion of the for loop that is looping through the iterable will close
+     * and release the query resources.  However if there is an exception thrown during loop
+     * processing the Results iterables will be closed by the JidbcConnection when it is
+     * released. The JidbcConnection itself should always be released in a finally block;
+     *
+     * @param rowClass        The class of the rows to be returned.  Note that for this method
+     *                        any fields in class that do not have a corresponding column in
+     *                        the sql result set will be set to null (unlike the {@link #query(Class, String, Object...) query} method
+     *                        which will throw a runtime exception)
+     * @param sql             The sql for selecting the rows from the database.  If
+     *                        the sql starts with "where " then "select * from tableName "
+     *                        will be prepended to the sql (the table name is determined from
+     *                        the row class)
+     * @param parameterValues Any parameter values associated with the sql
+     * @return A Results iterable that can be used to process the results
+     * of the query.
+     * @see #query(Class, String, Object...) query
+     */
+    public <T> Results<? extends T> queryIgnoringMissingResultSetColumns(Class rowClass, String sql, Object... parameterValues) {
+        return new Results<T>(jdbcConnection, openResultses, rowClass, sql, true, parameterValues);
     }
 
     /**

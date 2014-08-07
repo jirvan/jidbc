@@ -35,7 +35,8 @@ import java.util.*;
 
 public class StringRowExtractor implements RowExtractor<String> {
 
-    public String extractRowFromResultSet(Class rowClass, RowDef rowDef, ResultSet resultSet) {
+    public String extractRowFromResultSet(Class rowClass, RowDef rowDef, ResultSet resultSet, final boolean ignoreMissingResultSetColumns) {
+        if (ignoreMissingResultSetColumns) throw new RuntimeException("ignoreMissingResultSetColumns is inappropriate for StringRowExtractor");
         try {
             return resultSet.getString(1);
         } catch (SQLException e) {

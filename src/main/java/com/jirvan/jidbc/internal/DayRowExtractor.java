@@ -35,7 +35,8 @@ import java.sql.*;
 
 public class DayRowExtractor implements RowExtractor<Day> {
 
-    public Day extractRowFromResultSet(Class rowClass, RowDef rowDef, ResultSet resultSet) {
+    public Day extractRowFromResultSet(Class rowClass, RowDef rowDef, ResultSet resultSet, final boolean ignoreMissingResultSetColumns) {
+        if (ignoreMissingResultSetColumns) throw new RuntimeException("ignoreMissingResultSetColumns is inappropriate for DayRowExtractor");
         try {
             Timestamp value = resultSet.getTimestamp(1);
             if (resultSet.wasNull()) {

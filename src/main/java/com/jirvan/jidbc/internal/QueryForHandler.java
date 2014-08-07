@@ -30,20 +30,33 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 package com.jirvan.jidbc.internal;
 
-import com.jirvan.dates.*;
-import com.jirvan.jidbc.*;
-import com.jirvan.jidbc.lang.*;
-import com.jirvan.lang.*;
+import com.jirvan.dates.Day;
+import com.jirvan.jidbc.Jidbc;
+import com.jirvan.jidbc.lang.MultipleRowsRuntimeException;
+import com.jirvan.lang.NotFoundRuntimeException;
+import com.jirvan.lang.SQLRuntimeException;
 
-import java.math.*;
-import java.sql.*;
-import java.util.*;
+import java.math.BigDecimal;
+import java.sql.Connection;
+import java.sql.PreparedStatement;
+import java.sql.ResultSet;
+import java.sql.SQLException;
+import java.sql.Timestamp;
+import java.util.Map;
 
 import static com.jirvan.jidbc.internal.JidbcInternalUtils.*;
 
 public class QueryForHandler {
 
     public static <T> T queryFor(Connection connection, boolean exceptionIfNotFound, Class rowClass, String sql, Object[] parameterValues, boolean isAGet) {
+        return queryFor(connection, exceptionIfNotFound, rowClass, sql, parameterValues, isAGet, false);
+    }
+
+    public static <T> T queryForAndIgnoreMissingResultSetColumns(Connection connection, boolean exceptionIfNotFound, Class rowClass, String sql, Object[] parameterValues, boolean isAGet) {
+        return queryFor(connection, exceptionIfNotFound, rowClass, sql, parameterValues, isAGet, true);
+    }
+
+    private static <T> T queryFor(Connection connection, boolean exceptionIfNotFound, Class rowClass, String sql, Object[] parameterValues, boolean isAGet, boolean ignoreMissingResultSetColumns) {
         RowDef rowDef;
         RowExtractor rowExtractor;
         String sqlToUse;
@@ -86,7 +99,7 @@ public class QueryForHandler {
                 ResultSet resultSet = statement.executeQuery();
                 T result;
                 if (resultSet.next()) {
-                    result = (T) rowExtractor.extractRowFromResultSet(rowClass, rowDef, resultSet);
+                    result = (T) rowExtractor.extractRowFromResultSet(rowClass, rowDef, resultSet, ignoreMissingResultSetColumns);
                 } else {
                     if (exceptionIfNotFound) {
                         throw new NotFoundRuntimeException();

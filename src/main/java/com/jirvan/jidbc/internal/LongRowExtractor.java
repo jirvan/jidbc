@@ -34,7 +34,8 @@ import java.sql.*;
 
 public class LongRowExtractor implements RowExtractor<Long> {
 
-    public Long extractRowFromResultSet(Class rowClass, RowDef rowDef, ResultSet resultSet) {
+    public Long extractRowFromResultSet(Class rowClass, RowDef rowDef, ResultSet resultSet, final boolean ignoreMissingResultSetColumns) {
+        if (ignoreMissingResultSetColumns) throw new RuntimeException("ignoreMissingResultSetColumns is inappropriate for LongRowExtractor");
         try {
             return resultSet.getLong(1);
         } catch (SQLException e) {

@@ -28,16 +28,21 @@
 
 package com.jirvan.jidbc.internal;
 
-import com.jirvan.dates.*;
-import com.jirvan.jidbc.*;
-import com.jirvan.lang.*;
+import com.jirvan.dates.Day;
+import com.jirvan.jidbc.Jidbc;
+import com.jirvan.lang.SQLRuntimeException;
 
-import java.math.*;
-import java.sql.*;
+import java.math.BigDecimal;
+import java.sql.Connection;
+import java.sql.PreparedStatement;
+import java.sql.ResultSet;
+import java.sql.SQLException;
 import java.util.Date;
-import java.util.*;
+import java.util.Iterator;
+import java.util.List;
+import java.util.Map;
 
-import static com.jirvan.jidbc.internal.JidbcInternalUtils.setObject;
+import static com.jirvan.jidbc.internal.JidbcInternalUtils.*;
 
 public class Results<T> implements Iterable<T> {
 
@@ -48,8 +53,10 @@ public class Results<T> implements Iterable<T> {
     private PreparedStatement statement;
     private ResultSet resultSet;
     private Object nextRow;
+    private boolean ignoreMissingResultSetColumns;
 
-    public Results(Connection connection, List<Results> connectionOpenResultses, Class rowClass, String sql, Object... parameterValues) {
+    public Results(Connection connection, List<Results> connectionOpenResultses, Class rowClass, String sql, boolean ignoreMissingResultSetColumns, Object... parameterValues) {
+        this.ignoreMissingResultSetColumns = ignoreMissingResultSetColumns;
 
         String sqlToUse;
         if (String.class.isAssignableFrom(rowClass)) {
@@ -123,7 +130,7 @@ public class Results<T> implements Iterable<T> {
     private void fetchNext() {
         try {
             if (resultSet.next()) {
-                nextRow = rowExtractor.extractRowFromResultSet(rowClass, rowDef, resultSet);
+                nextRow = rowExtractor.extractRowFromResultSet(rowClass, rowDef, resultSet, ignoreMissingResultSetColumns);
             } else {
                 close();
             }

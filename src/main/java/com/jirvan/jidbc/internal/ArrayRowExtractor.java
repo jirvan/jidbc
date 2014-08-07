@@ -34,7 +34,8 @@ import java.sql.*;
 
 public class ArrayRowExtractor<T> implements RowExtractor<T> {
 
-    public T extractRowFromResultSet(Class rowClass, RowDef tableDef, ResultSet resultSet) {
+    public T extractRowFromResultSet(Class rowClass, RowDef tableDef, ResultSet resultSet, final boolean ignoreMissingResultSetColumns) {
+        if (ignoreMissingResultSetColumns) throw new RuntimeException("ignoreMissingResultSetColumns is inappropriate for ArrayRowExtractor");
         try {
             // Create and return the row
             ResultSetMetaData metaData = resultSet.getMetaData();

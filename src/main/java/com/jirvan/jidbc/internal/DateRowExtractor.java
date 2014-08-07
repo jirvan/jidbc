@@ -34,7 +34,8 @@ import java.sql.*;
 
 public class DateRowExtractor implements RowExtractor<java.util.Date> {
 
-    public java.util.Date extractRowFromResultSet(Class rowClass, RowDef rowDef, ResultSet resultSet) {
+    public java.util.Date extractRowFromResultSet(Class rowClass, RowDef rowDef, ResultSet resultSet, final boolean ignoreMissingResultSetColumns) {
+        if (ignoreMissingResultSetColumns) throw new RuntimeException("ignoreMissingResultSetColumns is inappropriate for DateRowExtractor");
         try {
             Timestamp value = resultSet.getTimestamp(1);
             if (resultSet.wasNull()) {

@@ -28,14 +28,18 @@
 
 package com.jirvan.jidbc.internal;
 
-import com.jirvan.lang.*;
+import com.jirvan.lang.SQLRuntimeException;
 
-import java.sql.*;
-import java.util.*;
+import java.sql.ResultSet;
+import java.sql.ResultSetMetaData;
+import java.sql.SQLException;
+import java.util.HashMap;
+import java.util.Map;
 
 public class MapRowExtractor<T> implements RowExtractor<T> {
 
-    public T extractRowFromResultSet(Class rowClass, RowDef rowDef, ResultSet resultSet) {
+    public T extractRowFromResultSet(Class rowClass, RowDef rowDef, ResultSet resultSet, final boolean ignoreMissingResultSetColumns) {
+        if (ignoreMissingResultSetColumns) throw new RuntimeException("ignoreMissingResultSetColumns is inappropriate for MapRowExtractor");
         try {
             // Create and return the row
             final Map row = rowClass == Map.class

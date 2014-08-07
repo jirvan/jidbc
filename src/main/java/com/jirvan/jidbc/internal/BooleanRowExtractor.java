@@ -34,7 +34,8 @@ import java.sql.*;
 
 public class BooleanRowExtractor implements RowExtractor<Boolean> {
 
-    public Boolean extractRowFromResultSet(Class rowClass, RowDef rowDef, ResultSet resultSet) {
+    public Boolean extractRowFromResultSet(Class rowClass, RowDef rowDef, ResultSet resultSet, final boolean ignoreMissingResultSetColumns) {
+        if (ignoreMissingResultSetColumns) throw new RuntimeException("ignoreMissingResultSetColumns is inappropriate for BooleanRowExtractor");
         try {
             return resultSet.getBoolean(1);
         } catch (SQLException e) {

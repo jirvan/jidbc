@@ -28,14 +28,31 @@
 
 package com.jirvan.jidbc.internal;
 
-import com.jirvan.dates.*;
-import com.jirvan.lang.*;
+import com.jirvan.dates.Day;
+import com.jirvan.dates.Month;
+import com.jirvan.lang.SQLRuntimeException;
 
-import java.sql.*;
+import java.sql.ResultSet;
+import java.sql.ResultSetMetaData;
+import java.sql.SQLException;
+import java.sql.Timestamp;
+import java.util.ArrayList;
 
 public class ObjectRowExtractor<T> implements RowExtractor<T> {
 
-    public T extractRowFromResultSet(Class rowClass, RowDef rowDef, final ResultSet resultSet) {
+    private boolean containsColumn(ResultSet resultSet, String columnName) {
+        try {
+            ResultSetMetaData metaData = resultSet.getMetaData();
+            for (int i = 1; i <= metaData.getColumnCount(); i++) {
+                if (metaData.getColumnName(i).equals(columnName)) return true;
+            }
+            return false;
+        } catch (SQLException e) {
+            throw new RuntimeException(e);
+        }
+    }
+
+    public T extractRowFromResultSet(Class rowClass, final RowDef rowDef, final ResultSet resultSet, final boolean ignoreMissingResultSetColumns) {
         try {
             // Create and return the row
             final T row;
@@ -44,7 +61,7 @@ public class ObjectRowExtractor<T> implements RowExtractor<T> {
             } catch (IllegalAccessException e) {
                 throw new RuntimeException(e);
             }
-            for (final ColumnDef columnDef : rowDef.columnDefs) {
+            for (final ColumnDef columnDef : rowDef.applicableColumnDefs != null ? rowDef.applicableColumnDefs : rowDef.columnDefs) {
 
 
                 AttributeValueHandler.performForClass(columnDef.attributeType,
@@ -54,7 +71,7 @@ public class ObjectRowExtractor<T> implements RowExtractor<T> {
                                                               try {
                                                                   columnDef.setValue(row, resultSet.getString(columnDef.columnName));
                                                               } catch (SQLException e) {
-                                                                  throw new SQLRuntimeException(e);
+                                                                  handleSetValueException(e);
                                                               }
                                                           }
 
@@ -67,7 +84,7 @@ public class ObjectRowExtractor<T> implements RowExtractor<T> {
                                                                       columnDef.setValue(row, value);
                                                                   }
                                                               } catch (SQLException e) {
-                                                                  throw new SQLRuntimeException(e);
+                                                                  handleSetValueException(e);
                                                               }
                                                           }
 
@@ -80,7 +97,7 @@ public class ObjectRowExtractor<T> implements RowExtractor<T> {
                                                                       columnDef.setValue(row, value);
                                                                   }
                                                               } catch (SQLException e) {
-                                                                  throw new SQLRuntimeException(e);
+                                                                  handleSetValueException(e);
                                                               }
                                                           }
 
@@ -93,61 +110,15 @@ public class ObjectRowExtractor<T> implements RowExtractor<T> {
                                                                       columnDef.setValue(row, value);
                                                                   }
                                                               } catch (SQLException e) {
-                                                                  throw new SQLRuntimeException(e);
+                                                                  handleSetValueException(e);
                                                               }
                                                           }
-
-//                                                          public void performFor_Boolean() {
-//                                                              try {
-//                                                                  Object value = resultSet.getBoolean(columnDef.columnName);
-//                                                                  if (resultSet.wasNull()) {
-//                                                                      columnDef.setValue(row, null);
-//                                                                  } else {
-//                                                                      if (value instanceof Number) {
-//                                                                          int intValue = ((Number) value).intValue();
-//                                                                          if (intValue == 1) {
-//                                                                              columnDef.setValue(row, true);
-//                                                                          } else if (intValue == 0) {
-//                                                                              columnDef.setValue(row, false);
-//                                                                          } else {
-//                                                                              throw new RuntimeException(String.format("%s is an inappropriate value for a boolean", value.toString()));
-//
-//                                                                          }
-//                                                                      } else if (value instanceof String) {
-//                                                                          if ("y".equalsIgnoreCase((String) value)) {
-//                                                                              columnDef.setValue(row, true);
-//                                                                          } else if ("n".equalsIgnoreCase((String) value)) {
-//                                                                              columnDef.setValue(row, false);
-//                                                                          } else if ("t".equalsIgnoreCase((String) value)) {
-//                                                                              columnDef.setValue(row, true);
-//                                                                          } else if ("f".equalsIgnoreCase((String) value)) {
-//                                                                              columnDef.setValue(row, false);
-//                                                                          } else if ("true".equalsIgnoreCase((String) value)) {
-//                                                                              columnDef.setValue(row, true);
-//                                                                          } else if ("false".equalsIgnoreCase((String) value)) {
-//                                                                              columnDef.setValue(row, false);
-//                                                                          } else if ("yes".equalsIgnoreCase((String) value)) {
-//                                                                              columnDef.setValue(row, true);
-//                                                                          } else if ("no".equalsIgnoreCase((String) value)) {
-//                                                                              columnDef.setValue(row, false);
-//                                                                          } else {
-//                                                                              throw new RuntimeException(String.format("%s is an inappropriate value for a boolean", (String) value));
-//
-//                                                                          }
-//                                                                      } else {
-//                                                                          throw new RuntimeException(String.format("Don't know how to interpret %s as a boolean", value.toString()));
-//                                                                      }
-//                                                                  }
-//                                                              } catch (SQLException e) {
-//                                                                  throw new SQLRuntimeException(e);
-//                                                              }
-//                                                          }
 
                                                           public void performFor_BigDecimal() {
                                                               try {
                                                                   columnDef.setValue(row, resultSet.getBigDecimal(columnDef.columnName));
                                                               } catch (SQLException e) {
-                                                                  throw new SQLRuntimeException(e);
+                                                                  handleSetValueException(e);
                                                               }
                                                           }
 
@@ -160,7 +131,7 @@ public class ObjectRowExtractor<T> implements RowExtractor<T> {
                                                                       columnDef.setValue(row, new java.util.Date(value.getTime()));
                                                                   }
                                                               } catch (SQLException e) {
-                                                                  throw new SQLRuntimeException(e);
+                                                                  handleSetValueException(e);
                                                               }
                                                           }
 
@@ -182,7 +153,7 @@ public class ObjectRowExtractor<T> implements RowExtractor<T> {
                                                                       }
                                                                   }
                                                               } catch (SQLException e) {
-                                                                  throw new SQLRuntimeException(e);
+                                                                  handleSetValueException(e);
                                                               }
                                                           }
 
@@ -195,7 +166,7 @@ public class ObjectRowExtractor<T> implements RowExtractor<T> {
                                                                       columnDef.setValue(row, Month.fromString(value));
                                                                   }
                                                               } catch (SQLException e) {
-                                                                  throw new SQLRuntimeException(e);
+                                                                  handleSetValueException(e);
                                                               }
                                                           }
 
@@ -208,7 +179,16 @@ public class ObjectRowExtractor<T> implements RowExtractor<T> {
                                                                       columnDef.setValue(row, Enum.valueOf(fieldClass, value));
                                                                   }
                                                               } catch (SQLException e) {
+                                                                  handleSetValueException(e);
+                                                              }
+                                                          }
+
+                                                          private void handleSetValueException(SQLException e) {
+                                                              if (!ignoreMissingResultSetColumns || containsColumn(resultSet, columnDef.columnName)) {
                                                                   throw new SQLRuntimeException(e);
+                                                              } else {
+                                                                  if (rowDef.applicableColumnDefs == null) rowDef.applicableColumnDefs = new ArrayList<>(rowDef.columnDefs);
+                                                                  rowDef.applicableColumnDefs.remove(columnDef);
                                                               }
                                                           }
 

@@ -34,7 +34,8 @@ import java.sql.*;
 
 public class IntegerRowExtractor implements RowExtractor<Integer> {
 
-    public Integer extractRowFromResultSet(Class rowClass, RowDef rowDef, ResultSet resultSet) {
+    public Integer extractRowFromResultSet(Class rowClass, RowDef rowDef, ResultSet resultSet, final boolean ignoreMissingResultSetColumns) {
+        if (ignoreMissingResultSetColumns) throw new RuntimeException("ignoreMissingResultSetColumns is inappropriate for IntegerRowExtractor");
         try {
             return resultSet.getInt(1);
         } catch (SQLException e) {

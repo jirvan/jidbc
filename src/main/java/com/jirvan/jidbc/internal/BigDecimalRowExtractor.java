@@ -35,7 +35,8 @@ import java.sql.*;
 
 public class BigDecimalRowExtractor implements RowExtractor<BigDecimal> {
 
-    public BigDecimal extractRowFromResultSet(Class rowClass, RowDef rowDef, ResultSet resultSet) {
+    public BigDecimal extractRowFromResultSet(Class rowClass, RowDef rowDef, ResultSet resultSet, final boolean ignoreMissingResultSetColumns) {
+        if (ignoreMissingResultSetColumns) throw new RuntimeException("ignoreMissingResultSetColumns is inappropriate for BigDecimalRowExtractor");
         try {
             return resultSet.getBigDecimal(1);
         } catch (SQLException e) {

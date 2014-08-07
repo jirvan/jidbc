@@ -32,6 +32,6 @@ import java.sql.*;
 
 public interface RowExtractor<T> {
 
-    public T extractRowFromResultSet(Class rowClass, RowDef rowDef, final ResultSet resultSet);
+    public T extractRowFromResultSet(Class rowClass, RowDef rowDef, final ResultSet resultSet, final boolean ignoreMissingResultSetColumns);
 
 }

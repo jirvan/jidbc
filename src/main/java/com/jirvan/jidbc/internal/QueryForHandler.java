@@ -48,15 +48,15 @@ import static com.jirvan.jidbc.internal.JidbcInternalUtils.*;
 
 public class QueryForHandler {
 
-    public static <T> T queryFor(Connection connection, boolean exceptionIfNotFound, Class rowClass, String sql, Object[] parameterValues, boolean isAGet) {
-        return queryFor(connection, exceptionIfNotFound, rowClass, sql, parameterValues, isAGet, false);
-    }
+//    public static <T> T queryFor(Connection connection, boolean exceptionIfNotFound, Class rowClass, String sql, Object[] parameterValues, boolean isAGet) {
+//        return queryFor(connection, exceptionIfNotFound, rowClass, sql, parameterValues, isAGet, false);
+//    }
+//
+//    public static <T> T queryForAndIgnoreMissingResultSetColumns(Connection connection, boolean exceptionIfNotFound, Class rowClass, String sql, Object[] parameterValues, boolean isAGet) {
+//        return queryFor(connection, exceptionIfNotFound, rowClass, sql, parameterValues, isAGet, true);
+//    }
 
-    public static <T> T queryForAndIgnoreMissingResultSetColumns(Connection connection, boolean exceptionIfNotFound, Class rowClass, String sql, Object[] parameterValues, boolean isAGet) {
-        return queryFor(connection, exceptionIfNotFound, rowClass, sql, parameterValues, isAGet, true);
-    }
-
-    private static <T> T queryFor(Connection connection, boolean exceptionIfNotFound, Class rowClass, String sql, Object[] parameterValues, boolean isAGet, boolean ignoreMissingResultSetColumns) {
+    public static <T> T queryFor(Connection connection, boolean exceptionIfNotFound, Class rowClass, String sql, Object[] parameterValues, boolean isAGet, boolean ignoreMissingResultSetColumns) {
         RowDef rowDef;
         RowExtractor rowExtractor;
         String sqlToUse;

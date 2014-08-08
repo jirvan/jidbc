@@ -165,7 +165,20 @@ public class Jidbc {
 
             T row = jidbc.queryFor(rowClass, sql, parameterValues);
 
-            jidbc.commitAndClose();
+            jidbc.rollbackAndClose();
+            return row;
+        } catch (Throwable t) {
+            throw jidbc.rollbackCloseAndWrap(t);
+        }
+    }
+
+    public static <T> T queryForAndIgnoreMissingResultSetColumns(DataSource dataSource, Class rowClass, String sql, Object... parameterValues) {
+        JidbcConnection jidbc = JidbcConnection.from(dataSource);
+        try {
+
+            T row = jidbc.queryForAndIgnoreMissingResultSetColumns(rowClass, sql, parameterValues);
+
+            jidbc.rollbackAndClose();
             return row;
         } catch (Throwable t) {
             throw jidbc.rollbackCloseAndWrap(t);
@@ -177,6 +190,19 @@ public class Jidbc {
         try {
 
             T row = jidbc.queryForOptional(rowClass, sql, parameterValues);
+
+            jidbc.commitAndClose();
+            return row;
+        } catch (Throwable t) {
+            throw jidbc.rollbackCloseAndWrap(t);
+        }
+    }
+
+    public static <T> T queryForOptionalIgnoringMissingResultSetColumns(DataSource dataSource, Class rowClass, String sql, Object... parameterValues) {
+        JidbcConnection jidbc = JidbcConnection.from(dataSource);
+        try {
+
+            T row = jidbc.queryForOptionalIgnoringMissingResultSetColumns(rowClass, sql, parameterValues);
 
             jidbc.commitAndClose();
             return row;
@@ -323,6 +349,36 @@ public class Jidbc {
         try {
 
             List<T> row = jidbc.queryForList(rowClass, sql, parameterValues);
+
+            jidbc.commitAndClose();
+            return row;
+        } catch (Throwable t) {
+            throw jidbc.rollbackCloseAndWrap(t);
+        }
+    }
+
+    /**
+     * This method executes a query against the database and returns a List containing the
+     * results.
+     *
+     * @param rowClass        The class of the rows to be returned.  Note that for this method
+     *                        any fields in class that do not have a corresponding column in
+     *                        the sql result set will be set to null (unlike the {@link Jidbc#queryForList(DataSource, Class, String, Object...) Jidbc.queryForList} method
+     *                        which will throw a runtime exception)
+     * @param sql             The sql for selecting the rows from the database.  If
+     *                        the sql starts with "where " then "select * from tableName "
+     *                        will be prepended to the sql (the table name is determined from
+     *                        the row class)
+     * @param parameterValues Any parameter values associated with the sql
+     * @return A List containing the results
+     * of the query.
+     * @see Jidbc#queryForList(DataSource, Class, String, Object...) Jidbc.queryForList
+     */
+    public static <T> List<T> queryForListIgnoringMissingResultSetColumns(DataSource dataSource, Class rowClass, String sql, Object... parameterValues) {
+        JidbcConnection jidbc = JidbcConnection.from(dataSource);
+        try {
+
+            List<T> row = jidbc.queryForListIgnoringMissingResultSetColumns(rowClass, sql, parameterValues);
 
             jidbc.commitAndClose();
             return row;

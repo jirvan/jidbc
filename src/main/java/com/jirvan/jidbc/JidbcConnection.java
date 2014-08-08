@@ -152,7 +152,7 @@ public class JidbcConnection {
         assertNotNull(rowClass, "Supplied row class is null");
         assertNotNull(pkValue, "Supplied primary key value is null");
         try {
-            return QueryForHandler.queryFor(jdbcConnection, true, rowClass, null, new Object[]{pkValue}, true);
+            return QueryForHandler.queryFor(jdbcConnection, true, rowClass, null, new Object[]{pkValue}, true, false);
         } catch (NotFoundRuntimeException e) {
             throw new NotFoundRuntimeException(String.format("%s:%s not found", rowClass.getSimpleName().replaceFirst("sRow$", ""), pkValue.toString()));
         }
@@ -161,7 +161,7 @@ public class JidbcConnection {
     public <T> T getIfExists(Class rowClass, Object pkValue) {
         assertNotNull(rowClass, "Supplied row class is null");
         assertNotNull(pkValue, "Supplied primary key value is null");
-        return QueryForHandler.queryFor(jdbcConnection, false, rowClass, null, new Object[]{pkValue}, true);
+        return QueryForHandler.queryFor(jdbcConnection, false, rowClass, null, new Object[]{pkValue}, true, false);
     }
 
     public void update(Object row) {
@@ -180,11 +180,19 @@ public class JidbcConnection {
 //============================== Single returned object row/value methods ==============================
 
     public <T> T queryFor(Class rowClass, String sql, Object... parameterValues) {
-        return QueryForHandler.queryFor(jdbcConnection, true, rowClass, sql, parameterValues, false);
+        return QueryForHandler.queryFor(jdbcConnection, true, rowClass, sql, parameterValues, false, false);
+    }
+
+    public <T> T queryForAndIgnoreMissingResultSetColumns(Class rowClass, String sql, Object... parameterValues) {
+        return QueryForHandler.queryFor(jdbcConnection, true, rowClass, sql, parameterValues, false, true);
     }
 
     public <T> T queryForOptional(Class rowClass, String sql, Object... parameterValues) {
-        return QueryForHandler.queryFor(jdbcConnection, false, rowClass, sql, parameterValues, false);
+        return QueryForHandler.queryFor(jdbcConnection, false, rowClass, sql, parameterValues, false, false);
+    }
+
+    public <T> T queryForOptionalIgnoringMissingResultSetColumns(Class rowClass, String sql, Object... parameterValues) {
+        return QueryForHandler.queryFor(jdbcConnection, false, rowClass, sql, parameterValues, false, true);
     }
 
     public String queryFor_String(String sql, Object... parameterValues) {
@@ -293,6 +301,31 @@ public class JidbcConnection {
     public <T> List<T> queryForList(Class rowClass, String sql, Object... parameterValues) {
         List<T> list = new ArrayList<T>();
         for (T row : this.<T>query(rowClass, sql, parameterValues)) {
+            list.add(row);
+        }
+        return list;
+    }
+
+    /**
+     * This method executes a query against the database and returns a List containing the
+     * results.
+     *
+     * @param rowClass        The class of the rows to be returned.  Note that for this method
+     *                        any fields in class that do not have a corresponding column in
+     *                        the sql result set will be set to null (unlike the {@link #queryForList(Class, String, Object...) queryForList} method
+     *                        which will throw a runtime exception)
+     * @param sql             The sql for selecting the rows from the database.  If
+     *                        the sql starts with "where " then "select * from tableName "
+     *                        will be prepended to the sql (the table name is determined from
+     *                        the row class)
+     * @param parameterValues Any parameter values associated with the sql
+     * @return A List containing the results
+     * of the query.
+     * @see #queryForList(Class, String, Object...) queryForList
+     */
+    public <T> List<T> queryForListIgnoringMissingResultSetColumns(Class rowClass, String sql, Object... parameterValues) {
+        List<T> list = new ArrayList<T>();
+        for (T row : this.<T>queryIgnoringMissingResultSetColumns(rowClass, sql, parameterValues)) {
             list.add(row);
         }
         return list;

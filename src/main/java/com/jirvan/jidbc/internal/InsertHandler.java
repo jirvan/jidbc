@@ -30,12 +30,16 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 package com.jirvan.jidbc.internal;
 
-import com.jirvan.dates.*;
-import com.jirvan.jidbc.lang.*;
+import com.jirvan.dates.Day;
+import com.jirvan.dates.Month;
+import com.jirvan.jidbc.lang.MultipleRowsRuntimeException;
 
-import java.math.*;
-import java.sql.*;
-import java.util.*;
+import java.math.BigDecimal;
+import java.sql.Connection;
+import java.sql.PreparedStatement;
+import java.sql.ResultSet;
+import java.sql.Timestamp;
+import java.util.Vector;
 
 import static com.jirvan.jidbc.internal.JidbcInternalUtils.*;
 
@@ -59,57 +63,59 @@ public class InsertHandler {
         final Vector<Object> parameterValues = new Vector<Object>();
         for (final ColumnDef columnDef : tableDef.columnDefs) {
             Object value = columnDef.getValue(row);
-            if (columNamesStringBuilder.length() != 0) {
-                columNamesStringBuilder.append(",");
-                paramPlaceHoldersStringBuilder.append(",");
-            }
-            columNamesStringBuilder.append(columnDef.columnName);
-            paramPlaceHoldersStringBuilder.append("?");
+            if (value != null) {
+                if (columNamesStringBuilder.length() != 0) {
+                    columNamesStringBuilder.append(",");
+                    paramPlaceHoldersStringBuilder.append(",");
+                }
+                columNamesStringBuilder.append(columnDef.columnName);
+                paramPlaceHoldersStringBuilder.append("?");
 
-            AttributeValueHandler.performWithValue(columnDef.attributeType, value,
-                                                   new AttributeValueHandler.ValueAction() {
+                AttributeValueHandler.performWithValue(columnDef.attributeType, value,
+                                                       new AttributeValueHandler.ValueAction() {
 
-                                                       public void performWith(String value) {
-                                                           parameterValues.add(value);
-                                                       }
+                                                           public void performWith(String value) {
+                                                               parameterValues.add(value);
+                                                           }
 
-                                                       public void performWith(Integer value) {
-                                                           parameterValues.add(value);
-                                                       }
+                                                           public void performWith(Integer value) {
+                                                               parameterValues.add(value);
+                                                           }
 
-                                                       public void performWith(Long value) {
-                                                           parameterValues.add(value);
-                                                       }
+                                                           public void performWith(Long value) {
+                                                               parameterValues.add(value);
+                                                           }
 
-                                                       public void performWith(BigDecimal value) {
-                                                           parameterValues.add(value);
-                                                       }
+                                                           public void performWith(BigDecimal value) {
+                                                               parameterValues.add(value);
+                                                           }
 
-                                                       public void performWith(Boolean value) {
-                                                           parameterValues.add(value);
-                                                       }
+                                                           public void performWith(Boolean value) {
+                                                               parameterValues.add(value);
+                                                           }
 
-                                                       public void performWith(java.util.Date value) {
-                                                           parameterValues.add(value == null ? null : new Timestamp(value.getTime()));
-                                                       }
+                                                           public void performWith(java.util.Date value) {
+                                                               parameterValues.add(value == null ? null : new Timestamp(value.getTime()));
+                                                           }
 
-                                                       public void performWith(Day value) {
-                                                           if (columnDef.storeAsTimestamp) {
-                                                               parameterValues.add(value == null ? null : new Timestamp(value.getDate().getTime()));
-                                                           } else {
+                                                           public void performWith(Day value) {
+                                                               if (columnDef.storeAsTimestamp) {
+                                                                   parameterValues.add(value == null ? null : new Timestamp(value.getDate().getTime()));
+                                                               } else {
+                                                                   parameterValues.add(value == null ? null : value.toString());
+                                                               }
+                                                           }
+
+                                                           public void performWith(Month value) {
                                                                parameterValues.add(value == null ? null : value.toString());
                                                            }
-                                                       }
 
-                                                       public void performWith(Month value) {
-                                                           parameterValues.add(value == null ? null : value.toString());
-                                                       }
+                                                           public void performWith(Enum value) {
+                                                               parameterValues.add(value == null ? null : value.name());
+                                                           }
 
-                                                       public void performWith(Enum value) {
-                                                           parameterValues.add(value == null ? null : value.name());
-                                                       }
-
-                                                   });
+                                                       });
+            }
         }
         String sql = columnToReturn == null
                      ? String.format("insert into %s (%s) values (%s)",

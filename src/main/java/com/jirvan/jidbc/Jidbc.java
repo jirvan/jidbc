@@ -31,6 +31,7 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 package com.jirvan.jidbc;
 
 import com.jirvan.dates.Day;
+import com.jirvan.jidbc.internal.TableDef;
 import com.jirvan.lang.SQLRuntimeException;
 import com.jirvan.util.DatabaseType;
 import org.slf4j.Logger;
@@ -526,6 +527,10 @@ public class Jidbc {
 //
 
 //============================== Other methods ==============================
+
+    public static String getTableForRowClass(Class rowClass) {
+        return TableDef.getTableForRowClass(rowClass);
+    }
 
     public static Long takeSequenceNextVal(DataSource dataSource, String sequenceName) {
         JidbcConnection jidbc = JidbcConnection.from(dataSource);

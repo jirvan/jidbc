@@ -30,11 +30,14 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 package com.jirvan.jidbc.internal;
 
-import com.jirvan.jidbc.*;
-import com.jirvan.util.*;
+import com.jirvan.jidbc.Id;
+import com.jirvan.jidbc.TableRow;
+import com.jirvan.jidbc.TableRowExtensionClass;
+import com.jirvan.util.Strings;
 
-import java.lang.annotation.*;
-import java.util.*;
+import java.lang.annotation.Annotation;
+import java.util.ArrayList;
+import java.util.List;
 
 public class TableDef extends RowDef {
 
@@ -76,31 +79,14 @@ public class TableDef extends RowDef {
     private static TableDef extractTableDefFromRowClass(final Class rowClass, final String[] idAttributes) {
 
         // Check for extension classes
-        Class effectiveRowClass;
-        Annotation tableRowExtensionClassAnnotation = rowClass.getAnnotation(TableRowExtensionClass.class);
-        if (tableRowExtensionClassAnnotation != null)  {
-            effectiveRowClass = ((TableRowExtensionClass)tableRowExtensionClassAnnotation).baseClass();
-        } else {
-            effectiveRowClass = rowClass;
-        }
+        Class effectiveRowClass = getEffectiveRowClass(rowClass);
 
         // Add basic column defs
         final TableDef tableDef = new TableDef(effectiveRowClass);
         addBasicColumnDefsToRowDef(effectiveRowClass, tableDef);
 
         // Extract table stuff
-        String rowClassSimpleName = effectiveRowClass.getSimpleName();
-        Annotation tableRowAnnotation = effectiveRowClass.getAnnotation(TableRow.class);
-        String tableName = tableRowAnnotation instanceof TableRow
-                           ? ((TableRow) tableRowAnnotation).tableName()
-                           : "<Guessed>";
-        if (!"<Guessed>".equals(tableName)) {
-            tableDef.tableName = tableName;
-        } else if (rowClassSimpleName.endsWith("Row")) {
-            tableDef.tableName = guessDatabaseNameFromJavaName(rowClassSimpleName.replaceFirst("Row$", ""));
-        } else {
-            tableDef.tableName = guessDatabaseNameFromJavaName(rowClassSimpleName) + "s";
-        }
+        tableDef.tableName = getTableForEffectiveRowClass(effectiveRowClass);
 
         // Process annotations
         for (ColumnDef columnDef : tableDef.columnDefs) {
@@ -128,6 +114,36 @@ public class TableDef extends RowDef {
         }
         return tableDef;
 
+    }
+
+    public static String getTableForRowClass(Class rowClass) {
+        return getTableForEffectiveRowClass(getEffectiveRowClass(rowClass));
+    }
+
+    private static String getTableForEffectiveRowClass(Class effectiveRowClass) {
+        String rowClassSimpleName = effectiveRowClass.getSimpleName();
+        Annotation tableRowAnnotation = effectiveRowClass.getAnnotation(TableRow.class);
+        String annotationTableName = tableRowAnnotation instanceof TableRow
+                                     ? ((TableRow) tableRowAnnotation).tableName()
+                                     : "<Guessed>";
+        if (!"<Guessed>".equals(annotationTableName)) {
+            return annotationTableName;
+        } else if (rowClassSimpleName.endsWith("Row")) {
+            return guessDatabaseNameFromJavaName(rowClassSimpleName.replaceFirst("Row$", ""));
+        } else {
+            return guessDatabaseNameFromJavaName(rowClassSimpleName) + "s";
+        }
+    }
+
+    private static Class getEffectiveRowClass(Class rowClass) {
+        Class effectiveRowClass;
+        Annotation tableRowExtensionClassAnnotation = rowClass.getAnnotation(TableRowExtensionClass.class);
+        if (tableRowExtensionClassAnnotation != null) {
+            effectiveRowClass = ((TableRowExtensionClass) tableRowExtensionClassAnnotation).baseClass();
+        } else {
+            effectiveRowClass = rowClass;
+        }
+        return effectiveRowClass;
     }
 
     private static void processAnnotationsForField(Class rowClass,

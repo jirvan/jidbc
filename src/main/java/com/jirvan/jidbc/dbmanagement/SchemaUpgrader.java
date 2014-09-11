@@ -36,28 +36,28 @@ import org.apache.commons.lang.*;
 
 import javax.sql.*;
 
-public abstract class SchemaMigrator {
+public abstract class SchemaUpgrader {
 
     private DataSource dataSource;
-    private boolean migrateInASingleTransaction;
+    private boolean upgradeInASingleTransaction;
     private String fromVersion;
     private String toVersion;
 
     /**
      * @param dataSource                  the data source
-     * @param migrateInASingleTransaction Indicates whether or not to do the migration as a single transaction.  This
+     * @param upgradeInASingleTransaction Indicates whether or not to do the upgrade as a single transaction.  This
      *                                    is really only here to support databases like Oracle that only allow DML
      *                                    statements to be part of a transaction.  In Oracle DDL statements (table creations,
      *                                    alterations etc) force an implicit commit.  Setting this to false really just means that the
-     *                                    schema version will be set to an "in between" value (e.g. "1.0" migrating to "1.1") so that
-     *                                    if the migration fails part way and is partially committed due to implicit commits,
+     *                                    schema version will be set to an "in between" value (e.g. "1.0" upgrading to "1.1") so that
+     *                                    if the upgrade fails part way and is partially committed due to implicit commits,
      *                                    this will be indicated by the "in between" value of the schema version.
      * @param fromVersion                 from versiion
      * @param toVersion                   to version
      */
-    protected SchemaMigrator(DataSource dataSource, boolean migrateInASingleTransaction, String fromVersion, String toVersion) {
+    protected SchemaUpgrader(DataSource dataSource, boolean upgradeInASingleTransaction, String fromVersion, String toVersion) {
         this.dataSource = dataSource;
-        this.migrateInASingleTransaction = migrateInASingleTransaction;
+        this.upgradeInASingleTransaction = upgradeInASingleTransaction;
         this.fromVersion = fromVersion;
         this.toVersion = toVersion;
     }
@@ -70,13 +70,13 @@ public abstract class SchemaMigrator {
         return toVersion;
     }
 
-    protected abstract void performMigration(JidbcConnection jidbcConnection);
+    protected abstract void performUpgrade(JidbcConnection jidbcConnection);
 
-    public void migrate() {
+    public void upgrade() {
         String currentSchemaVersion = SchemaManager.getSchemaVersion(dataSource);
         if (fromVersion == null) {
             if (currentSchemaVersion == null) {
-                performBootstrapMigration();
+                performBootstrapUpgrade();
             } else {
                 throw new RuntimeException(String.format("Cannot \"bootstrap\" to schema version \"%s\", schema is already at version %s", toVersion, currentSchemaVersion));
             }
@@ -86,18 +86,18 @@ public abstract class SchemaMigrator {
             } else if (!currentSchemaVersion.equals(fromVersion)) {
                 throw new RuntimeException(String.format("Cannot upgrade from schema version \"%s\", schema is currently at version \"%s\"", fromVersion, currentSchemaVersion));
             } else {
-                performNormalMigration();
+                performNormalUpgrade();
             }
         }
     }
 
-    private void performBootstrapMigration() {
+    private void performBootstrapUpgrade() {
 
         JidbcDbAdmin.verifyNoTablesViewsOrSequencesExistOwnedByCurrentUser(dataSource);
 
-        // Perform the migration
+        // Perform the upgrade
         String interimVersion = "bootstrapping to " + toVersion;
-        if (!migrateInASingleTransaction) {
+        if (!upgradeInASingleTransaction) {
             createSchemaVariablesTable(dataSource, interimVersion);
         }
         JidbcConnection jidbc = JidbcConnection.from(dataSource);
@@ -105,9 +105,9 @@ public abstract class SchemaMigrator {
 
             createSchemaVariablesTable(jidbc, interimVersion);
 
-            performMigration(jidbc);
+            performUpgrade(jidbc);
 
-            if (migrateInASingleTransaction) {
+            if (upgradeInASingleTransaction) {
                 jidbc.executeUpdate("update schema_variables set schema_version = ?", toVersion);
             }
 
@@ -115,7 +115,7 @@ public abstract class SchemaMigrator {
         } catch (Throwable t) {
             throw jidbc.rollbackCloseAndWrap(t);
         }
-        if (!migrateInASingleTransaction) {
+        if (!upgradeInASingleTransaction) {
             String currentSchemaVersion = SchemaManager.getSchemaVersion(dataSource);
             if (!interimVersion.equals(currentSchemaVersion)) {
                 throw new RuntimeException(String.format("Unexpected error on finalization, expected schema version to be \"%s\" but it was \"%s\"", interimVersion, currentSchemaVersion));
@@ -125,17 +125,17 @@ public abstract class SchemaMigrator {
 
     }
 
-    private void performNormalMigration() {
-        String interimVersion = String.format("\"%s\" migrating to \"%s\"", fromVersion, toVersion);
-        if (!migrateInASingleTransaction) {
+    private void performNormalUpgrade() {
+        String interimVersion = String.format("\"%s\" upgrading to \"%s\"", fromVersion, toVersion);
+        if (!upgradeInASingleTransaction) {
             Jidbc.executeUpdate(dataSource, "update schema_variables set schema_version = ?", interimVersion);
         }
         JidbcConnection jidbc = JidbcConnection.from(dataSource);
         try {
 
-            performMigration(jidbc);
+            performUpgrade(jidbc);
 
-            if (migrateInASingleTransaction) {
+            if (upgradeInASingleTransaction) {
                 Jidbc.executeUpdate(dataSource, "update schema_variables set schema_version = ?", toVersion);
             }
 
@@ -143,7 +143,7 @@ public abstract class SchemaMigrator {
         } catch (Throwable t) {
             throw jidbc.rollbackCloseAndWrap(t);
         }
-        if (!migrateInASingleTransaction) {
+        if (!upgradeInASingleTransaction) {
             String currentSchemaVersion = SchemaManager.getSchemaVersion(dataSource);
             if (!interimVersion.equals(currentSchemaVersion)) {
                 throw new RuntimeException(String.format("Unexpected error on finalization, expected schema version to be \"%s\" but it was \"%s\"", interimVersion, currentSchemaVersion));
@@ -217,7 +217,7 @@ public abstract class SchemaMigrator {
                 System.err.printf("\n   %s\n", WordUtils.wrap(problem, 77, "\n   ", false));
             }
             System.err.printf("\n");
-            throw new RuntimeException("Problems found at end of migration");
+            throw new RuntimeException("Problems found at end of upgrade");
         }
     }
 

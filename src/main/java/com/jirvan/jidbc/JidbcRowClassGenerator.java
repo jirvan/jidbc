@@ -30,13 +30,24 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 package com.jirvan.jidbc;
 
-import com.jirvan.lang.*;
-import com.jirvan.util.*;
+import com.jirvan.lang.SQLRuntimeException;
+import com.jirvan.util.Io;
+import com.jirvan.util.Jdbc;
+import com.jirvan.util.Strings;
 
-import javax.sql.*;
-import java.io.*;
-import java.sql.*;
-import java.util.*;
+import javax.sql.DataSource;
+import java.io.File;
+import java.io.FileNotFoundException;
+import java.io.PrintStream;
+import java.sql.Connection;
+import java.sql.ResultSet;
+import java.sql.SQLException;
+import java.sql.Types;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Set;
+import java.util.SortedSet;
+import java.util.TreeSet;
 
 import static com.jirvan.util.Assertions.*;
 
@@ -240,7 +251,8 @@ public class JidbcRowClassGenerator {
             this.fieldName = toCamelHumpName(name, false);
             this.leadingUCFieldName = fieldName.substring(0, 1).toUpperCase() + fieldName.substring(1);
             this.isInPrimaryKey = isInPrimaryKey;
-            if (sqlType == Types.VARCHAR) {
+            if (sqlType == Types.VARCHAR
+                || sqlType == Types.CLOB) {
                 this.javaClassSimpleName = "String";
             } else if (sqlType == Types.BIGINT) {
                 this.javaClassSimpleName = "Long";

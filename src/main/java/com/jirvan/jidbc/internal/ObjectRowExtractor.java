@@ -54,6 +54,16 @@ public class ObjectRowExtractor<T> implements RowExtractor<T> {
 
     public T extractRowFromResultSet(Class rowClass, final RowDef rowDef, final ResultSet resultSet, final boolean ignoreMissingResultSetColumns) {
         try {
+
+            if (ignoreMissingResultSetColumns && rowDef.applicableColumnDefs == null) {
+                rowDef.applicableColumnDefs = new ArrayList<>(rowDef.columnDefs);
+                for (ColumnDef columnDef : rowDef.columnDefs) {
+                    if (containsColumn(resultSet, columnDef.columnName)) {
+                        rowDef.applicableColumnDefs.add(columnDef);
+                    }
+                }
+            }
+
             // Create and return the row
             final T row;
             try {
@@ -71,7 +81,7 @@ public class ObjectRowExtractor<T> implements RowExtractor<T> {
                                                               try {
                                                                   columnDef.setValue(row, resultSet.getString(columnDef.columnName));
                                                               } catch (SQLException e) {
-                                                                  handleSetValueException(e);
+                                                                  throw new SQLRuntimeException(e);
                                                               }
                                                           }
 
@@ -84,7 +94,7 @@ public class ObjectRowExtractor<T> implements RowExtractor<T> {
                                                                       columnDef.setValue(row, value);
                                                                   }
                                                               } catch (SQLException e) {
-                                                                  handleSetValueException(e);
+                                                                  throw new SQLRuntimeException(e);
                                                               }
                                                           }
 
@@ -97,7 +107,7 @@ public class ObjectRowExtractor<T> implements RowExtractor<T> {
                                                                       columnDef.setValue(row, value);
                                                                   }
                                                               } catch (SQLException e) {
-                                                                  handleSetValueException(e);
+                                                                  throw new SQLRuntimeException(e);
                                                               }
                                                           }
 
@@ -110,7 +120,7 @@ public class ObjectRowExtractor<T> implements RowExtractor<T> {
                                                                       columnDef.setValue(row, value);
                                                                   }
                                                               } catch (SQLException e) {
-                                                                  handleSetValueException(e);
+                                                                  throw new SQLRuntimeException(e);
                                                               }
                                                           }
 
@@ -118,7 +128,7 @@ public class ObjectRowExtractor<T> implements RowExtractor<T> {
                                                               try {
                                                                   columnDef.setValue(row, resultSet.getBigDecimal(columnDef.columnName));
                                                               } catch (SQLException e) {
-                                                                  handleSetValueException(e);
+                                                                  throw new SQLRuntimeException(e);
                                                               }
                                                           }
 
@@ -131,7 +141,7 @@ public class ObjectRowExtractor<T> implements RowExtractor<T> {
                                                                       columnDef.setValue(row, new java.util.Date(value.getTime()));
                                                                   }
                                                               } catch (SQLException e) {
-                                                                  handleSetValueException(e);
+                                                                  throw new SQLRuntimeException(e);
                                                               }
                                                           }
 
@@ -153,7 +163,7 @@ public class ObjectRowExtractor<T> implements RowExtractor<T> {
                                                                       }
                                                                   }
                                                               } catch (SQLException e) {
-                                                                  handleSetValueException(e);
+                                                                  throw new SQLRuntimeException(e);
                                                               }
                                                           }
 
@@ -166,7 +176,7 @@ public class ObjectRowExtractor<T> implements RowExtractor<T> {
                                                                       columnDef.setValue(row, Month.fromString(value));
                                                                   }
                                                               } catch (SQLException e) {
-                                                                  handleSetValueException(e);
+                                                                  throw new SQLRuntimeException(e);
                                                               }
                                                           }
 
@@ -179,16 +189,7 @@ public class ObjectRowExtractor<T> implements RowExtractor<T> {
                                                                       columnDef.setValue(row, Enum.valueOf(fieldClass, value));
                                                                   }
                                                               } catch (SQLException e) {
-                                                                  handleSetValueException(e);
-                                                              }
-                                                          }
-
-                                                          private void handleSetValueException(SQLException e) {
-                                                              if (!ignoreMissingResultSetColumns || containsColumn(resultSet, columnDef.columnName)) {
                                                                   throw new SQLRuntimeException(e);
-                                                              } else {
-                                                                  if (rowDef.applicableColumnDefs == null) rowDef.applicableColumnDefs = new ArrayList<>(rowDef.columnDefs);
-                                                                  rowDef.applicableColumnDefs.remove(columnDef);
                                                               }
                                                           }
 

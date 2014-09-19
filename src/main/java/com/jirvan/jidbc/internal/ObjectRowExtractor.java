@@ -57,7 +57,7 @@ public class ObjectRowExtractor<T> implements RowExtractor<T> {
         try {
 
             if (ignoreMissingResultSetColumns && rowDef.applicableColumnDefs == null) {
-                rowDef.applicableColumnDefs = new ArrayList<>(rowDef.columnDefs);
+                rowDef.applicableColumnDefs = new ArrayList<>();
                 for (ColumnDef columnDef : rowDef.columnDefs) {
                     if (containsColumn(resultSet, columnDef.columnName)) {
                         rowDef.applicableColumnDefs.add(columnDef);

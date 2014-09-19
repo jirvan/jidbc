@@ -37,6 +37,7 @@ import java.sql.ResultSetMetaData;
 import java.sql.SQLException;
 import java.sql.Timestamp;
 import java.util.ArrayList;
+import java.util.List;
 
 public class ObjectRowExtractor<T> implements RowExtractor<T> {
 
@@ -71,7 +72,8 @@ public class ObjectRowExtractor<T> implements RowExtractor<T> {
             } catch (IllegalAccessException e) {
                 throw new RuntimeException(e);
             }
-            for (final ColumnDef columnDef : rowDef.applicableColumnDefs != null ? rowDef.applicableColumnDefs : rowDef.columnDefs) {
+            List<ColumnDef> columnDefs = rowDef.applicableColumnDefs != null ? rowDef.applicableColumnDefs : rowDef.columnDefs;
+            for (final ColumnDef columnDef : columnDefs) {
 
 
                 AttributeValueHandler.performForClass(columnDef.attributeType,

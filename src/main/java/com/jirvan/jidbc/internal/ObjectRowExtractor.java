@@ -41,6 +41,8 @@ import java.util.List;
 
 public class ObjectRowExtractor<T> implements RowExtractor<T> {
 
+    private List<ColumnDef> applicableColumnDefs; // only used for curtailed result sets
+
     private boolean containsColumn(ResultSet resultSet, String columnName) {
         try {
             ResultSetMetaData metaData = resultSet.getMetaData();
@@ -56,11 +58,11 @@ public class ObjectRowExtractor<T> implements RowExtractor<T> {
     public T extractRowFromResultSet(Class rowClass, final RowDef rowDef, final ResultSet resultSet, final boolean ignoreMissingResultSetColumns) {
         try {
 
-            if (ignoreMissingResultSetColumns && rowDef.applicableColumnDefs == null) {
-                rowDef.applicableColumnDefs = new ArrayList<>();
+            if (ignoreMissingResultSetColumns && applicableColumnDefs == null) {
+                applicableColumnDefs = new ArrayList<>();
                 for (ColumnDef columnDef : rowDef.columnDefs) {
                     if (containsColumn(resultSet, columnDef.columnName)) {
-                        rowDef.applicableColumnDefs.add(columnDef);
+                        applicableColumnDefs.add(columnDef);
                     }
                 }
             }
@@ -72,7 +74,7 @@ public class ObjectRowExtractor<T> implements RowExtractor<T> {
             } catch (IllegalAccessException e) {
                 throw new RuntimeException(e);
             }
-            List<ColumnDef> columnDefs = rowDef.applicableColumnDefs != null ? rowDef.applicableColumnDefs : rowDef.columnDefs;
+            List<ColumnDef> columnDefs = applicableColumnDefs != null ? applicableColumnDefs : rowDef.columnDefs;
             for (final ColumnDef columnDef : columnDefs) {
 
 

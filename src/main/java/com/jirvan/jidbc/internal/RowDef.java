@@ -43,7 +43,6 @@ public class RowDef {
 
     Class rowClass;
     List<ColumnDef> columnDefs = new ArrayList<>();
-    List<ColumnDef> applicableColumnDefs; // only used by ObjectRowExtractor for curtailed result sets
 
     protected RowDef(Class rowClass) {
         this.rowClass = rowClass;

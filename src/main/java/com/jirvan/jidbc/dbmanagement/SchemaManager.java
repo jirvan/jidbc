@@ -30,13 +30,19 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 package com.jirvan.jidbc.dbmanagement;
 
-import com.jirvan.jidbc.*;
-import com.jirvan.lang.*;
-import com.jirvan.util.*;
+import com.jirvan.jidbc.Jidbc;
+import com.jirvan.jidbc.JidbcConnection;
+import com.jirvan.lang.MessageException;
+import com.jirvan.lang.SQLRuntimeException;
+import com.jirvan.util.Strings;
+import com.jirvan.util.Utl;
 
-import javax.sql.*;
-import java.sql.*;
-import java.util.*;
+import javax.sql.DataSource;
+import java.sql.Connection;
+import java.sql.ResultSet;
+import java.sql.SQLException;
+import java.util.ArrayList;
+import java.util.List;
 
 public class SchemaManager {
 
@@ -94,6 +100,45 @@ public class SchemaManager {
 
         } catch (SQLException e) {
             throw new SQLRuntimeException(e);
+        }
+    }
+
+    public static void upgrade(String currentSchemaVersion, String expectedNewVersion, List<SchemaUpgrader> schemaUpgraders) {
+        upgrade(false, currentSchemaVersion, expectedNewVersion, schemaUpgraders);
+    }
+
+    public static void upgrade(boolean suppressStdoutMessages, String currentSchemaVersion, String expectedNewVersion, List<SchemaUpgrader> schemaUpgraders) {
+
+        String upgradeToVersion = schemaUpgraders.get(schemaUpgraders.size() - 1).getToVersion();
+        if (!expectedNewVersion.equals(upgradeToVersion)) {
+            throw new RuntimeException(String.format("DbUpgrader version (%s) is not the same as the toVersion of the final schemaUpgrader (%s)",
+                                                     upgradeToVersion, expectedNewVersion));
+        }
+
+        if (upgradeToVersion.equals(currentSchemaVersion)) {
+            throw new MessageException(String.format("Database schema is already at version \"%s\"", upgradeToVersion));
+        } else {
+
+            List<SchemaUpgrader> requiredSchemaUpgraders = new ArrayList<>();
+            for (SchemaUpgrader schemaUpgrader : schemaUpgraders) {
+                if (Utl.areEqual(schemaUpgrader.getFromVersion(), currentSchemaVersion) || requiredSchemaUpgraders.size() > 0) {
+                    requiredSchemaUpgraders.add(schemaUpgrader);
+                }
+            }
+            if (requiredSchemaUpgraders.size() == 0) {
+                throw new MessageException(String.format("Unrecognized schema version \"%s\"", currentSchemaVersion));
+            }
+
+            for (SchemaUpgrader schemaUpgrader : requiredSchemaUpgraders) {
+                if (!suppressStdoutMessages) {
+                    if (schemaUpgrader.getFromVersion() == null) {
+                        System.out.printf("\nCreating db schema at version %s\n", schemaUpgrader.getToVersion());
+                    } else {
+                        System.out.printf("Upgrading db schema from version %s to %s\n", schemaUpgrader.getFromVersion(), schemaUpgrader.getToVersion());
+                    }
+                }
+                schemaUpgrader.upgrade();
+            }
         }
     }
 

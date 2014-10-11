@@ -30,11 +30,11 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 package com.jirvan.jidbc;
 
-import com.jirvan.lang.*;
-import com.jirvan.util.*;
+import com.jirvan.lang.MessageException;
+import com.jirvan.util.Strings;
 
-import javax.sql.*;
-import java.util.*;
+import javax.sql.DataSource;
+import java.util.List;
 
 public class JidbcDbAdmin {
 
@@ -53,14 +53,16 @@ public class JidbcDbAdmin {
         String databaseProductName = Jidbc.getDatabaseProductName(dataSource);
         if ("PostgreSQL".equals(databaseProductName)) {
             return getCurrentUsersRelation_postgres(dataSource, "r");
+        } else if ("SQLite".equals(databaseProductName)) {
+            return getCurrentUsersTables_sqlite(dataSource);
         } else if ("Microsoft SQL Server".equals(databaseProductName)) {
             if (Jidbc.getDatabaseMajorVersion(dataSource) == 10) {
                 return getCurrentUsersTables_sqlserver(dataSource);
             } else {
-                throw new RuntimeException(String.format("This version of %s is not supported (PostgreSQL and SQLServer 2008 are the only databases currently supported by getCurrentUsersTables)", databaseProductName));
+                throw new RuntimeException(String.format("This version of %s is not supported (PostgreSQL, SQLite and SQLServer 2008 are the only databases currently supported by getCurrentUsersTables)", databaseProductName));
             }
         } else {
-            throw new RuntimeException(String.format("%s is not supported (PostgreSQL and SQLServer 2008 are the only databases currently supported by getCurrentUsersTables)", databaseProductName));
+            throw new RuntimeException(String.format("%s is not supported (PostgreSQL, SQLite and SQLServer 2008 are the only databases currently supported by getCurrentUsersTables)", databaseProductName));
         }
     }
 
@@ -68,14 +70,16 @@ public class JidbcDbAdmin {
         String databaseProductName = Jidbc.getDatabaseProductName(dataSource);
         if ("PostgreSQL".equals(databaseProductName)) {
             return getCurrentUsersRelation_postgres(dataSource, "v");
+        } else if ("SQLite".equals(databaseProductName)) {
+            return getCurrentUsersViews_sqlite(dataSource);
         } else if ("Microsoft SQL Server".equals(databaseProductName)) {
             if (Jidbc.getDatabaseMajorVersion(dataSource) == 10) {
                 return getCurrentUsersViews_sqlserver(dataSource);
             } else {
-                throw new RuntimeException(String.format("This version of %s is not supported (PostgreSQL and SQLServer 2008 are the only databases currently supported by getCurrentUsersViews)", databaseProductName));
+                throw new RuntimeException(String.format("This version of %s is not supported (PostgreSQL, SQLite and SQLServer 2008 are the only databases currently supported by getCurrentUsersViews)", databaseProductName));
             }
         } else {
-            throw new RuntimeException(String.format("%s is not supported (PostgreSQL and SQLServer 2008 are the only databases currently supported by getCurrentUsersViews)", databaseProductName));
+            throw new RuntimeException(String.format("%s is not supported (PostgreSQL, SQLite and SQLServer 2008 are the only databases currently supported by getCurrentUsersViews)", databaseProductName));
         }
     }
 
@@ -83,36 +87,49 @@ public class JidbcDbAdmin {
         String databaseProductName = Jidbc.getDatabaseProductName(dataSource);
         if ("PostgreSQL".equals(databaseProductName)) {
             return getCurrentUsersRelation_postgres(dataSource, "S");
+        } else if ("SQLite".equals(databaseProductName)) {
+            return new String[0];
         } else if ("Microsoft SQL Server".equals(databaseProductName)) {
             if (Jidbc.getDatabaseMajorVersion(dataSource) == 10) {
                 return new String[0]; // SQLServer 2008 does not support sequences
             } else {
-                throw new RuntimeException(String.format("This version of %s is not supported (PostgreSQL and SQLServer 2008 are the only databases currently supported by getCurrentUsersSequences)", databaseProductName));
+                throw new RuntimeException(String.format("This version of %s is not supported (PostgreSQL, SQLite and SQLServer 2008 are the only databases currently supported by getCurrentUsersSequences)", databaseProductName));
             }
         } else {
-            throw new RuntimeException(String.format("%s is not supported (PostgreSQL and SQLServer 2008 are the only databases currently supported by getCurrentUsersSequences)", databaseProductName));
+            throw new RuntimeException(String.format("%s is not supported (PostgreSQL, SQLite and SQLServer 2008 are the only databases currently supported by getCurrentUsersSequences)", databaseProductName));
         }
     }
 
     public static void verifyNoTablesViewsOrSequencesExistOwnedByCurrentUser(DataSource dataSource) {
+        String databaseProductName = Jidbc.getDatabaseProductName(dataSource);
+        String userOrDbText;
+        if ("PostgreSQL".equals(databaseProductName)) {
+            userOrDbText = "User " + JidbcDbAdmin.getCurrentUser(dataSource);
+        } else if ("SQLite".equals(databaseProductName)) {
+            userOrDbText = "Database ";
+        } else if ("Microsoft SQL Server".equals(databaseProductName)) {
+            userOrDbText = "User " + JidbcDbAdmin.getCurrentUser(dataSource);
+        } else {
+            throw new RuntimeException(String.format("%s is not supported (PostgreSQL, SQLite and SQLServer 2008 are the only databases currently supported by getCurrentUsersSequences)", databaseProductName));
+        }
 
         // Check user has no existing tables etc
         String[] existingTables = JidbcDbAdmin.getCurrentUsersTables(dataSource);
         if (existingTables.length > 0) {
-            throw new MessageException(String.format("User %s currently has some tables.  The tables are: %s.",
-                                                     JidbcDbAdmin.getCurrentUser(dataSource),
+            throw new MessageException(String.format("%s currently has some tables.  The tables are: %s.",
+                                                     userOrDbText,
                                                      Strings.join(existingTables, ',')));
         }
         String[] existingViews = JidbcDbAdmin.getCurrentUsersViews(dataSource);
         if (existingViews.length > 0) {
-            throw new MessageException(String.format("User %s currently has some views.  The views are: %s.",
-                                                     JidbcDbAdmin.getCurrentUser(dataSource),
+            throw new MessageException(String.format("%s currently has some views.  The views are: %s.",
+                                                     userOrDbText,
                                                      Strings.join(existingViews, ',')));
         }
         String[] existingSequences = JidbcDbAdmin.getCurrentUsersSequences(dataSource);
         if (existingSequences.length > 0) {
-            throw new MessageException(String.format("User %s currently has some sequences.  The sequences are: %s.",
-                                                     JidbcDbAdmin.getCurrentUser(dataSource),
+            throw new MessageException(String.format("%s currently has some sequences.  The sequences are: %s.",
+                                                     userOrDbText,
                                                      Strings.join(existingSequences, ',')));
         }
     }
@@ -239,6 +256,20 @@ public class JidbcDbAdmin {
         return Jidbc.<String>queryForList(dataSource, String.class, "select table_name\n" +
                                                                     "from information_schema.tables\n" +
                                                                     "where table_type = 'BASE TABLE'")
+                    .toArray(new String[0]);
+    }
+
+    public static String[] getCurrentUsersTables_sqlite(DataSource dataSource) {
+        return Jidbc.<String>queryForList(dataSource, String.class, "select name\n" +
+                                                                    "from sqlite_master\n" +
+                                                                    "where type = 'table'")
+                    .toArray(new String[0]);
+    }
+
+    public static String[] getCurrentUsersViews_sqlite(DataSource dataSource) {
+        return Jidbc.<String>queryForList(dataSource, String.class, "select name\n" +
+                                                                    "from sqlite_master\n" +
+                                                                    "where type = 'view'")
                     .toArray(new String[0]);
     }
 

@@ -31,8 +31,10 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 package com.jirvan.jidbc.csv;
 
 import au.com.bytecode.opencsv.CSVReader;
-import com.jirvan.csv.CsvLineRuntimeException;import com.jirvan.csv.CsvTableImporter;import com.jirvan.lang.MessageException;
-import com.jirvan.lang.SQLRuntimeException;
+import com.jirvan.csv.CsvLineRuntimeException;
+import com.jirvan.csv.CsvTableImporter;
+import com.jirvan.jidbc.JidbcConnection;
+import com.jirvan.lang.MessageException;
 import com.jirvan.util.Strings;
 import org.apache.commons.io.FileUtils;
 
@@ -45,9 +47,7 @@ import java.io.FileReader;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.Reader;
-import java.lang.AssertionError;import java.lang.RuntimeException;import java.lang.String;import java.lang.StringBuilder;import java.lang.System;import java.lang.Throwable;import java.nio.file.Files;
-import java.sql.Connection;
-import java.sql.SQLException;
+import java.nio.file.Files;
 import java.util.LinkedHashMap;
 import java.util.Map;
 import java.util.Set;
@@ -119,43 +119,66 @@ public class BaseCsvImporter {
 
         checkDataDirectory(dataDir);
         StringBuilder pendingOutput = new StringBuilder();
+        JidbcConnection jidbc = JidbcConnection.from(dataSource);
         try {
-            Connection connection = dataSource.getConnection();
-            connection.setAutoCommit(false);
-            try {
 
-                System.out.printf("Importing data\n");
-                System.out.flush();
-                for (Map.Entry<String, CsvFileImporter> entry : csvFileImporterMap.entrySet()) {
-                    File csvFile = new File(dataDir, entry.getKey());
-                    CsvFileImporter csvFileImporter = entry.getValue();
-                    importFromCsvFile(pendingOutput,
-                                      connection,
-                                      csvFileImporter,
-                                      csvFile);
-                }
-
-                connection.commit();
-                connection.close();
-            } catch (Throwable t) {
-                connection.rollback();
-                connection.close();
-                throw t;
+            System.out.printf("Importing data\n");
+            System.out.flush();
+            for (Map.Entry<String, CsvFileImporter> entry : csvFileImporterMap.entrySet()) {
+                File csvFile = new File(dataDir, entry.getKey());
+                CsvFileImporter csvFileImporter = entry.getValue();
+                importFromCsvFile(pendingOutput,
+                                  jidbc,
+                                  csvFileImporter,
+                                  csvFile);
             }
-        } catch (SQLException e) {
-            throw new SQLRuntimeException(e);
+
+
+            jidbc.commitAndClose();
+        } catch (Throwable t) {
+            throw jidbc.rollbackCloseAndWrap(t);
         }
+
         System.out.printf("%sFinished importing data\n\n", pendingOutput.toString());
 
     }
 
-    private void importFromCsvFile(StringBuilder pendingOutput, Connection connection, CsvFileImporter csvFileImporter, File csvFile) {
+    public void importFromSingleCsvFile(File csvFile) {
+
+        StringBuilder pendingOutput = new StringBuilder();
+        JidbcConnection jidbc = JidbcConnection.from(dataSource);
+        try {
+
+            if (csvFileImporterMap.size() != 1) {
+                throw new RuntimeException("Expected exactly one CsvFileImporter for \"importFromSingleCsvFile\"");
+            }
+
+            System.out.printf("Importing data\n");
+            System.out.flush();
+            for (Map.Entry<String, CsvFileImporter> entry : csvFileImporterMap.entrySet()) {
+                CsvFileImporter csvFileImporter = entry.getValue();
+                importFromCsvFile(pendingOutput,
+                                  jidbc,
+                                  csvFileImporter,
+                                  csvFile);
+            }
+
+            jidbc.commitAndClose();
+        } catch (Throwable t) {
+            throw jidbc.rollbackCloseAndWrap(t);
+        }
+
+        System.out.printf("%sFinished importing data\n\n", pendingOutput.toString());
+
+    }
+
+    private void importFromCsvFile(StringBuilder pendingOutput, JidbcConnection jidbc, CsvFileImporter csvFileImporter, File csvFile) {
         long rows = 0;
         try {
             if (csvFileImporter instanceof SimpleCsvFileImporter) {
-                rows = ((SimpleCsvFileImporter) csvFileImporter).importFromCsvFile(connection, csvFile);
+                rows = ((SimpleCsvFileImporter) csvFileImporter).importFromCsvFile(jidbc, csvFile);
             } else if (csvFileImporter instanceof LineBasedCsvFileImporter) {
-                rows = importFromReader(connection, (LineBasedCsvFileImporter) csvFileImporter, new FileReader(csvFile));
+                rows = importFromReader(jidbc, (LineBasedCsvFileImporter) csvFileImporter, new FileReader(csvFile));
             } else {
                 throw new RuntimeException(String.format("Unsupported CsvFileImporter sub type \"%s\"", csvFileImporter.getClass().getName()));
             }
@@ -165,10 +188,10 @@ public class BaseCsvImporter {
         pendingOutput.append(String.format("  - processed %d rows from %s\n", rows, csvFile.getName()));
     }
 
-    private static long importFromReader(Connection connection,
+    private static long importFromReader(JidbcConnection jidbc,
                                          LineBasedCsvFileImporter csvFileImporter,
                                          Reader reader) {
-        assertNotNull(connection, "connection is null");
+        assertNotNull(jidbc, "JidbcConnection is null");
         try {
 
             CSVReader csvReader = new CSVReader(reader);
@@ -198,7 +221,7 @@ public class BaseCsvImporter {
                                                        + nextLine.length + " fields, but " + columnNames.length
                                                        + " (the number of headings in the first line) were expected.");
                         }
-                        csvFileImporter.processCsvLine(connection, nextLine);
+                        csvFileImporter.processCsvLine(jidbc, nextLine);
 
                     } catch (Throwable t) {
                         throw CsvLineRuntimeException.wrapIfAppropriate(lineNumber, t);
@@ -254,7 +277,7 @@ public class BaseCsvImporter {
 
     public interface LineBasedCsvFileImporter extends CsvFileImporter {
 
-        public void processCsvLine(Connection connection, String[] nextLine);
+        public void processCsvLine(JidbcConnection jidbc, String[] nextLine);
 
     }
 
@@ -270,9 +293,9 @@ public class BaseCsvImporter {
             return handlesFilesWithName;
         }
 
-        public long importFromCsvFile(Connection connection, File csvFile) {
+        public long importFromCsvFile(JidbcConnection jidbc, File csvFile) {
             String tableName = csvFile.getName().replaceFirst("(?i)\\.csv$", "");
-            return CsvTableImporter.importFromFile(connection, tableName, csvFile);
+            return CsvTableImporter.importFromFile(jidbc.getJdbcConnection(), tableName, csvFile);
         }
     }
 

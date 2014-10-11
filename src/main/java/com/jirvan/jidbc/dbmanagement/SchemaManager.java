@@ -50,7 +50,8 @@ public class SchemaManager {
         try {
             return Jidbc.queryFor_String(dataSource, "select schema_version from schema_variables");
         } catch (Throwable t) {
-            if (t.getMessage().contains("relation \"schema_variables\" does not exist")) {
+            if (t.getMessage().contains("relation \"schema_variables\" does not exist")
+                    || t.getMessage().contains("no such table: schema_variables")) {
                 return null;
             } else {
                 throw new RuntimeException(t);

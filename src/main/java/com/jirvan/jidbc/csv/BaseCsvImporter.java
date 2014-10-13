@@ -198,10 +198,20 @@ public class BaseCsvImporter {
             int lineNumber = 1;
             try {
 
-                // Get the column names
+                // Get and check the column names
                 String[] columnNames = csvReader.readNext();
                 if (columnNames == null || columnNames.length == 0) {
                     throw new RuntimeException("First row is empty (expected column names");
+                }
+                String[] expectedColumnNames = csvFileImporter.getExpectedColumnNames();
+                if (expectedColumnNames.length != columnNames.length) {
+                    throw new RuntimeException(String.format("Expected columns \"%s\" but got \"%s\"",
+                                                             Strings.commaList(expectedColumnNames), Strings.commaList(columnNames)));
+                }
+                for (int i = 0; i < expectedColumnNames.length; i++) {
+                    if (!expectedColumnNames[i].equals(columnNames[i])) {
+                        throw new RuntimeException(String.format("Expected column \"%s\" but got \"%s\"", expectedColumnNames[i], columnNames[i]));
+                    }
                 }
 
                 // Prepare the insert statement and execute it for each row in the csv file
@@ -276,6 +286,8 @@ public class BaseCsvImporter {
     }
 
     public interface LineBasedCsvFileImporter extends CsvFileImporter {
+
+        public String[] getExpectedColumnNames();
 
         public void processCsvLine(JidbcConnection jidbc, String[] nextLine);
 

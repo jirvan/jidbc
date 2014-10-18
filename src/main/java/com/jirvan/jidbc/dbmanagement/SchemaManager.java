@@ -38,6 +38,8 @@ import com.jirvan.util.Strings;
 import com.jirvan.util.Utl;
 
 import javax.sql.DataSource;
+import java.io.IOException;
+import java.io.OutputStream;
 import java.sql.Connection;
 import java.sql.ResultSet;
 import java.sql.SQLException;
@@ -51,7 +53,7 @@ public class SchemaManager {
             return Jidbc.queryFor_String(dataSource, "select schema_version from schema_variables");
         } catch (Throwable t) {
             if (t.getMessage().contains("relation \"schema_variables\" does not exist")
-                    || t.getMessage().contains("no such table: schema_variables")) {
+                || t.getMessage().contains("no such table: schema_variables")) {
                 return null;
             } else {
                 throw new RuntimeException(t);
@@ -105,10 +107,10 @@ public class SchemaManager {
     }
 
     public static void upgrade(String currentSchemaVersion, String expectedNewVersion, List<SchemaUpgrader> schemaUpgraders) {
-        upgrade(false, currentSchemaVersion, expectedNewVersion, schemaUpgraders);
+        upgrade(null, currentSchemaVersion, expectedNewVersion, schemaUpgraders);
     }
 
-    public static void upgrade(boolean suppressStdoutMessages, String currentSchemaVersion, String expectedNewVersion, List<SchemaUpgrader> schemaUpgraders) {
+    public static void upgrade(OutputStream outputStream, String currentSchemaVersion, String expectedNewVersion, List<SchemaUpgrader> schemaUpgraders) {
 
         String upgradeToVersion = schemaUpgraders.get(schemaUpgraders.size() - 1).getToVersion();
         if (!expectedNewVersion.equals(upgradeToVersion)) {
@@ -131,11 +133,17 @@ public class SchemaManager {
             }
 
             for (SchemaUpgrader schemaUpgrader : requiredSchemaUpgraders) {
-                if (!suppressStdoutMessages) {
-                    if (schemaUpgrader.getFromVersion() == null) {
-                        System.out.printf("\nCreating db schema at version %s\n", schemaUpgrader.getToVersion());
-                    } else {
-                        System.out.printf("Upgrading db schema from version %s to %s\n", schemaUpgrader.getFromVersion(), schemaUpgrader.getToVersion());
+                if (outputStream != null) {
+                    try {
+                        if (schemaUpgrader.getFromVersion() == null) {
+                            outputStream.write(String.format("\nCreating db schema at version %s\n",
+                                                             schemaUpgrader.getToVersion()).getBytes());
+                        } else {
+                            outputStream.write(String.format("Upgrading db schema from version %s to %s\n",
+                                                             schemaUpgrader.getFromVersion(), schemaUpgrader.getToVersion()).getBytes());
+                        }
+                    } catch (IOException e) {
+                        throw new RuntimeException(e);
                     }
                 }
                 schemaUpgrader.upgrade();

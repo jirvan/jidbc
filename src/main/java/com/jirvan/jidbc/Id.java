@@ -30,11 +30,22 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 package com.jirvan.jidbc;
 
-import java.lang.annotation.*;
+import com.jirvan.util.DatabaseType;
+
+import java.lang.annotation.ElementType;
+import java.lang.annotation.Retention;
+import java.lang.annotation.RetentionPolicy;
+import java.lang.annotation.Target;
 
 @Retention(RetentionPolicy.RUNTIME)
 @Target({ElementType.FIELD, ElementType.METHOD})
 
 public @interface Id {
+
     public String generatorSequence() default "<None>";
+
+    public boolean ifSQLiteUseAutoincrement() default false;
+
+    public DatabaseType[] ignoreSequenceForDBs() default {};
+
 }

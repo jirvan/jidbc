@@ -38,8 +38,8 @@ import com.jirvan.util.Strings;
 import com.jirvan.util.Utl;
 
 import javax.sql.DataSource;
-import java.io.IOException;
 import java.io.OutputStream;
+import java.io.PrintWriter;
 import java.sql.Connection;
 import java.sql.ResultSet;
 import java.sql.SQLException;
@@ -112,6 +112,8 @@ public class SchemaManager {
 
     public static void upgrade(OutputStream outputStream, String currentSchemaVersion, String expectedNewVersion, List<SchemaUpgrader> schemaUpgraders) {
 
+        PrintWriter outputPrintWriter = outputStream == null ? null : new PrintWriter(outputStream, true);
+
         String upgradeToVersion = schemaUpgraders.get(schemaUpgraders.size() - 1).getToVersion();
         if (!expectedNewVersion.equals(upgradeToVersion)) {
             throw new RuntimeException(String.format("DbUpgrader version (%s) is not the same as the toVersion of the final schemaUpgrader (%s)",
@@ -134,19 +136,15 @@ public class SchemaManager {
 
             for (SchemaUpgrader schemaUpgrader : requiredSchemaUpgraders) {
                 if (outputStream != null) {
-                    try {
-                        if (schemaUpgrader.getFromVersion() == null) {
-                            outputStream.write(String.format("\nCreating db schema at version %s\n",
-                                                             schemaUpgrader.getToVersion()).getBytes());
-                        } else {
-                            outputStream.write(String.format("Upgrading db schema from version %s to %s\n",
-                                                             schemaUpgrader.getFromVersion(), schemaUpgrader.getToVersion()).getBytes());
-                        }
-                    } catch (IOException e) {
-                        throw new RuntimeException(e);
+                    if (schemaUpgrader.getFromVersion() == null) {
+                        outputPrintWriter.printf("\nCreating db schema at version %s\n",
+                                                 schemaUpgrader.getToVersion());
+                    } else {
+                        outputPrintWriter.printf("Upgrading db schema from version %s to %s\n",
+                                                 schemaUpgrader.getFromVersion(), schemaUpgrader.getToVersion());
                     }
                 }
-                schemaUpgrader.upgrade();
+                schemaUpgrader.upgrade(outputPrintWriter);
             }
         }
     }

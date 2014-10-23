@@ -30,15 +30,25 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 package com.jirvan.jidbc.dbmanagement;
 
-import com.jirvan.jidbc.*;
-import com.jirvan.util.*;
-import org.apache.commons.lang.*;
+import com.jirvan.jidbc.Jidbc;
+import com.jirvan.jidbc.JidbcConnection;
+import com.jirvan.jidbc.JidbcDbAdmin;
+import com.jirvan.util.DatabaseType;
+import com.jirvan.util.Io;
+import com.jirvan.util.Jdbc;
+import com.jirvan.util.Utl;
+import org.apache.commons.lang.WordUtils;
 
-import javax.sql.*;
+import javax.sql.DataSource;
+import java.io.IOException;
+import java.io.OutputStream;
+import java.io.PrintWriter;
+import java.io.Writer;
 
 public abstract class SchemaUpgrader {
 
     private DataSource dataSource;
+    private DatabaseType databaseType;
     private boolean upgradeInASingleTransaction;
     private String fromVersion;
     private String toVersion;
@@ -57,6 +67,7 @@ public abstract class SchemaUpgrader {
      */
     protected SchemaUpgrader(DataSource dataSource, boolean upgradeInASingleTransaction, String fromVersion, String toVersion) {
         this.dataSource = dataSource;
+        this.databaseType = DatabaseType.get(dataSource);
         this.upgradeInASingleTransaction = upgradeInASingleTransaction;
         this.fromVersion = fromVersion;
         this.toVersion = toVersion;
@@ -70,13 +81,13 @@ public abstract class SchemaUpgrader {
         return toVersion;
     }
 
-    protected abstract void performUpgrade(JidbcConnection jidbcConnection);
+    protected abstract void performUpgrade(JidbcConnection jidbcConnection, PrintWriter output);
 
-    public void upgrade() {
+    public void upgrade(PrintWriter output) {
         String currentSchemaVersion = SchemaManager.getSchemaVersion(dataSource);
         if (fromVersion == null) {
             if (currentSchemaVersion == null) {
-                performBootstrapUpgrade();
+                performBootstrapUpgrade(output);
             } else {
                 throw new RuntimeException(String.format("Cannot \"bootstrap\" to schema version \"%s\", schema is already at version %s", toVersion, currentSchemaVersion));
             }
@@ -86,26 +97,26 @@ public abstract class SchemaUpgrader {
             } else if (!currentSchemaVersion.equals(fromVersion)) {
                 throw new RuntimeException(String.format("Cannot upgrade from schema version \"%s\", schema is currently at version \"%s\"", fromVersion, currentSchemaVersion));
             } else {
-                performNormalUpgrade();
+                performNormalUpgrade(output);
             }
         }
     }
 
-    private void performBootstrapUpgrade() {
+    private void performBootstrapUpgrade(PrintWriter output) {
 
         JidbcDbAdmin.verifyNoTablesViewsOrSequencesExistOwnedByCurrentUser(dataSource);
 
         // Perform the upgrade
         String interimVersion = "bootstrapping to " + toVersion;
         if (!upgradeInASingleTransaction) {
-            createSchemaVariablesTable(dataSource, interimVersion);
+            createSchemaVariablesTable(dataSource, output, interimVersion);
         }
         JidbcConnection jidbc = JidbcConnection.from(dataSource);
         try {
 
-            createSchemaVariablesTable(jidbc, interimVersion);
+            createSchemaVariablesTable(jidbc, output, interimVersion);
 
-            performUpgrade(jidbc);
+            performUpgrade(jidbc, output);
 
             if (upgradeInASingleTransaction) {
                 jidbc.executeUpdate("update schema_variables set schema_version = ?", toVersion);
@@ -125,7 +136,7 @@ public abstract class SchemaUpgrader {
 
     }
 
-    private void performNormalUpgrade() {
+    private void performNormalUpgrade(PrintWriter output) {
         String interimVersion = String.format("\"%s\" upgrading to \"%s\"", fromVersion, toVersion);
         if (!upgradeInASingleTransaction) {
             Jidbc.executeUpdate(dataSource, "update schema_variables set schema_version = ?", interimVersion);
@@ -133,7 +144,7 @@ public abstract class SchemaUpgrader {
         JidbcConnection jidbc = JidbcConnection.from(dataSource);
         try {
 
-            performUpgrade(jidbc);
+            performUpgrade(jidbc, output);
 
             if (upgradeInASingleTransaction) {
                 Jidbc.executeUpdate(dataSource, "update schema_variables set schema_version = ?", toVersion);
@@ -152,28 +163,44 @@ public abstract class SchemaUpgrader {
         }
     }
 
-    private void createSchemaVariablesTable(DataSource dataSource, String initialVersion) {
+    private void createSchemaVariablesTable(DataSource dataSource, PrintWriter output, String initialVersion) {
         JidbcConnection jidbc = JidbcConnection.from(dataSource);
         try {
-            createSchemaVariablesTable(jidbc, initialVersion);
+            createSchemaVariablesTable(jidbc, output, initialVersion);
             jidbc.commitAndClose();
         } catch (Throwable t) {
             throw jidbc.rollbackCloseAndWrap(t);
         }
     }
 
-    private void createSchemaVariablesTable(JidbcConnection jidbc, String initialVersion) {
-        jidbc.executeUpdate("create table schema_variables (\n" +
-                            "   single_row_enforcer       numeric(2) default 42    not null,\n" +
-                            "   schema_version            varchar(300)             not null,\n" +
-                            "constraint schema_variables_pk primary key (single_row_enforcer),\n" +
-                            "constraint no_more_than_one_row_chk\n" +
-                            "   check (\n" +
-                            "      single_row_enforcer = 42\n" +
-                            "   )\n" +
-                            ")");
+    private void createSchemaVariablesTable(JidbcConnection jidbc, PrintWriter output, String initialVersion) throws IOException {
+        output.printf("  - creating schema_variables table\n");
+        if (databaseType == DatabaseType.sqlite) {
+            jidbc.executeUpdate("create table schema_variables (\n" +
+                                "   single_row_enforcer       integer   not null,\n" +
+                                "   schema_version            text      not null,\n" +
+                                "constraint schema_variables_pk primary key (single_row_enforcer),\n" +
+                                "constraint no_more_than_one_row_chk\n" +
+                                "   check (\n" +
+                                "      single_row_enforcer = 42\n" +
+                                "   )\n" +
+                                ")");
+        } else {
+            jidbc.executeUpdate("create table schema_variables (\n" +
+                                "   single_row_enforcer       numeric(2)     not null,\n" +
+                                "   schema_version            varchar(300)   not null,\n" +
+                                "constraint schema_variables_pk primary key (single_row_enforcer),\n" +
+                                "constraint no_more_than_one_row_chk\n" +
+                                "   check (\n" +
+                                "      single_row_enforcer = 42\n" +
+                                "   )\n" +
+                                ")");
+        }
+        jidbc.executeUpdate("insert into schema_variables (single_row_enforcer,schema_version) values (42,?)", initialVersion);
+    }
 
-        jidbc.executeUpdate("insert into schema_variables (schema_version) values (?)", initialVersion);
+    protected void executeDbScript(JidbcConnection jidbc, String scriptRelativePath) {
+        executeScript(jidbc, databaseType.name() + "/" + scriptRelativePath);
     }
 
     protected void executeScript(JidbcConnection jidbc, String scriptRelativePath) {

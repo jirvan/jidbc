@@ -453,7 +453,6 @@ public class Jidbc {
         } catch (Throwable t) {
             throw jidbc.rollbackCloseAndWrap(t);
         }
-
     }
 
     public static DatabaseType getDatabaseTypeIfSupported(DataSource dataSource, DatabaseType... supportedDatabaseTypes) {
@@ -576,6 +575,19 @@ public class Jidbc {
         } catch (SQLException e) {
             Jidbc.logSqlException(e, sql, null);
             throw new SQLRuntimeException(e);
+        }
+    }
+
+//============================== Database specific methods ==============================
+
+    public static Long lastSQLiteAutoId(DataSource dataSource) {
+        JidbcConnection jidbc = JidbcConnection.from(dataSource);
+        try {
+            Long lastSQLiteAutoId = jidbc.lastSQLiteAutoId();
+            jidbc.rollbackAndClose();
+            return lastSQLiteAutoId;
+        } catch (Throwable t) {
+            throw jidbc.rollbackCloseAndWrap(t);
         }
     }
 

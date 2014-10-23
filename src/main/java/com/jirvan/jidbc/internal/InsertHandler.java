@@ -33,6 +33,7 @@ package com.jirvan.jidbc.internal;
 import com.jirvan.dates.Day;
 import com.jirvan.dates.Month;
 import com.jirvan.jidbc.lang.MultipleRowsRuntimeException;
+import com.jirvan.util.DatabaseType;
 
 import java.math.BigDecimal;
 import java.sql.Connection;
@@ -49,7 +50,11 @@ public class InsertHandler {
 
         // Get table def and get auto generated id if appropriate
         TableDef tableDef = TableDef.getTableDefForRowClass(row.getClass());
-        if (tableDef.generatorSequence != null) {
+        DatabaseType databaseType = DatabaseType.get(connection);
+        if (tableDef.generatorSequence != null
+            && databaseType != DatabaseType.sqlite
+            && (tableDef.databasesToIgnoreGeneratorSequenceFor == null
+                || databaseType.isNotOneOf(tableDef.databasesToIgnoreGeneratorSequenceFor))) {
             if (tableDef.pkColumnDefs.size() != 1) {
                 throw new RuntimeException(String.format("Cannot generate id for row class %s as it does not have exactly one id field (it has %d)", tableDef.rowClass.getName(), tableDef.pkColumnDefs.size()));
             } else if (tableDef.pkColumnDefs.get(0).getValue(row) == null) {
@@ -137,7 +142,17 @@ public class InsertHandler {
                 }
 
                 if (columnToReturn == null) {
-                    return (long) statement.executeUpdate();
+                    if (tableDef.pkColumnDefs.size() == 1 && databaseType == DatabaseType.sqlite && tableDef.ifSQLiteUseAutoincrement) {
+                        long lastIdBefore = QueryForHandler.queryFor_Long(connection, true, "select last_insert_rowid()");
+                        long returnValue = (long) statement.executeUpdate();
+                        long lastIdAfter = QueryForHandler.queryFor_Long(connection, true, "select last_insert_rowid()");
+                        if (lastIdAfter > lastIdBefore) { // Only use if sqlite did autoincrement
+                            tableDef.pkColumnDefs.get(0).setValue(row, lastIdAfter);
+                        }
+                        return returnValue;
+                    } else {
+                        return (long) statement.executeUpdate();
+                    }
                 } else {
                     ResultSet rset = statement.executeQuery();
                     try {

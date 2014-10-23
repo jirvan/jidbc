@@ -422,23 +422,10 @@ public class JidbcConnection {
     }
 
 
-//    public static void main(String[] args) {
-//
-//        JidbcConnection jibc = JidbcConnection.fromHomeDirectoryConfigFile(".kfund.config", "main");
-//        try {
-//
-//            for (Object row : jibc.<Object>query(InvoicesRow.class, "where outstanding_amount > 2000\n" +
-//                                                           "  and days_overdue > 90\n" +
-//                                                           "limit 3")) {
-//                int sdf = 3;
-//            }
-//
-//
-//        } finally {
-//            jibc.close();
-//        }
-//
-//    }
+//============================== Database specific methods ==============================
 
+    public Long lastSQLiteAutoId() {
+        return queryFor_Long("select last_insert_rowid()");
+    }
 
 }

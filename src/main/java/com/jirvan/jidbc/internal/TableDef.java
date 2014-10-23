@@ -33,6 +33,7 @@ package com.jirvan.jidbc.internal;
 import com.jirvan.jidbc.Id;
 import com.jirvan.jidbc.TableRow;
 import com.jirvan.jidbc.TableRowExtensionClass;
+import com.jirvan.util.DatabaseType;
 import com.jirvan.util.Strings;
 
 import java.lang.annotation.Annotation;
@@ -43,6 +44,8 @@ public class TableDef extends RowDef {
 
     String tableName;
     String generatorSequence;
+    boolean ifSQLiteUseAutoincrement;
+    DatabaseType[] databasesToIgnoreGeneratorSequenceFor;
     List<ColumnDef> pkColumnDefs = new ArrayList<ColumnDef>();
     List<ColumnDef> nonPkColumnDefs = new ArrayList<ColumnDef>();
 
@@ -165,6 +168,8 @@ public class TableDef extends RowDef {
                 } else {
                     throw new RuntimeException(String.format("Row class %s has more than one id field with a generatorSequence", rowClass.getName()));
                 }
+                tableDef.ifSQLiteUseAutoincrement = idAnnotation.ifSQLiteUseAutoincrement();
+                tableDef.databasesToIgnoreGeneratorSequenceFor = idAnnotation.ignoreSequenceForDBs();
             }
             columnDef.isInPk = true;
         } else if (idFields != null && idFields.length > 0 && Strings.isIn(columnDef.field.getName(), idFields)) {
@@ -191,6 +196,8 @@ public class TableDef extends RowDef {
                 } else {
                     throw new RuntimeException(String.format("Row class %s has more than one id attribute with a generatorSequence", rowClass.getName()));
                 }
+                tableDef.ifSQLiteUseAutoincrement = idAnnotation.ifSQLiteUseAutoincrement();
+                tableDef.databasesToIgnoreGeneratorSequenceFor = idAnnotation.ignoreSequenceForDBs();
             }
             columnDef.isInPk = true;
         } else if (idAttributes != null && idAttributes.length > 0 && Strings.isIn(columnDef.attributeName, idAttributes)) {

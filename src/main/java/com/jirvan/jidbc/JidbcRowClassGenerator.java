@@ -32,7 +32,6 @@ package com.jirvan.jidbc;
 
 import com.jirvan.lang.SQLRuntimeException;
 import com.jirvan.util.Io;
-import com.jirvan.util.Jdbc;
 import com.jirvan.util.Strings;
 
 import javax.sql.DataSource;
@@ -52,13 +51,6 @@ import java.util.TreeSet;
 import static com.jirvan.util.Assertions.*;
 
 public class JidbcRowClassGenerator {
-
-
-    public static void main(String[] args) {
-        generateJavaFilesIntoDirectory(Jdbc.getPostgresDataSource("kfund/x@gdansk/kfunddev"),
-                                       "au.com.knowledgefund.core.db",
-                                       new File("L:\\Desktop\\gen\\GeneratedRowClasses\\zac"));
-    }
 
     public static void generateJavaFilesIntoDirectory(DataSource dataSource, String packageName, File outputDirectory) {
         generateJavaFilesIntoDirectory(dataSource, packageName, null, "Row", false, outputDirectory, false);

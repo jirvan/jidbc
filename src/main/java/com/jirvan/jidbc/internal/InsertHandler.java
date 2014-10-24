@@ -143,12 +143,9 @@ public class InsertHandler {
 
                 if (columnToReturn == null) {
                     if (tableDef.pkColumnDefs.size() == 1 && databaseType == DatabaseType.sqlite && tableDef.ifSQLiteUseAutoincrement) {
-                        long lastIdBefore = QueryForHandler.queryFor_Long(connection, true, "select last_insert_rowid()");
                         long returnValue = (long) statement.executeUpdate();
-                        long lastIdAfter = QueryForHandler.queryFor_Long(connection, true, "select last_insert_rowid()");
-                        if (lastIdAfter > lastIdBefore) { // Only use if sqlite did autoincrement
-                            tableDef.pkColumnDefs.get(0).setValue(row, lastIdAfter);
-                        }
+                        long lastId = QueryForHandler.queryFor_Long(connection, true, "select last_insert_rowid()");
+                        tableDef.pkColumnDefs.get(0).setValue(row, lastId);
                         return returnValue;
                     } else {
                         return (long) statement.executeUpdate();

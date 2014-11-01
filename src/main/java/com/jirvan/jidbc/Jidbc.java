@@ -277,6 +277,32 @@ public class Jidbc {
         }
     }
 
+    public static Boolean queryFor_Boolean(DataSource dataSource, String sql, Object... parameterValues) {
+        JidbcConnection jidbc = JidbcConnection.from(dataSource);
+        try {
+
+            Boolean value = jidbc.queryFor_Boolean(sql, parameterValues);
+
+            jidbc.commitAndClose();
+            return value;
+        } catch (Throwable t) {
+            throw jidbc.rollbackCloseAndWrap(t);
+        }
+    }
+
+    public static Boolean queryForOptional_Boolean(DataSource dataSource, String sql, Object... parameterValues) {
+        JidbcConnection jidbc = JidbcConnection.from(dataSource);
+        try {
+
+            Boolean value = jidbc.queryForOptional_Boolean(sql, parameterValues);
+
+            jidbc.commitAndClose();
+            return value;
+        } catch (Throwable t) {
+            throw jidbc.rollbackCloseAndWrap(t);
+        }
+    }
+
     public static BigDecimal queryFor_BigDecimal(DataSource dataSource, String sql, Object... parameterValues) {
         JidbcConnection jidbc = JidbcConnection.from(dataSource);
         try {

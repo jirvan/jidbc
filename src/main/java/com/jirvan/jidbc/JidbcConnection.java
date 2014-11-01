@@ -215,6 +215,14 @@ public class JidbcConnection {
         return QueryForHandler.queryFor_Long(jdbcConnection, false, sql, parameterValues);
     }
 
+    public Boolean queryFor_Boolean(String sql, Object... parameterValues) {
+        return QueryForHandler.queryFor_Boolean(jdbcConnection, true, sql, parameterValues);
+    }
+
+    public Boolean queryForOptional_Boolean(String sql, Object... parameterValues) {
+        return QueryForHandler.queryFor_Boolean(jdbcConnection, false, sql, parameterValues);
+    }
+
     public BigDecimal queryFor_BigDecimal(String sql, Object... parameterValues) {
         return QueryForHandler.queryFor_BigDecimal(jdbcConnection, true, sql, parameterValues);
     }

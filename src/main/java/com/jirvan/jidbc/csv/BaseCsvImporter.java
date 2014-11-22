@@ -172,6 +172,35 @@ public class BaseCsvImporter {
 
     }
 
+    public void importFromSingleCsvFileReader(Reader csvFileReader) {
+
+        StringBuilder pendingOutput = new StringBuilder();
+        JidbcConnection jidbc = JidbcConnection.from(dataSource);
+        try {
+
+            if (csvFileImporterMap.size() != 1) {
+                throw new RuntimeException("Expected exactly one CsvFileImporter for \"importFromSingleCsvFile\"");
+            }
+
+            System.out.printf("Importing data\n");
+            System.out.flush();
+            for (Map.Entry<String, CsvFileImporter> entry : csvFileImporterMap.entrySet()) {
+                CsvFileImporter csvFileImporter = entry.getValue();
+                importFromCsvFileReader(pendingOutput,
+                                        jidbc,
+                                        csvFileImporter,
+                                        csvFileReader);
+            }
+
+            jidbc.commitAndClose();
+        } catch (Throwable t) {
+            throw jidbc.rollbackCloseAndWrap(t);
+        }
+
+        System.out.printf("%sFinished importing data\n\n", pendingOutput.toString());
+
+    }
+
     private void importFromCsvFile(StringBuilder pendingOutput, JidbcConnection jidbc, CsvFileImporter csvFileImporter, File csvFile) {
         long rows = 0;
         try {
@@ -186,6 +215,16 @@ public class BaseCsvImporter {
             throw new RuntimeException(e);
         }
         pendingOutput.append(String.format("  - processed %d rows from %s\n", rows, csvFile.getName()));
+    }
+
+    private void importFromCsvFileReader(StringBuilder pendingOutput, JidbcConnection jidbc, CsvFileImporter csvFileImporter, Reader csvFileReader) {
+        long rows = 0;
+        if (csvFileImporter instanceof LineBasedCsvFileImporter) {
+            rows = importFromReader(jidbc, (LineBasedCsvFileImporter) csvFileImporter, csvFileReader);
+        } else {
+            throw new RuntimeException(String.format("Unsupported CsvFileImporter sub type \"%s\"", csvFileImporter.getClass().getName()));
+        }
+        pendingOutput.append(String.format("  - processed %d rows\n", rows));
     }
 
     private static long importFromReader(JidbcConnection jidbc,

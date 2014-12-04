@@ -83,13 +83,14 @@ public class Jidbc {
 
 //============================== "CRUD" (create, retrieve, update, delete) methods ==============================
 
-    public static void insert(DataSource dataSource, Object row) {
+    public static <T> T insert(DataSource dataSource, T row) {
         JidbcConnection jidbc = JidbcConnection.from(dataSource);
         try {
 
             jidbc.insert(row);
 
             jidbc.commitAndClose();
+            return row;
         } catch (Throwable t) {
             throw jidbc.rollbackCloseAndWrap(t);
         }

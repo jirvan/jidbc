@@ -144,8 +144,9 @@ public class JidbcConnection {
 
 //============================== "CRUD" (create, retrieve, update, delete) methods ==============================
 
-    public void insert(Object row) {
+    public <T> T insert(T row) {
         InsertHandler.insert(jdbcConnection, row, null);
+        return row;
     }
 
     public <T> T get(Class rowClass, Object pkValue) {

@@ -29,7 +29,11 @@
 package com.jirvan.jidbc.internal;
 
 import com.jirvan.dates.Day;
+import com.jirvan.dates.Hour;
+import com.jirvan.dates.Millisecond;
+import com.jirvan.dates.Minute;
 import com.jirvan.dates.Month;
+import com.jirvan.dates.Second;
 import com.jirvan.lang.SQLRuntimeException;
 
 import java.sql.ResultSet;
@@ -149,6 +153,19 @@ public class ObjectRowExtractor<T> implements RowExtractor<T> {
                                                               }
                                                           }
 
+                                                          public void performFor_Month() {
+                                                              try {
+                                                                  String value = resultSet.getString(columnDef.columnName);
+                                                                  if (resultSet.wasNull()) {
+                                                                      columnDef.setValue(row, null);
+                                                                  } else {
+                                                                      columnDef.setValue(row, Month.fromString(value));
+                                                                  }
+                                                              } catch (SQLException e) {
+                                                                  throw new SQLRuntimeException(e);
+                                                              }
+                                                          }
+
                                                           public void performFor_Day() {
                                                               try {
                                                                   if (columnDef.storeAsTimestamp) {
@@ -171,13 +188,88 @@ public class ObjectRowExtractor<T> implements RowExtractor<T> {
                                                               }
                                                           }
 
-                                                          public void performFor_Month() {
+                                                          public void performFor_Hour() {
                                                               try {
-                                                                  String value = resultSet.getString(columnDef.columnName);
-                                                                  if (resultSet.wasNull()) {
-                                                                      columnDef.setValue(row, null);
+                                                                  if (columnDef.storeAsTimestamp) {
+                                                                      Timestamp value = resultSet.getTimestamp(columnDef.columnName);
+                                                                      if (resultSet.wasNull()) {
+                                                                          columnDef.setValue(row, null);
+                                                                      } else {
+                                                                          columnDef.setValue(row, Hour.from(new java.util.Date(value.getTime())));
+                                                                      }
                                                                   } else {
-                                                                      columnDef.setValue(row, Month.fromString(value));
+                                                                      String value = resultSet.getString(columnDef.columnName);
+                                                                      if (resultSet.wasNull()) {
+                                                                          columnDef.setValue(row, null);
+                                                                      } else {
+                                                                          columnDef.setValue(row, Hour.fromString(value));
+                                                                      }
+                                                                  }
+                                                              } catch (SQLException e) {
+                                                                  throw new SQLRuntimeException(e);
+                                                              }
+                                                          }
+
+                                                          public void performFor_Minute() {
+                                                              try {
+                                                                  if (columnDef.storeAsTimestamp) {
+                                                                      Timestamp value = resultSet.getTimestamp(columnDef.columnName);
+                                                                      if (resultSet.wasNull()) {
+                                                                          columnDef.setValue(row, null);
+                                                                      } else {
+                                                                          columnDef.setValue(row, Minute.from(new java.util.Date(value.getTime())));
+                                                                      }
+                                                                  } else {
+                                                                      String value = resultSet.getString(columnDef.columnName);
+                                                                      if (resultSet.wasNull()) {
+                                                                          columnDef.setValue(row, null);
+                                                                      } else {
+                                                                          columnDef.setValue(row, Minute.fromString(value));
+                                                                      }
+                                                                  }
+                                                              } catch (SQLException e) {
+                                                                  throw new SQLRuntimeException(e);
+                                                              }
+                                                          }
+
+                                                          public void performFor_Second() {
+                                                              try {
+                                                                  if (columnDef.storeAsTimestamp) {
+                                                                      Timestamp value = resultSet.getTimestamp(columnDef.columnName);
+                                                                      if (resultSet.wasNull()) {
+                                                                          columnDef.setValue(row, null);
+                                                                      } else {
+                                                                          columnDef.setValue(row, Second.from(new java.util.Date(value.getTime())));
+                                                                      }
+                                                                  } else {
+                                                                      String value = resultSet.getString(columnDef.columnName);
+                                                                      if (resultSet.wasNull()) {
+                                                                          columnDef.setValue(row, null);
+                                                                      } else {
+                                                                          columnDef.setValue(row, Second.fromString(value));
+                                                                      }
+                                                                  }
+                                                              } catch (SQLException e) {
+                                                                  throw new SQLRuntimeException(e);
+                                                              }
+                                                          }
+
+                                                          public void performFor_Millisecond() {
+                                                              try {
+                                                                  if (columnDef.storeAsTimestamp) {
+                                                                      Timestamp value = resultSet.getTimestamp(columnDef.columnName);
+                                                                      if (resultSet.wasNull()) {
+                                                                          columnDef.setValue(row, null);
+                                                                      } else {
+                                                                          columnDef.setValue(row, Millisecond.from(new java.util.Date(value.getTime())));
+                                                                      }
+                                                                  } else {
+                                                                      String value = resultSet.getString(columnDef.columnName);
+                                                                      if (resultSet.wasNull()) {
+                                                                          columnDef.setValue(row, null);
+                                                                      } else {
+                                                                          columnDef.setValue(row, Millisecond.fromString(value));
+                                                                      }
                                                                   }
                                                               } catch (SQLException e) {
                                                                   throw new SQLRuntimeException(e);

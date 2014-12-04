@@ -30,12 +30,19 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 package com.jirvan.jidbc.internal;
 
-import com.jirvan.jidbc.*;
+import com.jirvan.jidbc.JidbcIgnore;
+import com.jirvan.jidbc.StoreAsTimestamp;
 
-import java.lang.annotation.*;
-import java.lang.reflect.*;
-import java.util.*;
-import java.util.regex.*;
+import java.lang.annotation.Annotation;
+import java.lang.reflect.Field;
+import java.lang.reflect.Method;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 public class RowDef {
 
@@ -104,11 +111,27 @@ public class RowDef {
                                                               extractAndAddColumnDefFromField(field, rowDef);
                                                           }
 
+                                                          public void performFor_Month() {
+                                                              extractAndAddColumnDefFromField(field, rowDef);
+                                                          }
+
                                                           public void performFor_Day() {
                                                               extractAndAddColumnDefFromField(field, rowDef);
                                                           }
 
-                                                          public void performFor_Month() {
+                                                          public void performFor_Hour() {
+                                                              extractAndAddColumnDefFromField(field, rowDef);
+                                                          }
+
+                                                          public void performFor_Minute() {
+                                                              extractAndAddColumnDefFromField(field, rowDef);
+                                                          }
+
+                                                          public void performFor_Second() {
+                                                              extractAndAddColumnDefFromField(field, rowDef);
+                                                          }
+
+                                                          public void performFor_Millisecond() {
                                                               extractAndAddColumnDefFromField(field, rowDef);
                                                           }
 
@@ -166,11 +189,27 @@ public class RowDef {
                                                                               extractAndAddColumnDefFromGetterSetterMethods(attributeName, getterMethod, setterMethod, rowDef);
                                                                           }
 
+                                                                          public void performFor_Month() {
+                                                                              extractAndAddColumnDefFromGetterSetterMethods(attributeName, getterMethod, setterMethod, rowDef);
+                                                                          }
+
                                                                           public void performFor_Day() {
                                                                               extractAndAddColumnDefFromGetterSetterMethods(attributeName, getterMethod, setterMethod, rowDef);
                                                                           }
 
-                                                                          public void performFor_Month() {
+                                                                          public void performFor_Hour() {
+                                                                              extractAndAddColumnDefFromGetterSetterMethods(attributeName, getterMethod, setterMethod, rowDef);
+                                                                          }
+
+                                                                          public void performFor_Minute() {
+                                                                              extractAndAddColumnDefFromGetterSetterMethods(attributeName, getterMethod, setterMethod, rowDef);
+                                                                          }
+
+                                                                          public void performFor_Second() {
+                                                                              extractAndAddColumnDefFromGetterSetterMethods(attributeName, getterMethod, setterMethod, rowDef);
+                                                                          }
+
+                                                                          public void performFor_Millisecond() {
                                                                               extractAndAddColumnDefFromGetterSetterMethods(attributeName, getterMethod, setterMethod, rowDef);
                                                                           }
 

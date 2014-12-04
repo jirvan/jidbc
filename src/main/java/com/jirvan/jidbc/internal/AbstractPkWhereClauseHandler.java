@@ -30,12 +30,18 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 package com.jirvan.jidbc.internal;
 
-import com.jirvan.dates.*;
+import com.jirvan.dates.Day;
+import com.jirvan.dates.Hour;
+import com.jirvan.dates.Millisecond;
+import com.jirvan.dates.Minute;
+import com.jirvan.dates.Month;
+import com.jirvan.dates.Second;
 
-import java.math.*;
-import java.sql.*;
-import java.util.*;
+import java.math.BigDecimal;
+import java.sql.Timestamp;
+import java.util.ArrayList;
 import java.util.Date;
+import java.util.List;
 
 public class AbstractPkWhereClauseHandler {
 
@@ -92,6 +98,10 @@ public class AbstractPkWhereClauseHandler {
                                                        parameterValues.add(value == null ? null : new Timestamp(value.getTime()));
                                                    }
 
+                                                   public void performWith(Month value) {
+                                                       parameterValues.add(value == null ? null : value.toString());
+                                                   }
+
                                                    public void performWith(Day value) {
                                                        if (columnDef.storeAsTimestamp) {
                                                            parameterValues.add(value == null ? null : new Timestamp(value.getDate().getTime()));
@@ -100,8 +110,36 @@ public class AbstractPkWhereClauseHandler {
                                                        }
                                                    }
 
-                                                   public void performWith(Month value) {
-                                                       parameterValues.add(value == null ? null : value.toString());
+                                                   public void performWith(Hour value) {
+                                                       if (columnDef.storeAsTimestamp) {
+                                                           parameterValues.add(value == null ? null : new Timestamp(value.getDate().getTime()));
+                                                       } else {
+                                                           parameterValues.add(value == null ? null : value.toString());
+                                                       }
+                                                   }
+
+                                                   public void performWith(Minute value) {
+                                                       if (columnDef.storeAsTimestamp) {
+                                                           parameterValues.add(value == null ? null : new Timestamp(value.getDate().getTime()));
+                                                       } else {
+                                                           parameterValues.add(value == null ? null : value.toString());
+                                                       }
+                                                   }
+
+                                                   public void performWith(Second value) {
+                                                       if (columnDef.storeAsTimestamp) {
+                                                           parameterValues.add(value == null ? null : new Timestamp(value.getDate().getTime()));
+                                                       } else {
+                                                           parameterValues.add(value == null ? null : value.toString());
+                                                       }
+                                                   }
+
+                                                   public void performWith(Millisecond value) {
+                                                       if (columnDef.storeAsTimestamp) {
+                                                           parameterValues.add(value == null ? null : new Timestamp(value.getDate().getTime()));
+                                                       } else {
+                                                           parameterValues.add(value == null ? null : value.toString());
+                                                       }
                                                    }
 
                                                    public void performWith(Enum value) {

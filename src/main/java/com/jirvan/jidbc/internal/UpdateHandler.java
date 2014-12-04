@@ -127,6 +127,10 @@ public class UpdateHandler extends AbstractPkWhereClauseHandler {
                                                        parameterValues.add(value == null ? null : new Timestamp(value.getTime()));
                                                    }
 
+                                                   public void performWith(Month value) {
+                                                       parameterValues.add(value == null ? null : value.toString());
+                                                   }
+
                                                    public void performWith(Day value) {
                                                        if (columnDef.storeAsTimestamp) {
                                                            parameterValues.add(value == null ? null : new Timestamp(value.getDate().getTime()));
@@ -135,8 +139,36 @@ public class UpdateHandler extends AbstractPkWhereClauseHandler {
                                                        }
                                                    }
 
-                                                   public void performWith(Month value) {
-                                                       parameterValues.add(value == null ? null : value.toString());
+                                                   public void performWith(Hour value) {
+                                                       if (columnDef.storeAsTimestamp) {
+                                                           parameterValues.add(value == null ? null : new Timestamp(value.getDate().getTime()));
+                                                       } else {
+                                                           parameterValues.add(value == null ? null : value.toString());
+                                                       }
+                                                   }
+
+                                                   public void performWith(Minute value) {
+                                                       if (columnDef.storeAsTimestamp) {
+                                                           parameterValues.add(value == null ? null : new Timestamp(value.getDate().getTime()));
+                                                       } else {
+                                                           parameterValues.add(value == null ? null : value.toString());
+                                                       }
+                                                   }
+
+                                                   public void performWith(Second value) {
+                                                       if (columnDef.storeAsTimestamp) {
+                                                           parameterValues.add(value == null ? null : new Timestamp(value.getDate().getTime()));
+                                                       } else {
+                                                           parameterValues.add(value == null ? null : value.toString());
+                                                       }
+                                                   }
+
+                                                   public void performWith(Millisecond value) {
+                                                       if (columnDef.storeAsTimestamp) {
+                                                           parameterValues.add(value == null ? null : new Timestamp(value.getDate().getTime()));
+                                                       } else {
+                                                           parameterValues.add(value == null ? null : value.toString());
+                                                       }
                                                    }
 
                                                    public void performWith(Enum value) {

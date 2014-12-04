@@ -30,13 +30,18 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 package com.jirvan.jidbc.internal;
 
-import com.jirvan.dates.*;
-import com.jirvan.jidbc.*;
+import com.jirvan.dates.Day;
+import com.jirvan.dates.Hour;
+import com.jirvan.dates.Millisecond;
+import com.jirvan.dates.Minute;
+import com.jirvan.dates.Month;
+import com.jirvan.dates.Second;
+import com.jirvan.jidbc.UnsupportedDataTypeException;
 
-import java.math.*;
-import java.util.*;
+import java.math.BigDecimal;
+import java.util.Date;
 
-import static com.jirvan.util.Assertions.assertNotNull;
+import static com.jirvan.util.Assertions.*;
 
 public class AttributeValueHandler {
 
@@ -54,9 +59,17 @@ public class AttributeValueHandler {
 
         public abstract void performFor_Date();
 
+        public abstract void performFor_Month();
+
         public abstract void performFor_Day();
 
-        public abstract void performFor_Month();
+        public abstract void performFor_Hour();
+
+        public abstract void performFor_Minute();
+
+        public abstract void performFor_Second();
+
+        public abstract void performFor_Millisecond();
 
         public abstract void performFor_Enum(Class enumClass);
 
@@ -76,9 +89,17 @@ public class AttributeValueHandler {
 
         public abstract void performWith(Date value);
 
+        public abstract void performWith(Month value);
+
         public abstract void performWith(Day value);
 
-        public abstract void performWith(Month value);
+        public abstract void performWith(Hour value);
+
+        public abstract void performWith(Minute value);
+
+        public abstract void performWith(Second value);
+
+        public abstract void performWith(Millisecond value);
 
         public abstract void performWith(Enum value);
 
@@ -97,10 +118,18 @@ public class AttributeValueHandler {
             classAction.performFor_Boolean();
         } else if (fieldClass == Date.class) {
             classAction.performFor_Date();
-        } else if (fieldClass == Day.class) {
-            classAction.performFor_Day();
         } else if (fieldClass == Month.class) {
             classAction.performFor_Month();
+        } else if (fieldClass == Day.class) {
+            classAction.performFor_Day();
+        } else if (fieldClass == Hour.class) {
+            classAction.performFor_Hour();
+        } else if (fieldClass == Minute.class) {
+            classAction.performFor_Minute();
+        } else if (fieldClass == Second.class) {
+            classAction.performFor_Second();
+        } else if (fieldClass == Millisecond.class) {
+            classAction.performFor_Millisecond();
         } else if (fieldClass.isEnum()) {
             classAction.performFor_Enum(fieldClass);
         } else {
@@ -127,10 +156,18 @@ public class AttributeValueHandler {
             actionSet.performWith((Boolean) value);
         } else if (fieldClass == Date.class) {
             actionSet.performWith((Date) value);
-        } else if (fieldClass == Day.class) {
-            actionSet.performWith((Day) value);
         } else if (fieldClass == Month.class) {
             actionSet.performWith((Month) value);
+        } else if (fieldClass == Day.class) {
+            actionSet.performWith((Day) value);
+        } else if (fieldClass == Hour.class) {
+            actionSet.performWith((Hour) value);
+        } else if (fieldClass == Minute.class) {
+            actionSet.performWith((Minute) value);
+        } else if (fieldClass == Second.class) {
+            actionSet.performWith((Second) value);
+        } else if (fieldClass == Millisecond.class) {
+            actionSet.performWith((Millisecond) value);
         } else if (fieldClass.isEnum()) {
             actionSet.performWith((Enum) value);
         } else {

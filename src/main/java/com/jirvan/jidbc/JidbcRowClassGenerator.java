@@ -171,7 +171,7 @@ public class JidbcRowClassGenerator {
             printStream.printf("\n");
             printStream.printf("    public %s set%s(%s %s) {\n", columnDetails.javaClassSimpleName, columnDetails.leadingUCFieldName, columnDetails.javaClassSimpleName, columnDetails.fieldName);
             printStream.printf("        this.%s = %s;\n", columnDetails.fieldName, columnDetails.fieldName);
-            printStream.printf("        return this\n");
+            printStream.printf("        return this;\n");
             printStream.printf("    }\n");
         }
         if (includeCloneMethod) {

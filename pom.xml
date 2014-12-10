@@ -12,7 +12,7 @@
         <dependency>
             <groupId>com.jirvan</groupId>
             <artifactId>ji</artifactId>
-            <version>1.0.108</version>
+            <version>1.0.109</version>
         </dependency>
         <dependency>
             <groupId>commons-lang</groupId>

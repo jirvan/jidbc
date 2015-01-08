@@ -147,7 +147,7 @@ public abstract class SchemaUpgrader {
             performUpgrade(jidbc, output);
 
             if (upgradeInASingleTransaction) {
-                Jidbc.executeUpdate(dataSource, "update schema_variables set schema_version = ?", toVersion);
+                jidbc.executeUpdate("update schema_variables set schema_version = ?", toVersion);
             }
 
             jidbc.commitAndClose();

@@ -6,7 +6,7 @@
     </parent>
     <modelVersion>4.0.0</modelVersion>
     <artifactId>jidbc</artifactId>
-    <version>1.0.139</version>
+    <version>1.0.140-SNAPSHOT</version>
 
     <dependencies>
         <dependency>

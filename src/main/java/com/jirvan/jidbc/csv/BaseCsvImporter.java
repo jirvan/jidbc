@@ -33,6 +33,7 @@ package com.jirvan.jidbc.csv;
 import au.com.bytecode.opencsv.CSVReader;
 import com.jirvan.csv.CsvLineRuntimeException;
 import com.jirvan.csv.CsvTableImporter;
+import com.jirvan.io.OutputWriter;
 import com.jirvan.jidbc.JidbcConnection;
 import com.jirvan.lang.MessageException;
 import com.jirvan.util.Strings;
@@ -46,7 +47,6 @@ import java.io.FileOutputStream;
 import java.io.FileReader;
 import java.io.IOException;
 import java.io.InputStream;
-import java.io.PrintWriter;
 import java.io.Reader;
 import java.nio.file.Files;
 import java.util.LinkedHashMap;
@@ -119,7 +119,7 @@ public class BaseCsvImporter {
     public void importFromDataDirectory(File dataDir) {
 
         checkDataDirectory(dataDir);
-        PrintWriter output = new PrintWriter(System.out, true);
+        OutputWriter output = new OutputWriter(System.out);
         JidbcConnection jidbc = JidbcConnection.from(dataSource);
         try {
             output.printf("Importing data\n");
@@ -144,7 +144,7 @@ public class BaseCsvImporter {
 
     public void importFromSingleCsvFile(File csvFile) {
 
-        PrintWriter output = new PrintWriter(System.out, true);
+        OutputWriter output = new OutputWriter(System.out);
         JidbcConnection jidbc = JidbcConnection.from(dataSource);
         try {
 
@@ -170,7 +170,7 @@ public class BaseCsvImporter {
 
     }
 
-    public void importFromSingleCsvFileReader(PrintWriter output, Reader csvFileReader) {
+    public void importFromSingleCsvFileReader(OutputWriter output, Reader csvFileReader) {
 
         JidbcConnection jidbc = JidbcConnection.from(dataSource);
         try {
@@ -197,7 +197,7 @@ public class BaseCsvImporter {
 
     }
 
-    private void importFromCsvFile(PrintWriter output, JidbcConnection jidbc, CsvFileImporter csvFileImporter, File csvFile) {
+    private void importFromCsvFile(OutputWriter output, JidbcConnection jidbc, CsvFileImporter csvFileImporter, File csvFile) {
         long rows = 0;
         try {
             if (csvFileImporter instanceof SimpleCsvFileImporter) {
@@ -213,7 +213,7 @@ public class BaseCsvImporter {
         output.printf("  - processed %d rows from %s\n", rows, csvFile.getName());
     }
 
-    private void importFromCsvFileReader(PrintWriter output, JidbcConnection jidbc, CsvFileImporter csvFileImporter, Reader csvFileReader) {
+    private void importFromCsvFileReader(OutputWriter output, JidbcConnection jidbc, CsvFileImporter csvFileImporter, Reader csvFileReader) {
         long rows = 0;
         if (csvFileImporter instanceof LineBasedCsvFileImporter) {
             rows = importFromReader(jidbc, output, (LineBasedCsvFileImporter) csvFileImporter, csvFileReader);
@@ -224,7 +224,7 @@ public class BaseCsvImporter {
     }
 
     private static long importFromReader(JidbcConnection jidbc,
-                                         PrintWriter output,
+                                         OutputWriter output,
                                          LineBasedCsvFileImporter csvFileImporter,
                                          Reader reader) {
         assertNotNull(jidbc, "JidbcConnection is null");
@@ -325,7 +325,7 @@ public class BaseCsvImporter {
 
         public String[] getExpectedColumnNames();
 
-        public void processCsvLine(JidbcConnection jidbc, PrintWriter output, String[] nextLine);
+        public void processCsvLine(JidbcConnection jidbc, OutputWriter output, String[] nextLine);
 
     }
 

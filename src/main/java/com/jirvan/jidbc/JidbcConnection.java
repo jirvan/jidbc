@@ -52,6 +52,8 @@ import javax.sql.DataSource;
 import java.io.File;
 import java.math.BigDecimal;
 import java.sql.Connection;
+import java.sql.DatabaseMetaData;
+import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.List;
@@ -401,6 +403,21 @@ public class JidbcConnection {
     public int getDatabaseMinorVersion() {
         try {
             return jdbcConnection.getMetaData().getDatabaseMinorVersion();
+        } catch (SQLException e) {
+            throw new SQLRuntimeException(e);
+        }
+    }
+
+    public boolean tableExists(String tableName) {
+        try {
+            DatabaseMetaData databaseMetaData = getJdbcConnection().getMetaData();
+            ResultSet tables = databaseMetaData.getTables(null, null, tableName, null);
+            while (tables.next()) {
+                if (tableName.equals(tables.getString("table_name"))) {
+                    return true;
+                }
+            }
+            return false;
         } catch (SQLException e) {
             throw new SQLRuntimeException(e);
         }

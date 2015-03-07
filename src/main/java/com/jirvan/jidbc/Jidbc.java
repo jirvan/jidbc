@@ -500,7 +500,7 @@ public class Jidbc {
 
             String value = jidbc.getDatabaseProductVersion();
 
-            jidbc.commitAndClose();
+            jidbc.rollbackAndClose();
             return value;
         } catch (Throwable t) {
             throw jidbc.rollbackCloseAndWrap(t);
@@ -513,7 +513,7 @@ public class Jidbc {
 
             int value = jidbc.getDatabaseMajorVersion();
 
-            jidbc.commitAndClose();
+            jidbc.rollbackAndClose();
             return value;
         } catch (Throwable t) {
             throw jidbc.rollbackCloseAndWrap(t);
@@ -526,7 +526,20 @@ public class Jidbc {
 
             int value = jidbc.getDatabaseMinorVersion();
 
-            jidbc.commitAndClose();
+            jidbc.rollbackAndClose();
+            return value;
+        } catch (Throwable t) {
+            throw jidbc.rollbackCloseAndWrap(t);
+        }
+    }
+
+    public boolean tableExists(DataSource dataSource, String tableName) {
+        JidbcConnection jidbc = JidbcConnection.from(dataSource);
+        try {
+
+            boolean value = jidbc.tableExists(tableName);
+
+            jidbc.rollbackAndClose();
             return value;
         } catch (Throwable t) {
             throw jidbc.rollbackCloseAndWrap(t);

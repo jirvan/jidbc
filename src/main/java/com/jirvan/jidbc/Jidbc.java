@@ -533,7 +533,7 @@ public class Jidbc {
         }
     }
 
-    public boolean tableExists(DataSource dataSource, String tableName) {
+    public static boolean tableExists(DataSource dataSource, String tableName) {
         JidbcConnection jidbc = JidbcConnection.from(dataSource);
         try {
 

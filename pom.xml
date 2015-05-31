@@ -9,7 +9,7 @@
 
     <groupId>com.jirvan</groupId>
     <artifactId>jidbc</artifactId>
-    <version>1.0.158-SNAPSHOT</version>
+    <version>1.0.158</version>
 
     <name>com.jirvan:jidbc</name>
     <description>

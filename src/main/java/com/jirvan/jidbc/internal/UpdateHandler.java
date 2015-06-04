@@ -175,6 +175,10 @@ public class UpdateHandler extends AbstractPkWhereClauseHandler {
                                                        parameterValues.add(value == null ? null : value.name());
                                                    }
 
+                                                   public void performWith(byte[] value) {
+                                                       parameterValues.add(value);
+                                                   }
+
                                                });
 
     }

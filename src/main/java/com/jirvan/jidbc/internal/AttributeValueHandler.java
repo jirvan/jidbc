@@ -73,6 +73,8 @@ public class AttributeValueHandler {
 
         public abstract void performFor_Enum(Class enumClass);
 
+        public abstract void performFor_byteArray();
+
     }
 
     public static abstract class ValueAction {
@@ -103,6 +105,8 @@ public class AttributeValueHandler {
 
         public abstract void performWith(Enum value);
 
+        public abstract void performWith(byte[] value);
+
     }
 
     public static void performForClass(Class fieldClass, ClassAction classAction) {
@@ -132,6 +136,8 @@ public class AttributeValueHandler {
             classAction.performFor_Millisecond();
         } else if (fieldClass.isEnum()) {
             classAction.performFor_Enum(fieldClass);
+        } else if (fieldClass == byte[].class) {
+            classAction.performFor_byteArray();
         } else {
             throw new UnsupportedDataTypeException(String.format("%s is an unsupported type",
                                                                  fieldClass.getName()));
@@ -170,6 +176,8 @@ public class AttributeValueHandler {
             actionSet.performWith((Millisecond) value);
         } else if (fieldClass.isEnum()) {
             actionSet.performWith((Enum) value);
+        } else if (fieldClass == byte[].class) {
+            actionSet.performWith((byte[]) value);
         } else {
             throw new UnsupportedDataTypeException(String.format("%s is an unsupported type",
                                                                  fieldClass.getName()));

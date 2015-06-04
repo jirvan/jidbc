@@ -139,6 +139,9 @@ public class RowDef {
                                                               extractAndAddColumnDefFromField(field, rowDef);
                                                           }
 
+                                                          public void performFor_byteArray() {
+                                                              extractAndAddColumnDefFromField(field, rowDef);
+                                                          }
                                                       });
             }
         }
@@ -217,6 +220,9 @@ public class RowDef {
                                                                               extractAndAddColumnDefFromGetterSetterMethods(attributeName, getterMethod, setterMethod, rowDef);
                                                                           }
 
+                                                                          public void performFor_byteArray() {
+                                                                              extractAndAddColumnDefFromGetterSetterMethods(attributeName, getterMethod, setterMethod, rowDef);
+                                                                          }
                                                                       });
                             }
                         } catch (NoSuchMethodException e) {

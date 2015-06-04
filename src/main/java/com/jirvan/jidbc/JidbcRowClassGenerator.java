@@ -273,6 +273,8 @@ public class JidbcRowClassGenerator {
                     this.javaClassSimpleName = "Date";
                     imports.add("import java.util.*;");
                 }
+            } else if (sqlType == Types.BINARY) {
+                this.javaClassSimpleName = "byte[]";
             } else {
                 throw new RuntimeException(String.format("Cannot handle columns sql data type %d", sqlType));
             }

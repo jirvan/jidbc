@@ -289,6 +289,18 @@ public class ObjectRowExtractor<T> implements RowExtractor<T> {
                                                               }
                                                           }
 
+                                                          public void performFor_byteArray() {
+                                                              try {
+                                                                  byte[] value = resultSet.getBytes(columnDef.columnName);
+                                                                  if (resultSet.wasNull()) {
+                                                                      columnDef.setValue(row, null);
+                                                                  } else {
+                                                                      columnDef.setValue(row, value);
+                                                                  }
+                                                              } catch (SQLException e) {
+                                                                  throw new SQLRuntimeException(e);
+                                                              }
+                                                          }
                                                       });
 
             }

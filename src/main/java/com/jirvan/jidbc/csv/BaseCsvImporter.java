@@ -36,6 +36,7 @@ import com.jirvan.csv.CsvTableImporter;
 import com.jirvan.io.OutputWriter;
 import com.jirvan.jidbc.JidbcConnection;
 import com.jirvan.lang.MessageException;
+import com.jirvan.util.Lists;
 import com.jirvan.util.Strings;
 import org.apache.commons.io.FileUtils;
 
@@ -50,6 +51,7 @@ import java.io.InputStream;
 import java.io.Reader;
 import java.nio.file.Files;
 import java.util.LinkedHashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.zip.ZipEntry;
@@ -197,13 +199,40 @@ public class BaseCsvImporter {
 
     }
 
+    public void importFromSingleCsvFileReader(OutputWriter output, Reader csvFileReader) {
+
+        JidbcConnection jidbc = JidbcConnection.from(dataSource);
+        try {
+
+            if (csvFileImporterMap.size() != 1) {
+                throw new RuntimeException("Expected exactly one CsvFileImporter for \"importFromSingleCsvFile\"");
+            }
+
+            output.printf("Importing data\n");
+            for (Map.Entry<String, CsvFileImporter> entry : csvFileImporterMap.entrySet()) {
+                CsvFileImporter csvFileImporter = entry.getValue();
+                importFromCsvFileReader(output,
+                                        jidbc,
+                                        csvFileImporter,
+                                        csvFileReader);
+            }
+
+            jidbc.commitAndClose();
+        } catch (Throwable t) {
+            throw jidbc.rollbackCloseAndWrap(t);
+        }
+
+        output.printf("Finished importing data\n\n");
+
+    }
+
     private void importFromCsvFile(OutputWriter output, JidbcConnection jidbc, CsvFileImporter csvFileImporter, File csvFile) {
         long rows = 0;
         try {
             if (csvFileImporter instanceof SimpleCsvFileImporter) {
                 rows = ((SimpleCsvFileImporter) csvFileImporter).importFromCsvFile(jidbc, csvFile);
             } else if (csvFileImporter instanceof LineBasedCsvFileImporter) {
-                rows = importFromReader(jidbc, output, (LineBasedCsvFileImporter) csvFileImporter, new FileReader(csvFile));
+                rows = importFromReader(jidbc, output, Lists.create((LineBasedCsvFileImporter) csvFileImporter), new FileReader(csvFile));
             } else {
                 throw new RuntimeException(String.format("Unsupported CsvFileImporter sub type \"%s\"", csvFileImporter.getClass().getName()));
             }
@@ -216,18 +245,25 @@ public class BaseCsvImporter {
     private void importFromCsvFileReader(OutputWriter output, JidbcConnection jidbc, CsvFileImporter csvFileImporter, Reader csvFileReader) {
         long rows = 0;
         if (csvFileImporter instanceof LineBasedCsvFileImporter) {
-            rows = importFromReader(jidbc, output, (LineBasedCsvFileImporter) csvFileImporter, csvFileReader);
+            rows = importFromReader(jidbc, output, Lists.create((LineBasedCsvFileImporter) csvFileImporter), csvFileReader);
         } else {
             throw new RuntimeException(String.format("Unsupported CsvFileImporter sub type \"%s\"", csvFileImporter.getClass().getName()));
         }
         output.printf("  - processed %d rows\n", rows);
     }
 
+    private void importFromCsvFileReader(OutputWriter output, JidbcConnection jidbc, List<LineBasedCsvFileImporter> csvFileImporters, Reader csvFileReader) {
+        long rows = importFromReader(jidbc, output, csvFileImporters, csvFileReader);
+        output.printf("  - processed %d rows\n", rows);
+    }
+
     private static long importFromReader(JidbcConnection jidbc,
                                          OutputWriter output,
-                                         LineBasedCsvFileImporter csvFileImporter,
+                                         List<LineBasedCsvFileImporter> csvFileImporters,
                                          Reader reader) {
         assertNotNull(jidbc, "JidbcConnection is null");
+        assertNotNull(csvFileImporters, "csvFileImporters is null");
+        assertTrue(csvFileImporters.size() > 0, "At least one csvFileImporter must be provided");
         try {
 
             CSVReader csvReader = new CSVReader(reader);
@@ -239,16 +275,29 @@ public class BaseCsvImporter {
                 if (columnNames == null || columnNames.length == 0) {
                     throw new RuntimeException("First row is empty (expected column names");
                 }
-                String[] expectedColumnNames = csvFileImporter.getExpectedColumnNames();
-                if (expectedColumnNames.length != columnNames.length) {
-                    throw new RuntimeException(String.format("Expected columns \"%s\" but got \"%s\"",
-                                                             Strings.commaList(expectedColumnNames), Strings.commaList(columnNames)));
-                }
-                for (int i = 0; i < expectedColumnNames.length; i++) {
-                    if (!expectedColumnNames[i].equals(columnNames[i])) {
-                        throw new RuntimeException(String.format("Expected column \"%s\" but got \"%s\"", expectedColumnNames[i], columnNames[i]));
+
+
+                String columnNamesString = Strings.commaList(columnNames);
+
+                LineBasedCsvFileImporter csvFileImporter = null;
+                for (LineBasedCsvFileImporter importer : csvFileImporters) {
+                    String[] expectedColumnNames = importer.getExpectedColumnNames();
+                    String expectedColumnNamesString = Strings.commaList(expectedColumnNames);
+                    if (expectedColumnNamesString.equals(columnNamesString)) {
+                        csvFileImporter = importer;
                     }
                 }
+                if (csvFileImporter == null) {
+                    String expectedColumnNamesStrings = String.format("Expected \"%s\"", csvFileImporters.get(0));
+                    for (int i = 1; i < csvFileImporters.size(); i++) {
+                        expectedColumnNamesStrings += String.format("\n      or \"%s\"", csvFileImporters.get(i));
+                    }
+                    throw new RuntimeException(String.format("Unexpected columns \"%s\"\n" +
+                                                             "\n" +
+                                                             "%s",
+                                                             columnNamesString, expectedColumnNamesStrings));
+                }
+
 
                 // Prepare the insert statement and execute it for each row in the csv file
                 String[] nextLine;

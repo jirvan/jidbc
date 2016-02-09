@@ -38,6 +38,7 @@ import com.jirvan.jidbc.JidbcConnection;
 import com.jirvan.lang.MessageException;
 import com.jirvan.util.Strings;
 import org.apache.commons.io.FileUtils;
+import org.apache.commons.lang.ArrayUtils;
 
 import javax.sql.DataSource;
 import java.io.File;
@@ -61,6 +62,7 @@ import static com.jirvan.util.Strings.*;
 public class BaseCsvImporter {
 
     private LinkedHashMap<String, CsvFileImporter> csvFileImporterMap;
+    private BundledCsvFileImporter[] bundledCsvFileImporters;
     private DataSource dataSource;
 
     protected BaseCsvImporter(DataSource dataSource, CsvFileImporter... csvFileImporters) {
@@ -71,6 +73,13 @@ public class BaseCsvImporter {
         for (CsvFileImporter csvFileImporter : csvFileImporters) {
             this.csvFileImporterMap.put(csvFileImporter.handlesFileWithName(), csvFileImporter);
         }
+    }
+
+    protected BaseCsvImporter(DataSource dataSource, BundledCsvFileImporter... bundledCsvFileImporters) {
+        assertNotNull(dataSource, "dataSource must be provided");
+        assertTrue(bundledCsvFileImporters != null && bundledCsvFileImporters.length > 0, "At least one BundledCsvFileImporter must be provided");
+        this.dataSource = dataSource;
+        this.bundledCsvFileImporters = bundledCsvFileImporters;
     }
 
     public void importFromZipFile(File zipFile) {
@@ -170,6 +179,30 @@ public class BaseCsvImporter {
 
     }
 
+    public void importFromCsvFile(File csvFile) {
+
+        OutputWriter output = new OutputWriter(System.out);
+        JidbcConnection jidbc = JidbcConnection.from(dataSource);
+        try {
+
+            output.printf("Importing data\n");
+            long rows = 0;
+            try {
+                rows = importFromReader(jidbc, output, new FileReader(csvFile));
+            } catch (FileNotFoundException e) {
+                throw new RuntimeException(e);
+            }
+            output.printf("  - processed %d rows from %s\n", rows, csvFile.getName());
+
+            jidbc.commitAndClose();
+        } catch (Throwable t) {
+            throw jidbc.rollbackCloseAndWrap(t);
+        }
+
+        output.printf("Finished importing data\n\n");
+
+    }
+
     public void importFromSingleCsvFileReader(OutputWriter output, Reader csvFileReader) {
 
         JidbcConnection jidbc = JidbcConnection.from(dataSource);
@@ -187,6 +220,25 @@ public class BaseCsvImporter {
                                         csvFileImporter,
                                         csvFileReader);
             }
+
+            jidbc.commitAndClose();
+        } catch (Throwable t) {
+            throw jidbc.rollbackCloseAndWrap(t);
+        }
+
+        output.printf("Finished importing data\n\n");
+
+    }
+
+    public void importFromCsvFileReader(OutputWriter output, Reader csvFileReader) {
+
+        JidbcConnection jidbc = JidbcConnection.from(dataSource);
+        try {
+
+            output.printf("Importing data\n");
+            importFromCsvFileReader(output,
+                                    jidbc,
+                                    csvFileReader);
 
             jidbc.commitAndClose();
         } catch (Throwable t) {
@@ -223,6 +275,78 @@ public class BaseCsvImporter {
         output.printf("  - processed %d rows\n", rows);
     }
 
+    private void importFromCsvFileReader(OutputWriter output, JidbcConnection jidbc, Reader csvFileReader) {
+        long rows = importFromReader(jidbc, output, csvFileReader);
+        output.printf("  - processed %d rows\n", rows);
+    }
+
+    private long importFromReader(JidbcConnection jidbc,
+                                  OutputWriter output,
+                                  Reader reader) {
+        assertNotNull(jidbc, "JidbcConnection is null");
+        try {
+
+            CSVReader csvReader = new CSVReader(reader);
+            int lineNumber = 1;
+            try {
+
+                // Get and check the column names
+                String[] columnNames = csvReader.readNext();
+                if (columnNames == null || columnNames.length == 0) {
+                    throw new RuntimeException("First row is empty (expected column names");
+                }
+
+
+                BundledCsvFileImporter csvFileImporter = getImporterForColumns(columnNames);
+
+
+                String[] expectedColumnNames = csvFileImporter.getExpectedColumnNames();
+                if (expectedColumnNames.length != columnNames.length) {
+                    throw new RuntimeException(String.format("Expected columns \"%s\" but got \"%s\"",
+                                                             Strings.commaList(expectedColumnNames), Strings.commaList(columnNames)));
+                }
+                for (int i = 0; i < expectedColumnNames.length; i++) {
+                    if (!expectedColumnNames[i].equals(columnNames[i])) {
+                        throw new RuntimeException(String.format("Expected column \"%s\" but got \"%s\"", expectedColumnNames[i], columnNames[i]));
+                    }
+                }
+                lineNumber = processDataLines(jidbc, output, csvFileImporter, csvReader, lineNumber, columnNames);
+
+
+            } finally {
+                csvReader.close();
+            }
+
+            return lineNumber - 1;
+
+        } catch (IOException e) {
+            throw new RuntimeException(e);
+        }
+
+    }
+
+    private BundledCsvFileImporter getImporterForColumns(String[] columnNames) {
+        assertTrue(bundledCsvFileImporters != null && bundledCsvFileImporters.length > 0, "At least one BundledCsvFileImporter must be provided");
+        for (BundledCsvFileImporter bundledCsvFileImporter : bundledCsvFileImporters) {
+            if (ArrayUtils.isEquals(bundledCsvFileImporter.getExpectedColumnNames(), columnNames)) {
+                return bundledCsvFileImporter;
+            }
+        }
+        if (bundledCsvFileImporters.length == 1) {
+            throw new RuntimeException(String.format("CSV input must have the following columns:\n" +
+                                                     "    %s", Strings.commaList(bundledCsvFileImporters[0].getExpectedColumnNames())));
+        } else {
+            String message = String.format("CSV file importer not found for columns:\n" +
+                                           "    %s\n" +
+                                           "Valid importer(s) exist for", Strings.commaList(columnNames));
+            message += String.format("\n    %s", Strings.commaList(bundledCsvFileImporters[0].getExpectedColumnNames()));
+            for (int i = 1; i < bundledCsvFileImporters.length; i++) {
+                message += String.format("\nand\n    %s", Strings.commaList(bundledCsvFileImporters[i].getExpectedColumnNames()));
+            }
+            throw new RuntimeException(message);
+        }
+    }
+
     private static long importFromReader(JidbcConnection jidbc,
                                          OutputWriter output,
                                          LineBasedCsvFileImporter csvFileImporter,
@@ -249,31 +373,8 @@ public class BaseCsvImporter {
                         throw new RuntimeException(String.format("Expected column \"%s\" but got \"%s\"", expectedColumnNames[i], columnNames[i]));
                     }
                 }
+                lineNumber = processDataLines(jidbc, output, csvFileImporter, csvReader, lineNumber, columnNames);
 
-                // Prepare the insert statement and execute it for each row in the csv file
-                String[] nextLine;
-                while ((nextLine = csvReader.readNext()) != null) {
-                    lineNumber++;
-
-                    if (nextLine.length == 1 && (nextLine[0] == null || nextLine[0].trim().length() == 0)) {
-                        continue;
-                    }
-
-                    try {
-
-                        // Check the number of fields is correct
-                        if (nextLine.length != columnNames.length) {
-                            throw new RuntimeException("Exception processing line " + lineNumber + ": This line has "
-                                                       + nextLine.length + " fields, but " + columnNames.length
-                                                       + " (the number of headings in the first line) were expected.");
-                        }
-                        csvFileImporter.processCsvLine(jidbc, output, nextLine);
-
-                    } catch (Throwable t) {
-                        throw CsvLineRuntimeException.wrapIfAppropriate(lineNumber, t);
-                    }
-
-                }
 
             } finally {
                 csvReader.close();
@@ -285,6 +386,35 @@ public class BaseCsvImporter {
             throw new RuntimeException(e);
         }
 
+    }
+
+    private static int processDataLines(JidbcConnection jidbc, OutputWriter output, ExpectedColumnNamesCsvFileImporter csvFileImporter, CSVReader csvReader, int lineNumber, String[] columnNames) throws IOException {
+
+        // Prepare the insert statement and execute it for each row in the csv file
+        String[] nextLine;
+        while ((nextLine = csvReader.readNext()) != null) {
+            lineNumber++;
+
+            if (nextLine.length == 1 && (nextLine[0] == null || nextLine[0].trim().length() == 0)) {
+                continue;
+            }
+
+            try {
+
+                // Check the number of fields is correct
+                if (nextLine.length != columnNames.length) {
+                    throw new RuntimeException("Exception processing line " + lineNumber + ": This line has "
+                                               + nextLine.length + " fields, but " + columnNames.length
+                                               + " (the number of headings in the first line) were expected.");
+                }
+                csvFileImporter.processCsvLine(jidbc, output, nextLine);
+
+            } catch (Throwable t) {
+                throw CsvLineRuntimeException.wrapIfAppropriate(lineNumber, t);
+            }
+
+        }
+        return lineNumber;
     }
 
     private void checkDataDirectory(File dataDir) {
@@ -321,12 +451,18 @@ public class BaseCsvImporter {
 
     }
 
-    public interface LineBasedCsvFileImporter extends CsvFileImporter {
+    public interface ExpectedColumnNamesCsvFileImporter {
 
         public String[] getExpectedColumnNames();
 
         public void processCsvLine(JidbcConnection jidbc, OutputWriter output, String[] nextLine);
 
+    }
+
+    public interface LineBasedCsvFileImporter extends ExpectedColumnNamesCsvFileImporter, CsvFileImporter {
+    }
+
+    public interface BundledCsvFileImporter extends ExpectedColumnNamesCsvFileImporter {
     }
 
     public static class SimpleCsvFileImporter implements CsvFileImporter {

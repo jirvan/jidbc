@@ -38,11 +38,22 @@ public class DayRowExtractor implements RowExtractor<Day> {
     public Day extractRowFromResultSet(Class rowClass, RowDef rowDef, ResultSet resultSet, final boolean ignoreMissingResultSetColumns) {
         if (ignoreMissingResultSetColumns) throw new RuntimeException("ignoreMissingResultSetColumns is inappropriate for DayRowExtractor");
         try {
-            Timestamp value = resultSet.getTimestamp(1);
-            if (resultSet.wasNull()) {
-                return null;
+
+            int columnType = resultSet.getMetaData().getColumnType(1);
+            if (columnType == Types.VARCHAR) {
+                String stringValue = resultSet.getString(1);
+                if (resultSet.wasNull()) {
+                    return null;
+                } else {
+                    return Day.fromString(stringValue);
+                }
             } else {
-                return Day.from(new java.util.Date(value.getTime()));
+                Timestamp value = resultSet.getTimestamp(1);
+                if (resultSet.wasNull()) {
+                    return null;
+                } else {
+                    return Day.from(new java.util.Date(value.getTime()));
+                }
             }
         } catch (SQLException e) {
             throw new SQLRuntimeException(e);

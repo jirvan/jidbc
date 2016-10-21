@@ -155,7 +155,17 @@ public class JidbcConnection {
         assertNotNull(rowClass, "Supplied row class is null");
         assertNotNull(pkValue, "Supplied primary key value is null");
         try {
-            return QueryForHandler.queryFor(jdbcConnection, true, rowClass, null, new Object[]{pkValue}, true, false);
+            return QueryForHandler.queryFor(jdbcConnection, true, rowClass, null, new Object[]{pkValue}, true, false, false);
+        } catch (NotFoundRuntimeException e) {
+            throw new NotFoundRuntimeException(String.format("%s:%s not found", rowClass.getSimpleName().replaceFirst("sRow$", ""), pkValue.toString()));
+        }
+    }
+
+    public <T> T getForUpdate(Class rowClass, Object pkValue) {
+        assertNotNull(rowClass, "Supplied row class is null");
+        assertNotNull(pkValue, "Supplied primary key value is null");
+        try {
+            return QueryForHandler.queryFor(jdbcConnection, true, rowClass, null, new Object[]{pkValue}, true, false, true);
         } catch (NotFoundRuntimeException e) {
             throw new NotFoundRuntimeException(String.format("%s:%s not found", rowClass.getSimpleName().replaceFirst("sRow$", ""), pkValue.toString()));
         }
@@ -164,7 +174,13 @@ public class JidbcConnection {
     public <T> T getIfExists(Class rowClass, Object pkValue) {
         assertNotNull(rowClass, "Supplied row class is null");
         assertNotNull(pkValue, "Supplied primary key value is null");
-        return QueryForHandler.queryFor(jdbcConnection, false, rowClass, null, new Object[]{pkValue}, true, false);
+        return QueryForHandler.queryFor(jdbcConnection, false, rowClass, null, new Object[]{pkValue}, true, false, false);
+    }
+
+    public <T> T getIfExistsForUpdate(Class rowClass, Object pkValue) {
+        assertNotNull(rowClass, "Supplied row class is null");
+        assertNotNull(pkValue, "Supplied primary key value is null");
+        return QueryForHandler.queryFor(jdbcConnection, false, rowClass, null, new Object[]{pkValue}, true, false, true);
     }
 
     public void update(Object row) {
@@ -183,19 +199,35 @@ public class JidbcConnection {
 //============================== Single returned object row/value methods ==============================
 
     public <T> T queryFor(Class rowClass, String sql, Object... parameterValues) {
-        return QueryForHandler.queryFor(jdbcConnection, true, rowClass, sql, parameterValues, false, false);
+        return QueryForHandler.queryFor(jdbcConnection, true, rowClass, sql, parameterValues, false, false, false);
+    }
+
+    public <T> T queryForForUpdate(Class rowClass, String sql, Object... parameterValues) {
+        return QueryForHandler.queryFor(jdbcConnection, true, rowClass, sql, parameterValues, false, false, true);
     }
 
     public <T> T queryForAndIgnoreMissingResultSetColumns(Class rowClass, String sql, Object... parameterValues) {
-        return QueryForHandler.queryFor(jdbcConnection, true, rowClass, sql, parameterValues, false, true);
+        return QueryForHandler.queryFor(jdbcConnection, true, rowClass, sql, parameterValues, false, true, false);
+    }
+
+    public <T> T queryForForUpdateAndIgnoreMissingResultSetColumns(Class rowClass, String sql, Object... parameterValues) {
+        return QueryForHandler.queryFor(jdbcConnection, true, rowClass, sql, parameterValues, false, true, true);
     }
 
     public <T> T queryForOptional(Class rowClass, String sql, Object... parameterValues) {
-        return QueryForHandler.queryFor(jdbcConnection, false, rowClass, sql, parameterValues, false, false);
+        return QueryForHandler.queryFor(jdbcConnection, false, rowClass, sql, parameterValues, false, false, false);
+    }
+
+    public <T> T queryForForUpdateOptional(Class rowClass, String sql, Object... parameterValues) {
+        return QueryForHandler.queryFor(jdbcConnection, false, rowClass, sql, parameterValues, false, false, true);
     }
 
     public <T> T queryForOptionalIgnoringMissingResultSetColumns(Class rowClass, String sql, Object... parameterValues) {
-        return QueryForHandler.queryFor(jdbcConnection, false, rowClass, sql, parameterValues, false, true);
+        return QueryForHandler.queryFor(jdbcConnection, false, rowClass, sql, parameterValues, false, true, false);
+    }
+
+    public <T> T queryForForUpdateOptionalIgnoringMissingResultSetColumns(Class rowClass, String sql, Object... parameterValues) {
+        return QueryForHandler.queryFor(jdbcConnection, false, rowClass, sql, parameterValues, false, true, true);
     }
 
     public String queryFor_String(String sql, Object... parameterValues) {
@@ -266,7 +298,32 @@ public class JidbcConnection {
      * @see #queryIgnoringMissingResultSetColumns(Class, String, Object...) query
      */
     public <T> Results<? extends T> query(Class rowClass, String sql, Object... parameterValues) {
-        return new Results<T>(jdbcConnection, openResultses, rowClass, sql, false, parameterValues);
+        return new Results<T>(jdbcConnection, openResultses, rowClass, sql, false, false, parameterValues);
+    }
+
+    /**
+     * This method executes a query against the database locking selected rows (it adds
+     * a "for update clause to the sql) and returns a Results iterable that
+     * can be used to process the results of the query.  Note that using this in "for each"
+     * loops is OK as the JidbcConnection itself "remembers" all open Results iterables and
+     * closes them when it is released if they not been closed in the normal course of events.
+     * Normally the completion of the for loop that is looping through the iterable will close
+     * and release the query resources.  However if there is an exception thrown during loop
+     * processing the Results iterables will be closed by the JidbcConnection when it is
+     * released. The JidbcConnection itself should always be released in a finally block;
+     *
+     * @param rowClass        The class of the rows to be returned
+     * @param sql             The sql for selecting the rows from the database.  If
+     *                        the sql starts with "where " then "select * from tableName "
+     *                        will be prepended to the sql (the table name is determined from
+     *                        the row class)
+     * @param parameterValues Any parameter values associated with the sql
+     * @return A Results iterable that can be used to process the results
+     * of the query.
+     * @see #queryIgnoringMissingResultSetColumns(Class, String, Object...) query
+     */
+    public <T> Results<? extends T> queryForUpdate(Class rowClass, String sql, Object... parameterValues) {
+        return new Results<T>(jdbcConnection, openResultses, rowClass, sql, false, true, parameterValues);
     }
 
     /**
@@ -293,7 +350,35 @@ public class JidbcConnection {
      * @see #query(Class, String, Object...) query
      */
     public <T> Results<? extends T> queryIgnoringMissingResultSetColumns(Class rowClass, String sql, Object... parameterValues) {
-        return new Results<T>(jdbcConnection, openResultses, rowClass, sql, true, parameterValues);
+        return new Results<T>(jdbcConnection, openResultses, rowClass, sql, true, false, parameterValues);
+    }
+
+    /**
+     * This method executes a query against the database locking selected rows (it adds
+     * a "for update clause to the sql) and returns a Results iterable that
+     * can be used to process the results of the query.  Note that using this in "for each"
+     * loops is OK as the JidbcConnection itself "remembers" all open Results iterables and
+     * closes them when it is released if they not been closed in the normal course of events.
+     * Normally the completion of the for loop that is looping through the iterable will close
+     * and release the query resources.  However if there is an exception thrown during loop
+     * processing the Results iterables will be closed by the JidbcConnection when it is
+     * released. The JidbcConnection itself should always be released in a finally block;
+     *
+     * @param rowClass        The class of the rows to be returned.  Note that for this method
+     *                        any fields in class that do not have a corresponding column in
+     *                        the sql result set will be set to null (unlike the {@link #query(Class, String, Object...) query} method
+     *                        which will throw a runtime exception)
+     * @param sql             The sql for selecting the rows from the database.  If
+     *                        the sql starts with "where " then "select * from tableName "
+     *                        will be prepended to the sql (the table name is determined from
+     *                        the row class)
+     * @param parameterValues Any parameter values associated with the sql
+     * @return A Results iterable that can be used to process the results
+     * of the query.
+     * @see #query(Class, String, Object...) query
+     */
+    public <T> Results<? extends T> queryForUpdateIgnoringMissingResultSetColumns(Class rowClass, String sql, Object... parameterValues) {
+        return new Results<T>(jdbcConnection, openResultses, rowClass, sql, true, true, parameterValues);
     }
 
     /**
@@ -312,6 +397,28 @@ public class JidbcConnection {
     public <T> List<T> queryForList(Class rowClass, String sql, Object... parameterValues) {
         List<T> list = new ArrayList<T>();
         for (T row : this.<T>query(rowClass, sql, parameterValues)) {
+            list.add(row);
+        }
+        return list;
+    }
+
+    /**
+     * This method executes a query against the database locking selected rows (it adds
+     * a "for update clause to the sql)  and returns a List containing the
+     * results.
+     *
+     * @param rowClass        The class of the rows to be returned
+     * @param sql             The sql for selecting the rows from the database.  If
+     *                        the sql starts with "where " then "select * from tableName "
+     *                        will be prepended to the sql (the table name is determined from
+     *                        the row class)
+     * @param parameterValues Any parameter values associated with the sql
+     * @return A List containing the results
+     * of the query.
+     */
+    public <T> List<T> queryForUpdateForList(Class rowClass, String sql, Object... parameterValues) {
+        List<T> list = new ArrayList<T>();
+        for (T row : this.<T>queryForUpdate(rowClass, sql, parameterValues)) {
             list.add(row);
         }
         return list;
@@ -337,6 +444,32 @@ public class JidbcConnection {
     public <T> List<T> queryForListIgnoringMissingResultSetColumns(Class rowClass, String sql, Object... parameterValues) {
         List<T> list = new ArrayList<T>();
         for (T row : this.<T>queryIgnoringMissingResultSetColumns(rowClass, sql, parameterValues)) {
+            list.add(row);
+        }
+        return list;
+    }
+
+    /**
+     * This method executes a query against the database locking selected rows (it adds
+     * a "for update clause to the sql)  and returns a List containing the
+     * results.
+     *
+     * @param rowClass        The class of the rows to be returned.  Note that for this method
+     *                        any fields in class that do not have a corresponding column in
+     *                        the sql result set will be set to null (unlike the {@link #queryForList(Class, String, Object...) queryForList} method
+     *                        which will throw a runtime exception)
+     * @param sql             The sql for selecting the rows from the database.  If
+     *                        the sql starts with "where " then "select * from tableName "
+     *                        will be prepended to the sql (the table name is determined from
+     *                        the row class)
+     * @param parameterValues Any parameter values associated with the sql
+     * @return A List containing the results
+     * of the query.
+     * @see #queryForList(Class, String, Object...) queryForList
+     */
+    public <T> List<T> queryForUpdateForListIgnoringMissingResultSetColumns(Class rowClass, String sql, Object... parameterValues) {
+        List<T> list = new ArrayList<T>();
+        for (T row : this.<T>queryForUpdateIgnoringMissingResultSetColumns(rowClass, sql, parameterValues)) {
             list.add(row);
         }
         return list;

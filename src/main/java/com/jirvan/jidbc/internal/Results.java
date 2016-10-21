@@ -55,7 +55,7 @@ public class Results<T> implements Iterable<T> {
     private Object nextRow;
     private boolean ignoreMissingResultSetColumns;
 
-    public Results(Connection connection, List<Results> connectionOpenResultses, Class rowClass, String sql, boolean ignoreMissingResultSetColumns, Object... parameterValues) {
+    public Results(Connection connection, List<Results> connectionOpenResultses, Class rowClass, String sql, boolean ignoreMissingResultSetColumns, boolean forUpdate, Object... parameterValues) {
         this.ignoreMissingResultSetColumns = ignoreMissingResultSetColumns;
 
         String sqlToUse;
@@ -107,6 +107,9 @@ public class Results<T> implements Iterable<T> {
                 rowDef = RowDef.getRowDefForRowClass(rowClass);
                 sqlToUse = sql;
             }
+        }
+        if (forUpdate) {
+            sqlToUse += " for update";
         }
 
         connectionOpenResultses.add(this);

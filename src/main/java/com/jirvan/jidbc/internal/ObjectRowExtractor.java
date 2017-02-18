@@ -40,6 +40,8 @@ import java.sql.ResultSet;
 import java.sql.ResultSetMetaData;
 import java.sql.SQLException;
 import java.sql.Timestamp;
+import java.time.ZoneId;
+import java.time.ZonedDateTime;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -262,6 +264,28 @@ public class ObjectRowExtractor<T> implements RowExtractor<T> {
                                                                           columnDef.setValue(row, null);
                                                                       } else {
                                                                           columnDef.setValue(row, Millisecond.from(new java.util.Date(value.getTime())));
+                                                                      }
+                                                                  } else {
+                                                                      String value = resultSet.getString(columnDef.columnName);
+                                                                      if (resultSet.wasNull()) {
+                                                                          columnDef.setValue(row, null);
+                                                                      } else {
+                                                                          columnDef.setValue(row, Millisecond.fromString(value));
+                                                                      }
+                                                                  }
+                                                              } catch (SQLException e) {
+                                                                  throw new SQLRuntimeException(e);
+                                                              }
+                                                          }
+
+                                                          public void performFor_ZonedDateTime() {
+                                                              try {
+                                                                  if (columnDef.storeAsTimestamp) {
+                                                                      Timestamp value = resultSet.getTimestamp(columnDef.columnName);
+                                                                      if (resultSet.wasNull()) {
+                                                                          columnDef.setValue(row, null);
+                                                                      } else {
+                                                                          columnDef.setValue(row, ZonedDateTime.ofInstant(value.toInstant(), ZoneId.systemDefault()));
                                                                       }
                                                                   } else {
                                                                       String value = resultSet.getString(columnDef.columnName);

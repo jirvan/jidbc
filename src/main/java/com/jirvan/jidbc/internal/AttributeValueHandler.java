@@ -39,6 +39,7 @@ import com.jirvan.dates.Second;
 import com.jirvan.jidbc.UnsupportedDataTypeException;
 
 import java.math.BigDecimal;
+import java.time.ZonedDateTime;
 import java.util.Date;
 
 import static com.jirvan.util.Assertions.*;
@@ -58,6 +59,8 @@ public class AttributeValueHandler {
         public abstract void performFor_Boolean();
 
         public abstract void performFor_Date();
+
+        public abstract void performFor_ZonedDateTime();
 
         public abstract void performFor_Month();
 
@@ -91,6 +94,8 @@ public class AttributeValueHandler {
 
         public abstract void performWith(Date value);
 
+        public abstract void performWith(ZonedDateTime value);
+
         public abstract void performWith(Month value);
 
         public abstract void performWith(Day value);
@@ -122,6 +127,8 @@ public class AttributeValueHandler {
             classAction.performFor_Boolean();
         } else if (fieldClass == Date.class) {
             classAction.performFor_Date();
+        } else if (fieldClass == ZonedDateTime.class) {
+            classAction.performFor_ZonedDateTime();
         } else if (fieldClass == Month.class) {
             classAction.performFor_Month();
         } else if (fieldClass == Day.class) {
@@ -162,6 +169,8 @@ public class AttributeValueHandler {
             actionSet.performWith((Boolean) value);
         } else if (fieldClass == Date.class) {
             actionSet.performWith((Date) value);
+        } else if (fieldClass == ZonedDateTime.class) {
+            actionSet.performWith((ZonedDateTime) value);
         } else if (fieldClass == Month.class) {
             actionSet.performWith((Month) value);
         } else if (fieldClass == Day.class) {

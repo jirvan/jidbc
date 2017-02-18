@@ -39,6 +39,7 @@ import com.jirvan.dates.Second;
 
 import java.math.BigDecimal;
 import java.sql.Timestamp;
+import java.time.ZonedDateTime;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
@@ -137,6 +138,14 @@ public class AbstractPkWhereClauseHandler {
                                                    public void performWith(Millisecond value) {
                                                        if (columnDef.storeAsTimestamp) {
                                                            parameterValues.add(value == null ? null : new Timestamp(value.getDate().getTime()));
+                                                       } else {
+                                                           parameterValues.add(value == null ? null : value.toString());
+                                                       }
+                                                   }
+
+                                                   public void performWith(ZonedDateTime value) {
+                                                       if (columnDef.storeAsTimestamp) {
+                                                           parameterValues.add(value == null ? null : new Timestamp(value.toInstant().getEpochSecond() * 1000L));
                                                        } else {
                                                            parameterValues.add(value == null ? null : value.toString());
                                                        }

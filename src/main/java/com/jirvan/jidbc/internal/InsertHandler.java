@@ -44,6 +44,7 @@ import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.Timestamp;
+import java.time.ZonedDateTime;
 import java.util.Vector;
 
 import static com.jirvan.jidbc.internal.JidbcInternalUtils.*;
@@ -146,6 +147,14 @@ public class InsertHandler {
                                                            public void performWith(Millisecond value) {
                                                                if (columnDef.storeAsTimestamp) {
                                                                    parameterValues.add(value == null ? null : new Timestamp(value.getDate().getTime()));
+                                                               } else {
+                                                                   parameterValues.add(value == null ? null : value.toString());
+                                                               }
+                                                           }
+
+                                                           public void performWith(ZonedDateTime value) {
+                                                               if (columnDef.storeAsTimestamp) {
+                                                                   parameterValues.add(value == null ? null : new Timestamp(value.toInstant().getEpochSecond() * 1000L));
                                                                } else {
                                                                    parameterValues.add(value == null ? null : value.toString());
                                                                }

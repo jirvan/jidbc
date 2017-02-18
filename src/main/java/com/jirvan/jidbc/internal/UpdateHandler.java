@@ -37,6 +37,7 @@ import com.jirvan.lang.*;
 
 import java.math.*;
 import java.sql.*;
+import java.time.ZonedDateTime;
 import java.util.*;
 import java.util.Date;
 
@@ -166,6 +167,14 @@ public class UpdateHandler extends AbstractPkWhereClauseHandler {
                                                    public void performWith(Millisecond value) {
                                                        if (columnDef.storeAsTimestamp) {
                                                            parameterValues.add(value == null ? null : new Timestamp(value.getDate().getTime()));
+                                                       } else {
+                                                           parameterValues.add(value == null ? null : value.toString());
+                                                       }
+                                                   }
+
+                                                   public void performWith(ZonedDateTime value) {
+                                                       if (columnDef.storeAsTimestamp) {
+                                                           parameterValues.add(value == null ? null :  new Timestamp(value.toInstant().getEpochSecond() * 1000L));
                                                        } else {
                                                            parameterValues.add(value == null ? null : value.toString());
                                                        }

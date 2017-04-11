@@ -292,7 +292,7 @@ public class ObjectRowExtractor<T> implements RowExtractor<T> {
                                                                       if (resultSet.wasNull()) {
                                                                           columnDef.setValue(row, null);
                                                                       } else {
-                                                                          columnDef.setValue(row, Millisecond.fromString(value));
+                                                                          columnDef.setValue(row, ZonedDateTime.parse(value));
                                                                       }
                                                                   }
                                                               } catch (SQLException e) {

@@ -224,10 +224,10 @@ public class JidbcDbAdmin {
                 jidbc.executeUpdate(String.format("drop table %s cascade", table));
             }
             for (String view : thingsToDrop.views) {
-                jidbc.executeUpdate(String.format("drop view %s cascade", view));
+                jidbc.executeUpdate(String.format("drop view if exists %s cascade", view));
             }
             for (String sequence : thingsToDrop.sequences) {
-                jidbc.executeUpdate(String.format("drop sequence %s cascade", sequence));
+                jidbc.executeUpdate(String.format("drop sequence if exists %s cascade", sequence));
             }
 
             jidbc.commitAndClose();

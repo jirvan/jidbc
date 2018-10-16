@@ -276,7 +276,8 @@ public class JidbcRowClassGenerator {
             } else if (sqlType == Types.BINARY) {
                 this.javaClassSimpleName = "byte[]";
             } else {
-                throw new RuntimeException(String.format("Cannot handle columns sql data type %d", sqlType));
+                this.javaClassSimpleName = "Zzz";
+//                throw new RuntimeException(String.format("Cannot handle columns sql data type %d", sqlType));
             }
             this.isInPrimaryKey = isInPrimaryKey;
             if (isInPrimaryKey) {

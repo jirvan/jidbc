@@ -52,24 +52,28 @@ import static com.jirvan.util.Assertions.*;
 
 public class JidbcRowClassGenerator {
 
-    public static void generateJavaFilesIntoDirectory(DataSource dataSource, String packageName, File outputDirectory) {
-        generateJavaFilesIntoDirectory(dataSource, packageName, null, "Row", false, outputDirectory, false);
+    public static void generateJavaFilesIntoDirectory(DataSource dataSource, String packageName, boolean includeViews, File outputDirectory) {
+        generateJavaFilesIntoDirectory(dataSource, packageName, null, "Row", "Vrow", includeViews, false, outputDirectory, false);
     }
 
-    public static void generateJavaFilesIntoDirectory(DataSource dataSource, String packageName, File outputDirectory, boolean replaceExistingFiles) {
-        generateJavaFilesIntoDirectory(dataSource, packageName, null, "Row", false, outputDirectory, replaceExistingFiles);
+    public static void generateJavaFilesIntoDirectory(DataSource dataSource, String packageName, boolean includeViews, File outputDirectory, boolean replaceExistingFiles) {
+        generateJavaFilesIntoDirectory(dataSource, packageName, null, "Row", "Vrow", includeViews, false, outputDirectory, replaceExistingFiles);
     }
 
     public static void generateJavaFilesIntoDirectory(DataSource dataSource,
                                                       String packageName,
                                                       String classNamePrefix,
-                                                      String classNameSuffix,
+                                                      String tableClassNameSuffix,
+                                                      String viewClassNameSuffix,
+                                                      boolean includeViews,
                                                       boolean includeCloneMethod,
                                                       File outputDirectory) {
         generateJavaFilesIntoDirectory(dataSource,
                                        packageName,
                                        classNamePrefix,
-                                       classNameSuffix,
+                                       tableClassNameSuffix,
+                                       viewClassNameSuffix,
+                                       includeViews,
                                        includeCloneMethod,
                                        outputDirectory,
                                        false);
@@ -78,7 +82,9 @@ public class JidbcRowClassGenerator {
     public static void generateJavaFilesIntoDirectory(DataSource dataSource,
                                                       String packageName,
                                                       String classNamePrefix,
-                                                      String classNameSuffix,
+                                                      String tableClassNameSuffix,
+                                                      String viewClassNameSuffix,
+                                                      boolean includeViews,
                                                       boolean includeCloneMethod,
                                                       File outputDirectory,
                                                       boolean replaceExistingFiles) {
@@ -86,11 +92,27 @@ public class JidbcRowClassGenerator {
             Io.ensureDirectoryExists(outputDirectory);
             Connection connection = dataSource.getConnection();
             try {
-                ResultSet resultSet = connection.getMetaData().getTables(null, null, null, new String[]{"TABLE"});
+                ResultSet resultSet = connection.getMetaData().getTables(null,
+                                                                         null,
+                                                                         null,
+                                                                         includeViews ? new String[]{"TABLE", "VIEW"}
+                                                                                      : new String[]{"TABLE"});
                 try {
 
                     while (resultSet.next()) {
                         String tableName = resultSet.getString("TABLE_NAME");
+                        String tableType = resultSet.getString("TABLE_TYPE");
+                        String classNameSuffix;
+                        boolean isView;
+                        if ("TABLE".equals(tableType)) {
+                            classNameSuffix = tableClassNameSuffix;
+                            isView = false;
+                        } else if ("VIEW".equals(tableType)) {
+                            classNameSuffix = viewClassNameSuffix;
+                            isView = true;
+                        } else {
+                            throw new RuntimeException(String.format("Unexpected table (relation) type \"%s\"", tableType));
+                        }
                         String classSimpleName = (classNamePrefix == null ? "" : classNamePrefix)
                                                  + toCamelHumpName(tableName, true)
                                                  + (classNameSuffix == null ? "" : classNameSuffix);
@@ -107,9 +129,9 @@ public class JidbcRowClassGenerator {
                             PrintStream printStream = new PrintStream(outputJavaFile);
                             try {
                                 if (classNamePrefix != null || (classNameSuffix != null && !classNameSuffix.equals("Row"))) {
-                                    generateJavaFile(printStream, packageName, imports, columnDetailses, classSimpleName, tableName, includeCloneMethod);
+                                    generateJavaFile(printStream, packageName, imports, columnDetailses, classSimpleName, tableName, isView, includeCloneMethod);
                                 } else {
-                                    generateJavaFile(printStream, packageName, imports, columnDetailses, classSimpleName, null, includeCloneMethod);
+                                    generateJavaFile(printStream, packageName, imports, columnDetailses, classSimpleName, null, isView, includeCloneMethod);
                                 }
                             } finally {
                                 printStream.close();
@@ -137,6 +159,7 @@ public class JidbcRowClassGenerator {
                                         List<ColumnDetails> columnDetailses,
                                         String classSimpleName,
                                         String tableName,
+                                        boolean isView,
                                         boolean includeCloneMethod) {
         printStream.printf("package %s;\n", packageName);
         if (imports.size() > 0) {
@@ -152,7 +175,7 @@ public class JidbcRowClassGenerator {
             }
         }
         printStream.printf("\n");
-        if (tableName != null) {
+        if (tableName != null && !isView) {
             printStream.printf("@TableRow(tableName = \"%s\")\n", tableName);
         }
         printStream.printf("public class %s {\n", classSimpleName);

@@ -42,6 +42,7 @@ import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Timestamp;
+import java.time.LocalDate;
 import java.util.Map;
 
 import static com.jirvan.jidbc.internal.JidbcInternalUtils.*;
@@ -361,6 +362,50 @@ public class QueryForHandler {
                     if (resultSet.next()) {
                         Timestamp value = resultSet.getTimestamp(1);
                         result = resultSet.wasNull() ? null : Day.from(value);
+                    } else {
+                        if (exceptionIfNotFound) {
+                            throw new NotFoundRuntimeException();
+                        } else {
+                            return null;
+                        }
+                    }
+                    if (resultSet.next()) {
+                        throw new MultipleRowsRuntimeException();
+                    }
+
+                } finally {
+                    resultSet.close();
+                }
+
+                // Return the result
+                return result;
+
+            } finally {
+                statement.close();
+            }
+        } catch (SQLException e) {
+            Jidbc.logSqlException(e, sql, parameterValues);
+            throw new SQLRuntimeException(e);
+        }
+    }
+
+    public static LocalDate queryFor_LocalDate(Connection connection, boolean exceptionIfNotFound, String sql, Object... parameterValues) {
+        try {
+            PreparedStatement statement = connection.prepareStatement(sql);
+            try {
+
+                // Set parameter values and execute query
+                for (int i = 0; i < parameterValues.length; i++) {
+                    setObject(statement, i + 1, parameterValues[i]);
+                }
+                ResultSet resultSet = statement.executeQuery();
+                LocalDate result;
+                try {
+
+                    // Get result and check for anything other than exactly one row
+                    if (resultSet.next()) {
+                        Timestamp value = resultSet.getTimestamp(1);
+                        result = resultSet.wasNull() ? null : value.toLocalDateTime().toLocalDate();
                     } else {
                         if (exceptionIfNotFound) {
                             throw new NotFoundRuntimeException();

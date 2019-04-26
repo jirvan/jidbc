@@ -34,6 +34,7 @@ import com.jirvan.dates.*;
 import com.jirvan.lang.*;
 
 import java.sql.*;
+import java.time.LocalDate;
 
 public class JidbcInternalUtils {
 
@@ -43,6 +44,8 @@ public class JidbcInternalUtils {
                 statement.setObject(parameterIndex, object, Types.TIMESTAMP);
             } else if (object instanceof Day) {
                 statement.setObject(parameterIndex, ((Day) object).getDate(), Types.TIMESTAMP);
+            } else if (object instanceof LocalDate) {
+                statement.setObject(parameterIndex, ((LocalDate) object).toString(), Types.VARCHAR);
             } else {
                 statement.setObject(parameterIndex, object);
             }

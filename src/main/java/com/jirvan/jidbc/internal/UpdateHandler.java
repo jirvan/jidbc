@@ -30,16 +30,27 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 package com.jirvan.jidbc.internal;
 
-import com.jirvan.dates.*;
-import com.jirvan.jidbc.*;
-import com.jirvan.jidbc.lang.*;
-import com.jirvan.lang.*;
+import com.jirvan.dates.Day;
+import com.jirvan.dates.Hour;
+import com.jirvan.dates.Millisecond;
+import com.jirvan.dates.Minute;
+import com.jirvan.dates.Month;
+import com.jirvan.dates.Second;
+import com.jirvan.jidbc.Jidbc;
+import com.jirvan.jidbc.lang.MultipleRowsRuntimeException;
+import com.jirvan.lang.NotFoundRuntimeException;
+import com.jirvan.lang.SQLRuntimeException;
 
-import java.math.*;
-import java.sql.*;
+import java.math.BigDecimal;
+import java.sql.Connection;
+import java.sql.PreparedStatement;
+import java.sql.SQLException;
+import java.sql.Timestamp;
+import java.time.LocalDate;
 import java.time.ZonedDateTime;
-import java.util.*;
+import java.util.ArrayList;
 import java.util.Date;
+import java.util.List;
 
 import static com.jirvan.jidbc.internal.JidbcInternalUtils.*;
 
@@ -140,6 +151,14 @@ public class UpdateHandler extends AbstractPkWhereClauseHandler {
                                                        }
                                                    }
 
+                                                   public void performWith(LocalDate value) {
+                                                       if (columnDef.storeAsTimestamp) {
+                                                           parameterValues.add(value == null ? null : Timestamp.valueOf(value.atStartOfDay()));
+                                                       } else {
+                                                           parameterValues.add(value == null ? null : value.toString());
+                                                       }
+                                                   }
+
                                                    public void performWith(Hour value) {
                                                        if (columnDef.storeAsTimestamp) {
                                                            parameterValues.add(value == null ? null : new Timestamp(value.getDate().getTime()));
@@ -174,7 +193,7 @@ public class UpdateHandler extends AbstractPkWhereClauseHandler {
 
                                                    public void performWith(ZonedDateTime value) {
                                                        if (columnDef.storeAsTimestamp) {
-                                                           parameterValues.add(value == null ? null :  new Timestamp(value.toInstant().getEpochSecond() * 1000L));
+                                                           parameterValues.add(value == null ? null : new Timestamp(value.toInstant().getEpochSecond() * 1000L));
                                                        } else {
                                                            parameterValues.add(value == null ? null : value.toString());
                                                        }

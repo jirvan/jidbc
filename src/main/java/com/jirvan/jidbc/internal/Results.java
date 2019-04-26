@@ -37,6 +37,7 @@ import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
+import java.time.LocalDate;
 import java.util.Date;
 import java.util.Iterator;
 import java.util.List;
@@ -86,6 +87,10 @@ public class Results<T> implements Iterable<T> {
         } else if (Day.class.isAssignableFrom(rowClass)) {
             rowDef = null;
             rowExtractor = new DayRowExtractor();
+            sqlToUse = sql;
+        } else if (LocalDate.class.isAssignableFrom(rowClass)) {
+            rowDef = null;
+            rowExtractor = new LocalDateRowExtractor();
             sqlToUse = sql;
         } else if (Map.class.isAssignableFrom(rowClass)) {
             rowDef = null;

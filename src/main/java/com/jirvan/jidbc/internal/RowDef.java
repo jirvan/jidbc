@@ -115,6 +115,10 @@ public class RowDef {
                                                               extractAndAddColumnDefFromField(field, rowDef);
                                                           }
 
+                                                          public void performFor_LocalDateTime() {
+                                                              extractAndAddColumnDefFromField(field, rowDef);
+                                                          }
+
                                                           public void performFor_ZonedDateTime() {
                                                               extractAndAddColumnDefFromField(field, rowDef);
                                                           }
@@ -201,6 +205,10 @@ public class RowDef {
                                                                           }
 
                                                                           public void performFor_LocalDate() {
+                                                                              extractAndAddColumnDefFromGetterSetterMethods(attributeName, getterMethod, setterMethod, rowDef);
+                                                                          }
+
+                                                                          public void performFor_LocalDateTime() {
                                                                               extractAndAddColumnDefFromGetterSetterMethods(attributeName, getterMethod, setterMethod, rowDef);
                                                                           }
 

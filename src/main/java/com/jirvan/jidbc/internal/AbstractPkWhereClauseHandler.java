@@ -40,6 +40,7 @@ import com.jirvan.dates.Second;
 import java.math.BigDecimal;
 import java.sql.Timestamp;
 import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.time.ZonedDateTime;
 import java.util.ArrayList;
 import java.util.Date;
@@ -114,7 +115,15 @@ public class AbstractPkWhereClauseHandler {
 
                                                    public void performWith(LocalDate value) {
                                                        if (columnDef.storeAsTimestamp) {
-                                                           parameterValues.add(value == null ? null : Timestamp.valueOf(value.atStartOfDay()).toLocalDateTime());
+                                                           parameterValues.add(value == null ? null : Timestamp.valueOf(value.atStartOfDay()).getTime());
+                                                       } else {
+                                                           parameterValues.add(value == null ? null : value.toString());
+                                                       }
+                                                   }
+
+                                                   public void performWith(LocalDateTime value) {
+                                                       if (columnDef.storeAsTimestamp) {
+                                                           parameterValues.add(value == null ? null : Timestamp.valueOf(value).getTime());
                                                        } else {
                                                            parameterValues.add(value == null ? null : value.toString());
                                                        }

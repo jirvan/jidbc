@@ -40,6 +40,7 @@ import com.jirvan.jidbc.UnsupportedDataTypeException;
 
 import java.math.BigDecimal;
 import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.time.ZonedDateTime;
 import java.util.Date;
 
@@ -68,6 +69,8 @@ public class AttributeValueHandler {
         public abstract void performFor_Day();
 
         public abstract void performFor_LocalDate();
+
+        public abstract void performFor_LocalDateTime();
 
         public abstract void performFor_Hour();
 
@@ -105,6 +108,8 @@ public class AttributeValueHandler {
 
         public abstract void performWith(LocalDate value);
 
+        public abstract void performWith(LocalDateTime value);
+
         public abstract void performWith(Hour value);
 
         public abstract void performWith(Minute value);
@@ -140,6 +145,8 @@ public class AttributeValueHandler {
             classAction.performFor_Day();
         } else if (fieldClass == LocalDate.class) {
             classAction.performFor_LocalDate();
+        } else if (fieldClass == LocalDateTime.class) {
+            classAction.performFor_LocalDateTime();
         } else if (fieldClass == Hour.class) {
             classAction.performFor_Hour();
         } else if (fieldClass == Minute.class) {
@@ -182,6 +189,8 @@ public class AttributeValueHandler {
             actionSet.performWith((Month) value);
         } else if (fieldClass == LocalDate.class) {
             actionSet.performWith((LocalDate) value);
+        } else if (fieldClass == LocalDateTime.class) {
+            actionSet.performWith((LocalDateTime) value);
         } else if (fieldClass == Day.class) {
             actionSet.performWith((Day) value);
         } else if (fieldClass == Hour.class) {

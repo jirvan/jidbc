@@ -41,6 +41,7 @@ import java.sql.ResultSetMetaData;
 import java.sql.SQLException;
 import java.sql.Timestamp;
 import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.time.ZoneId;
 import java.time.ZonedDateTime;
 import java.util.ArrayList;
@@ -206,6 +207,28 @@ public class ObjectRowExtractor<T> implements RowExtractor<T> {
                                                                           columnDef.setValue(row, null);
                                                                       } else {
                                                                           columnDef.setValue(row, LocalDate.parse(value));
+                                                                      }
+                                                                  }
+                                                              } catch (SQLException e) {
+                                                                  throw new SQLRuntimeException(e);
+                                                              }
+                                                          }
+
+                                                          public void performFor_LocalDateTime() {
+                                                              try {
+                                                                  if (columnDef.storeAsTimestamp) {
+                                                                      Timestamp value = resultSet.getTimestamp(columnDef.columnName);
+                                                                      if (resultSet.wasNull()) {
+                                                                          columnDef.setValue(row, null);
+                                                                      } else {
+                                                                          columnDef.setValue(row, value.toLocalDateTime());
+                                                                      }
+                                                                  } else {
+                                                                      String value = resultSet.getString(columnDef.columnName);
+                                                                      if (resultSet.wasNull()) {
+                                                                          columnDef.setValue(row, null);
+                                                                      } else {
+                                                                          columnDef.setValue(row, LocalDateTime.parse(value));
                                                                       }
                                                                   }
                                                               } catch (SQLException e) {

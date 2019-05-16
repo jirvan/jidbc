@@ -36,6 +36,7 @@ import com.jirvan.lang.*;
 
 import java.sql.*;
 import java.time.LocalDate;
+import java.time.LocalDateTime;
 
 public class UpdateStatementExecutor {
 
@@ -50,6 +51,8 @@ public class UpdateStatementExecutor {
                         statement.setObject(i + 1, ((Day) parameters[i]).getDate(), Types.TIMESTAMP);
                     } else if (parameters[i] instanceof LocalDate) {
                         statement.setObject(i + 1, ((LocalDate) parameters[i]).toString(), Types.VARCHAR);
+                    } else if (parameters[i] instanceof LocalDateTime) {
+                        statement.setObject(i + 1, ((LocalDateTime) parameters[i]).toString(), Types.VARCHAR);
                     } else {
                         statement.setObject(i + 1, parameters[i]);
                     }

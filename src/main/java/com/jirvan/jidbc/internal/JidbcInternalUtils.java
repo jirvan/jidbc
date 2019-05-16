@@ -35,6 +35,7 @@ import com.jirvan.lang.*;
 
 import java.sql.*;
 import java.time.LocalDate;
+import java.time.LocalDateTime;
 
 public class JidbcInternalUtils {
 
@@ -46,6 +47,8 @@ public class JidbcInternalUtils {
                 statement.setObject(parameterIndex, ((Day) object).getDate(), Types.TIMESTAMP);
             } else if (object instanceof LocalDate) {
                 statement.setObject(parameterIndex, ((LocalDate) object).toString(), Types.VARCHAR);
+            } else if (object instanceof LocalDateTime) {
+                statement.setObject(parameterIndex, ((LocalDateTime) object).toString(), Types.VARCHAR);
             } else {
                 statement.setObject(parameterIndex, object);
             }

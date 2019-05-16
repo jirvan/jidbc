@@ -43,6 +43,7 @@ import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.SQLException;
 import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.util.List;
 
 public class Jidbc {
@@ -357,6 +358,19 @@ public class Jidbc {
         }
     }
 
+    public static LocalDateTime queryFor_LocalDateTime(DataSource dataSource, String sql, Object... parameterValues) {
+        JidbcConnection jidbc = JidbcConnection.from(dataSource);
+        try {
+
+            LocalDateTime value = jidbc.queryFor_LocalDateTime(sql, parameterValues);
+
+            jidbc.commitAndClose();
+            return value;
+        } catch (Throwable t) {
+            throw jidbc.rollbackCloseAndWrap(t);
+        }
+    }
+
     public static Day queryForOptional_Day(DataSource dataSource, String sql, Object... parameterValues) {
         JidbcConnection jidbc = JidbcConnection.from(dataSource);
         try {
@@ -375,6 +389,19 @@ public class Jidbc {
         try {
 
             LocalDate value = jidbc.queryForOptional_LocalDate(sql, parameterValues);
+
+            jidbc.commitAndClose();
+            return value;
+        } catch (Throwable t) {
+            throw jidbc.rollbackCloseAndWrap(t);
+        }
+    }
+
+    public static LocalDateTime queryForOptional_LocalDateTime(DataSource dataSource, String sql, Object... parameterValues) {
+        JidbcConnection jidbc = JidbcConnection.from(dataSource);
+        try {
+
+            LocalDateTime value = jidbc.queryForOptional_LocalDateTime(sql, parameterValues);
 
             jidbc.commitAndClose();
             return value;

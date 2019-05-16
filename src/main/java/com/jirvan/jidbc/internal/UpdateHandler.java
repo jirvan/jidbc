@@ -47,6 +47,7 @@ import java.sql.PreparedStatement;
 import java.sql.SQLException;
 import java.sql.Timestamp;
 import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.time.ZonedDateTime;
 import java.util.ArrayList;
 import java.util.Date;
@@ -154,6 +155,14 @@ public class UpdateHandler extends AbstractPkWhereClauseHandler {
                                                    public void performWith(LocalDate value) {
                                                        if (columnDef.storeAsTimestamp) {
                                                            parameterValues.add(value == null ? null : Timestamp.valueOf(value.atStartOfDay()));
+                                                       } else {
+                                                           parameterValues.add(value == null ? null : value.toString());
+                                                       }
+                                                   }
+
+                                                   public void performWith(LocalDateTime value) {
+                                                       if (columnDef.storeAsTimestamp) {
+                                                           parameterValues.add(value == null ? null : Timestamp.valueOf(value));
                                                        } else {
                                                            parameterValues.add(value == null ? null : value.toString());
                                                        }

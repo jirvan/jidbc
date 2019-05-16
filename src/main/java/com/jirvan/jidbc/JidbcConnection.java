@@ -56,6 +56,7 @@ import java.sql.DatabaseMetaData;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -275,12 +276,20 @@ public class JidbcConnection {
         return QueryForHandler.queryFor_LocalDate(jdbcConnection, true, sql, parameterValues);
     }
 
+    public LocalDateTime queryFor_LocalDateTime(String sql, Object... parameterValues) {
+        return QueryForHandler.queryFor_LocalDateTime(jdbcConnection, true, sql, parameterValues);
+    }
+
     public Day queryForOptional_Day(String sql, Object... parameterValues) {
         return QueryForHandler.queryFor_Day(jdbcConnection, false, sql, parameterValues);
     }
 
     public LocalDate queryForOptional_LocalDate(String sql, Object... parameterValues) {
         return QueryForHandler.queryFor_LocalDate(jdbcConnection, false, sql, parameterValues);
+    }
+
+    public LocalDateTime queryForOptional_LocalDateTime(String sql, Object... parameterValues) {
+        return QueryForHandler.queryFor_LocalDateTime(jdbcConnection, false, sql, parameterValues);
     }
 
 

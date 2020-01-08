@@ -44,7 +44,7 @@
         <dependency>
             <groupId>com.jirvan</groupId>
             <artifactId>ji-utils</artifactId>
-            <version>1.0.222</version>
+            <version>1.0.223</version>
         </dependency>
         <dependency>
             <groupId>commons-lang</groupId>

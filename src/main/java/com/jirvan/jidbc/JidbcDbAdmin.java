@@ -56,7 +56,7 @@ public class JidbcDbAdmin {
         } else if ("SQLite".equals(databaseProductName)) {
             return getCurrentUsersTables_sqlite(dataSource);
         } else if ("Microsoft SQL Server".equals(databaseProductName)) {
-            if (Jidbc.getDatabaseMajorVersion(dataSource) == 10) {
+            if (Jidbc.getDatabaseMajorVersion(dataSource) >= 10) {
                 return getCurrentUsersTables_sqlserver(dataSource);
             } else {
                 throw new RuntimeException(String.format("This version of %s is not supported (PostgreSQL, SQLite and SQLServer 2008 are the only databases currently supported by getCurrentUsersTables)", databaseProductName));
